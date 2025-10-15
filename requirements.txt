@@ -1,0 +1,25 @@
+# FastAPI 核心
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+email-validator
+pydantic-settings==2.1.0
+requests==2.32.5
+# Supabase（會自動安裝 httpx 等依賴）
+supabase>=2.4.0
+postgrest>=0.16.0
+
+# 資料處理
+python-multipart==0.0.6  # 檔案上傳
+python-jose[cryptography]==3.3.0  # JWT
+passlib[bcrypt]==1.7.4  # 密碼加密
+
+# QR Code 生成
+qrcode[pil]==7.4.2
+pillow>=10.3.0  # 支援 Python 3.13
+
+# 日期時間處理
+python-dateutil==2.8.2
+
+# 環境變數
+python-dotenv==1.0.0

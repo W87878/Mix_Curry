@@ -1,0 +1,212 @@
+[project]
+name = "mix-curry"
+version = "1.0.0"
+description = "颱風水災受災戶透過數位憑證領取補助系統"
+authors = [
+    {name = "Steve Wang", email = "steve.wang@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["災民補助", "數位憑證", "FastAPI", "Supabase", "政府API"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Government",
+    "Topic :: Government :: Digital Services",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+]
+
+dependencies = [
+    # FastAPI 核心
+    "fastapi>=0.109.0,<0.110.0",
+    "uvicorn[standard]>=0.27.0,<0.28.0",
+    "pydantic>=2.5.3,<3.0.0",
+    "pydantic[email]>=2.5.3,<3.0.0",
+    "pydantic-settings>=2.1.0,<3.0.0",
+    
+    "requests>=2.32.5",
+
+    # Supabase
+    "supabase>=2.4.0",
+    "postgrest>=0.16.0",
+    
+    # 資料處理
+    "python-multipart>=0.0.6",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    
+    # QR Code 生成
+    "qrcode[pil]>=7.4.2",
+    "pillow>=10.3.0",
+    
+    # 日期時間處理
+    "python-dateutil>=2.8.2",
+    
+    # HTTP 請求（政府數位憑證 API）
+    "httpx>=0.24.0",
+    
+    # 環境變數
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+
+test = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/mix-curry"
+Documentation = "https://github.com/yourusername/mix-curry/blob/main/README.md"
+Repository = "https://github.com/yourusername/mix-curry"
+"Bug Tracker" = "https://github.com/yourusername/mix-curry/issues"
+
+[project.scripts]
+mix-curry = "main:app"
+
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.models", "app.routers", "app.services"]
+
+[tool.setuptools.package-data]
+"*" = ["*.sql", "*.md"]
+
+# ==========================================
+# Black - 程式碼格式化
+# ==========================================
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.eggs
+  | \.tox
+  | build
+  | dist
+)/
+'''
+
+# ==========================================
+# Ruff - 快速 Linter
+# ==========================================
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (black handles this)
+    "B008",  # do not perform function calls in argument defaults
+    "W191",  # indentation contains tabs
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["fastapi", "pydantic", "supabase"]
+
+# ==========================================
+# MyPy - 型別檢查
+# ==========================================
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "supabase.*",
+    "postgrest.*",
+    "qrcode.*",
+    "PIL.*",
+]
+ignore_missing_imports = true
+
+# ==========================================
+# Pytest - 測試配置
+# ==========================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--cov=app",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--asyncio-mode=auto",
+]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# ==========================================
+# Coverage - 測試覆蓋率
+# ==========================================
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+

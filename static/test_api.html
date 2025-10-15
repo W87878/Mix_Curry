@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>災民補助申請系統 - API 測試頁面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .response {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .response.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .response.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .api-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .api-info a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 災民補助申請系統 - API 測試</h1>
+
+        <div class="api-info">
+            <h3>📡 API 資訊</h3>
+            <p><strong>Base URL:</strong> <code id="apiBaseUrl">http://localhost:8000/api/v1</code></p>
+            <p><strong>文件:</strong> <a href="http://localhost:8000/docs" target="_blank">Swagger UI</a> | <a href="http://localhost:8000/redoc" target="_blank">ReDoc</a></p>
+            <p><strong>狀態:</strong> <span class="status-badge" id="apiStatus">檢查中...</span></p>
+        </div>
+
+        <div class="grid">
+            <!-- 建立使用者 -->
+            <div class="card">
+                <h2>1️⃣ 建立使用者</h2>
+                <div class="form-group">
+                    <label>Email：</label>
+                    <input type="email" id="userEmail" value="test@example.com" placeholder="test@example.com">
+                </div>
+                <div class="form-group">
+                    <label>姓名：</label>
+                    <input type="text" id="userFullName" value="王小明" placeholder="王小明">
+                </div>
+                <div class="form-group">
+                    <label>身分證字號：</label>
+                    <input type="text" id="userIdNumber" value="A123456789" placeholder="A123456789">
+                </div>
+                <div class="form-group">
+                    <label>電話：</label>
+                    <input type="tel" id="userPhone" value="0912345678" placeholder="0912345678">
+                </div>
+                <div class="form-group">
+                    <label>角色：</label>
+                    <select id="userRole">
+                        <option value="applicant">災民</option>
+                        <option value="reviewer">審核員</option>
+                        <option value="admin">管理員</option>
+                    </select>
+                </div>
+                <button onclick="createUser()">建立使用者</button>
+                <div class="response" id="userResponse"></div>
+            </div>
+
+            <!-- 建立申請 -->
+            <div class="card">
+                <h2>2️⃣ 建立申請案件</h2>
+                <div class="form-group">
+                    <label>申請人 ID：</label>
+                    <input type="text" id="applicantId" placeholder="從步驟1複製使用者ID">
+                </div>
+                <div class="form-group">
+                    <label>災害類型：</label>
+                    <select id="disasterType">
+                        <option value="typhoon">颱風</option>
+                        <option value="flood">水災</option>
+                        <option value="earthquake">地震</option>
+                        <option value="fire">火災</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>災損描述：</label>
+                    <textarea id="damageDescription" placeholder="請描述災損情形...">颱風造成一樓客廳淹水約50公分，家具電器泡水損壞</textarea>
+                </div>
+                <div class="form-group">
+                    <label>申請金額：</label>
+                    <input type="number" id="requestedAmount" value="50000" placeholder="50000">
+                </div>
+                <button onclick="createApplication()">建立申請</button>
+                <div class="response" id="applicationResponse"></div>
+            </div>
+        </div>
+
+        <!-- 上傳照片 -->
+        <div class="card">
+            <h2>3️⃣ 上傳災損照片</h2>
+            <div class="form-group">
+                <label>案件 ID：</label>
+                <input type="text" id="photoApplicationId" placeholder="從步驟2複製案件ID">
+            </div>
+            <div class="form-group">
+                <label>上傳者 ID：</label>
+                <input type="text" id="uploaderId" placeholder="從步驟1複製使用者ID">
+            </div>
+            <div class="form-group">
+                <label>照片類型：</label>
+                <select id="photoType">
+                    <option value="before_damage">災前照片</option>
+                    <option value="after_damage">災後照片</option>
+                    <option value="inspection">現場勘查</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>照片說明：</label>
+                <input type="text" id="photoDescription" placeholder="一樓客廳淹水情形">
+            </div>
+            <div class="form-group">
+                <label>選擇照片：</label>
+                <input type="file" id="photoFile" accept="image/*">
+            </div>
+            <button onclick="uploadPhoto()">上傳照片</button>
+            <div class="response" id="photoResponse"></div>
+        </div>
+
+        <!-- 查詢功能 -->
+        <div class="grid">
+            <div class="card">
+                <h2>4️⃣ 查詢案件</h2>
+                <div class="form-group">
+                    <label>案件 ID：</label>
+                    <input type="text" id="queryApplicationId" placeholder="輸入案件ID">
+                </div>
+                <button onclick="getApplication()">查詢案件</button>
+                <div class="response" id="queryResponse"></div>
+            </div>
+
+            <div class="card">
+                <h2>5️⃣ 系統統計</h2>
+                <button onclick="getStats()">取得統計資料</button>
+                <div class="response" id="statsResponse"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api/v1';
+
+        // 檢查 API 狀態
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                
+                const statusBadge = document.getElementById('apiStatus');
+                if (response.ok) {
+                    statusBadge.className = 'status-badge status-online';
+                    statusBadge.textContent = '🟢 線上';
+                } else {
+                    statusBadge.className = 'status-badge status-offline';
+                    statusBadge.textContent = '🔴 離線';
+                }
+            } catch (error) {
+                const statusBadge = document.getElementById('apiStatus');
+                statusBadge.className = 'status-badge status-offline';
+                statusBadge.textContent = '🔴 離線';
+            }
+        }
+
+        // 建立使用者
+        async function createUser() {
+            const userData = {
+                email: document.getElementById('userEmail').value,
+                full_name: document.getElementById('userFullName').value,
+                id_number: document.getElementById('userIdNumber').value,
+                phone: document.getElementById('userPhone').value,
+                role: document.getElementById('userRole').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                const responseDiv = document.getElementById('userResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = `✅ 使用者建立成功！\n\n使用者 ID: ${data.data.id}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
+                    
+                    // 自動填入申請人ID
+                    document.getElementById('applicantId').value = data.data.id;
+                    document.getElementById('uploaderId').value = data.data.id;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ 建立失敗：\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('userResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            }
+        }
+
+        // 建立申請
+        async function createApplication() {
+            const applicantId = document.getElementById('applicantId').value;
+            if (!applicantId) {
+                alert('請先建立使用者並複製使用者ID');
+                return;
+            }
+
+            const applicationData = {
+                applicant_id: applicantId,
+                applicant_name: document.getElementById('userFullName').value,
+                id_number: document.getElementById('userIdNumber').value,
+                phone: document.getElementById('userPhone').value,
+                address: '台南市中西區民權路100號',
+                disaster_date: new Date().toISOString().split('T')[0],
+                disaster_type: document.getElementById('disasterType').value,
+                damage_description: document.getElementById('damageDescription').value,
+                damage_location: '台南市中西區民權路100號1樓',
+                subsidy_type: 'housing',
+                requested_amount: parseFloat(document.getElementById('requestedAmount').value)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/applications/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(applicationData)
+                });
+
+                const data = await response.json();
+                const responseDiv = document.getElementById('applicationResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = `✅ 申請建立成功！\n\n案件編號: ${data.data.case_no}\n案件 ID: ${data.data.id}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
+                    
+                    // 自動填入案件ID
+                    document.getElementById('photoApplicationId').value = data.data.id;
+                    document.getElementById('queryApplicationId').value = data.data.id;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ 建立失敗：\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('applicationResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            }
+        }
+
+        // 上傳照片
+        async function uploadPhoto() {
+            const applicationId = document.getElementById('photoApplicationId').value;
+            const uploaderId = document.getElementById('uploaderId').value;
+            const photoFile = document.getElementById('photoFile').files[0];
+
+            if (!applicationId || !uploaderId) {
+                alert('請先建立申請案件');
+                return;
+            }
+
+            if (!photoFile) {
+                alert('請選擇照片');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('application_id', applicationId);
+            formData.append('photo_type', document.getElementById('photoType').value);
+            formData.append('description', document.getElementById('photoDescription').value);
+            formData.append('uploaded_by', uploaderId);
+            formData.append('file', photoFile);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/photos/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                const responseDiv = document.getElementById('photoResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = `✅ 照片上傳成功！\n\n照片 ID: ${data.data.id}\n照片 URL: ${data.data.photo_url}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ 上傳失敗：\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('photoResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            }
+        }
+
+        // 查詢案件
+        async function getApplication() {
+            const applicationId = document.getElementById('queryApplicationId').value;
+            if (!applicationId) {
+                alert('請輸入案件ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`);
+                const data = await response.json();
+                const responseDiv = document.getElementById('queryResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = `✅ 查詢成功！\n\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ 查詢失敗：\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('queryResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            }
+        }
+
+        // 取得統計資料
+        async function getStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                const data = await response.json();
+                const responseDiv = document.getElementById('statsResponse');
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    const stats = data.data;
+                    responseDiv.textContent = `✅ 統計資料：\n\n` +
+                        `總申請案件: ${stats.total_applications}\n` +
+                        `待審核: ${stats.pending_applications}\n` +
+                        `審核中: ${stats.under_review_applications}\n` +
+                        `已核准: ${stats.approved_applications}\n` +
+                        `已駁回: ${stats.rejected_applications}\n` +
+                        `已完成: ${stats.completed_applications}\n` +
+                        `總核准金額: ${stats.total_approved_amount}\n` +
+                        `已發放金額: ${stats.total_disbursed_amount}\n\n` +
+                        `完整資料：\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ 查詢失敗：\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('statsResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            }
+        }
+
+        // 頁面載入時檢查 API 狀態
+        checkApiStatus();
+        setInterval(checkApiStatus, 10000); // 每 10 秒檢查一次
+    </script>
+</body>
+</html>
+

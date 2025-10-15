@@ -1,0 +1,490 @@
+###############################################################################
+# 災民補助申請系統 API 測試
+# 使用方式：在 VS Code 安裝 REST Client 擴充套件
+# 或使用 IntelliJ IDEA / WebStorm 的內建 HTTP Client
+###############################################################################
+
+### 設定變數
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/v1
+
+# ⚠️ 重要使用說明：
+# 
+# 方法 1（推薦）：按順序執行並手動更新變數
+# ------------------------------------------------
+# 1. 執行「2.1 建立災民使用者」
+# 2. 從回應中複製 data.id（UUID 格式）
+# 3. 更新下面的 @applicantId = 你複製的UUID
+# 4. 執行「2.2 建立審核員」並更新 @reviewerId
+# 5. 執行「3.1 建立申請案件」並更新 @applicationId 和 @caseNo
+# 6. 繼續執行後續請求...
+#
+# 方法 2（最簡單）：使用網頁測試介面
+# ------------------------------------------------
+# 開啟瀏覽器：http://localhost:8000/test
+# 網頁會自動處理所有 ID 的傳遞，無需手動複製貼上！
+#
+# 方法 3：使用測試流程（見文件底部）
+# ------------------------------------------------
+# 跳到文件底部「完整測試流程」章節，按順序執行
+
+@applicantId = 181e6e66-961b-4fbd-a139-b6029ecd8947
+@reviewerId = 4101b81e-8a3a-4a1d-8ff5-98775dded73e
+@applicationId = e992e8ba-bdfe-4058-a656-38c4a6f0b3b4
+@caseNo = CASE-2025-00001
+@certificateNo = 
+@photoId = 
+
+###############################################################################
+# 1. 健康檢查
+###############################################################################
+
+### 1.1 檢查 API 健康狀態
+GET {{baseUrl}}/health HTTP/1.1
+
+### 1.2 取得 API 根資訊
+GET {{baseUrl}}/ HTTP/1.1
+ 
+###############################################################################
+# 2. 使用者管理
+###############################################################################
+
+### 2.1 建立災民使用者
+# @name createApplicant
+POST {{apiUrl}}/users/ HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "disaster.victim@example.com",
+  "phone": "0912345678",
+  "full_name": "王小明",
+  "id_number": "A123456789",
+  "role": "applicant"
+}
+
+### 2.2 建立審核員使用者
+# @name createReviewer
+POST {{apiUrl}}/users/ HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "reviewer@example.com",
+  "phone": "0987654321",
+  "full_name": "李審核",
+  "id_number": "B987654321",
+  "role": "reviewer"
+}
+
+### 2.3 根據 Email 查詢使用者
+GET {{apiUrl}}/users/email/disaster.victim@example.com HTTP/1.1
+
+### 2.4 根據身分證字號查詢使用者
+GET {{apiUrl}}/users/id-number/A123456789 HTTP/1.1
+
+### 2.5 根據 ID 查詢使用者（需先從上面的回應取得 ID）
+# 替換 {{applicantId}} 為實際的使用者 ID
+GET {{apiUrl}}/users/{{applicantId}} HTTP/1.1
+
+###############################################################################
+# 3. 申請案件管理
+###############################################################################
+
+### 3.1 建立申請案件（颱風水災）
+# @name createApplication
+# 注意：需要先替換 applicant_id 為實際的使用者 ID
+POST {{apiUrl}}/applications/ HTTP/1.1
+Content-Type: application/json
+
+{
+  "applicant_id": "d3252b3a-f62d-4a2c-8195-120085205c95",
+  "applicant_name": "王小明",
+  "id_number": "A123456789",
+  "phone": "0912345678",
+  "address": "台南市中西區民權路100號",
+  "disaster_date": "2025-10-10",
+  "disaster_type": "typhoon",
+  "damage_description": "颱風來襲造成一樓淹水約50公分，客廳家具、電器設備（冰箱、洗衣機、電視）受損嚴重，牆面也有水痕需重新粉刷。",
+  "damage_location": "台南市中西區民權路100號1樓",
+  "estimated_loss": 80000,
+  "subsidy_type": "housing",
+  "requested_amount": 50000
+}
+
+### 3.2 查詢申請案件（根據 ID）
+# 替換 {{applicationId}} 為實際的案件 ID
+GET {{apiUrl}}/applications/{{applicationId}} HTTP/1.1
+
+### 3.3 查詢申請案件（根據案件編號）
+# 替換 {{caseNo}} 為實際的案件編號，例如：CASE-2025-00001
+GET {{apiUrl}}/applications/case-no/{{caseNo}} HTTP/1.1
+
+### 3.4 查詢特定申請人的所有案件
+# 替換 {{applicantId}} 為實際的申請人 ID
+GET {{apiUrl}}/applications/applicant/{{applicantId}} HTTP/1.1
+
+### 3.5 查詢特定狀態的案件
+GET {{apiUrl}}/applications/status/pending?limit=10 HTTP/1.1
+
+### 3.6 列出所有案件（分頁）
+GET {{apiUrl}}/applications/?skip=0&limit=20 HTTP/1.1
+
+### 3.7 更新申請案件
+# 替換 {{applicationId}} 為實際的案件 ID
+PATCH {{apiUrl}}/applications/{{applicationId}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "status": "under_review",
+  "review_notes": "案件已進入審核流程"
+}
+
+###############################################################################
+# 4. 照片上傳管理
+###############################################################################
+
+### 4.1 上傳單張災損照片（災前）
+# @name uploadPhoto
+# 注意：需要先替換 application_id，並準備一張測試圖片
+POST {{apiUrl}}/photos/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="photo_type"
+
+before_damage
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+一樓客廳淹水情形，可見水位高度約50公分
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="uploaded_by"
+
+{{applicantId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="damage_before.jpg"
+Content-Type: image/jpeg
+
+< ./test_images/damage_before.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4.2 上傳災損照片（災後）
+POST {{apiUrl}}/photos/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="photo_type"
+
+after_damage
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+災後清理情形，家具已受損無法使用
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="uploaded_by"
+
+{{applicantId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="damage_after.jpg"
+Content-Type: image/jpeg
+
+< ./test_images/damage_after.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4.3 查詢申請案件的所有照片
+# 替換 {{applicationId}} 為實際的案件 ID
+GET {{apiUrl}}/photos/application/{{applicationId}} HTTP/1.1
+
+### 4.4 上傳現場勘查照片（審核員使用）
+POST {{apiUrl}}/photos/inspection/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="application_id"
+
+{{applicationId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="reviewer_id"
+
+{{reviewerId}}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+現場勘查照片，確認災損情形屬實
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="inspection.jpg"
+Content-Type: image/jpeg
+
+< ./test_images/inspection.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4.5 刪除照片
+# 替換 {{photoId}} 為實際的照片 ID（從上面的回應中複製）
+DELETE {{apiUrl}}/photos/{{photoId}} HTTP/1.1
+
+###############################################################################
+# 5. 審核管理
+###############################################################################
+
+### 5.1 建立審核記錄（開始審核）
+# @name createReview
+POST {{apiUrl}}/reviews/ HTTP/1.1
+Content-Type: application/json
+
+{
+  "application_id": {{applicationId}},
+  "reviewer_id": {{reviewerId}},
+  "reviewer_name": "李審核",
+  "action": "under_review",
+  "previous_status": "pending",
+  "new_status": "under_review",
+  "comments": "案件已受理，進入審核程序"
+}
+
+### 5.2 查詢申請案件的審核記錄
+# 替換 {{applicationId}} 為實際的案件 ID
+GET {{apiUrl}}/reviews/application/{{applicationId}} HTTP/1.1
+
+### 5.3 核准申請案件
+# @name approveApplication
+# 替換 {{applicationId}}, {{reviewerId}} 等變數
+POST {{apiUrl}}/reviews/approve/{{applicationId}}?reviewer_id={{reviewerId}}&reviewer_name=李審核&approved_amount=45000&decision_reason=經現場勘查，災損情形屬實，核准補助新台幣45,000元整。 HTTP/1.1
+
+### 5.4 駁回申請案件
+# 替換 {{applicationId}}, {{reviewerId}} 等變數
+POST {{apiUrl}}/reviews/reject/{{applicationId}}?reviewer_id={{reviewerId}}&reviewer_name=李審核&decision_reason=資料不完整，請補件後重新申請。 HTTP/1.1
+
+###############################################################################
+# 6. 數位憑證管理（整合政府沙盒 API）
+###############################################################################
+
+### 6.1 建立數位憑證（使用政府 API）
+# @name createCertificate
+# 替換 {{applicationId}}, {{reviewerId}} 等變數
+POST {{apiUrl}}/certificates/?application_id={{applicationId}}&issued_by={{reviewerId}}&expires_days=365&use_gov_api=true HTTP/1.1
+
+### 6.2 建立數位憑證（本地模式）
+POST {{apiUrl}}/certificates/?application_id={{applicationId}}&issued_by={{reviewerId}}&expires_days=365&use_gov_api=false HTTP/1.1
+
+### 6.3 查詢憑證（根據憑證編號）
+# 替換 {{certificateNo}} 為實際的憑證編號，例如：CERT-20251014120000-abc12345
+GET {{apiUrl}}/certificates/{{certificateNo}} HTTP/1.1
+
+### 6.4 查詢憑證（根據申請案件 ID）
+# 替換 {{applicationId}} 為實際的案件 ID
+GET {{apiUrl}}/certificates/application/{{applicationId}} HTTP/1.1
+
+### 6.5 驗證憑證（本地）
+POST {{apiUrl}}/certificates/verify HTTP/1.1
+Content-Type: application/json
+
+{
+  "certificate_no": {{certificateNo}},
+  "verified_by": {{reviewerId}}
+}
+
+### 6.6 掃描 QR Code（本地）
+# 替換 {{certificateNo}} 為實際的憑證編號
+POST {{apiUrl}}/certificates/scan/{{certificateNo}} HTTP/1.1
+
+### 6.7 使用政府 API 驗證 QR Code
+POST {{apiUrl}}/certificates/gov/verify-qr HTTP/1.1
+Content-Type: application/json
+
+{
+  "qr_data": "{從 QR Code 掃描得到的資料}"
+}
+
+### 6.8 建立驗證請求（發放窗口使用）
+POST {{apiUrl}}/certificates/gov/create-verification-request HTTP/1.1
+
+### 6.9 發放補助
+POST {{apiUrl}}/certificates/disburse HTTP/1.1
+Content-Type: application/json
+
+{
+  "certificate_id": {{certificateNo}},
+  "disbursement_method": "bank_transfer"
+}
+
+###############################################################################
+# 7. 統計與報表
+###############################################################################
+
+### 7.1 取得系統統計資料
+GET {{apiUrl}}/stats HTTP/1.1
+
+###############################################################################
+# 完整測試流程範例
+###############################################################################
+
+### 【流程 1】災民申請補助完整流程
+
+# Step 1: 建立災民帳號
+POST {{apiUrl}}/users/
+Content-Type: application/json
+
+{
+  "email": "victim001@example.com",
+  "phone": "0912345678",
+  "full_name": "張災民",
+  "id_number": "C123456789",
+  "role": "applicant"
+}
+
+###
+
+# Step 2: 災民建立申請案件（記下回傳的 application_id 和 case_no）
+POST {{apiUrl}}/applications/
+Content-Type: application/json
+
+{
+  "applicant_id": "從上一步取得",
+  "applicant_name": "張災民",
+  "id_number": "C123456789",
+  "phone": "0912345678",
+  "address": "台南市安南區海佃路200號",
+  "disaster_date": "2025-10-12",
+  "disaster_type": "typhoon",
+  "damage_description": "颱風導致屋頂破損，雨水滲入造成天花板塌陷，臥室家具全毀",
+  "damage_location": "台南市安南區海佃路200號2樓",
+  "estimated_loss": 120000,
+  "subsidy_type": "housing",
+  "requested_amount": 80000
+}
+
+###
+
+# Step 3: 上傳災損照片
+# （使用 Postman 或 Insomnia 更方便）
+
+###
+
+# Step 4: 查看申請狀態
+GET {{apiUrl}}/applications/{{applicationId}}
+
+###
+
+### 【流程 2】審核員審核完整流程
+
+# Step 1: 建立審核員帳號
+POST {{apiUrl}}/users/
+Content-Type: application/json
+
+{
+  "email": "reviewer001@gov.tw",
+  "phone": "0987654321",
+  "full_name": "陳審核",
+  "id_number": "D987654321",
+  "role": "reviewer"
+}
+
+###
+
+# Step 2: 查看待審核案件
+GET {{apiUrl}}/applications/status/pending
+
+###
+
+# Step 3: 開始審核
+POST {{apiUrl}}/reviews/
+Content-Type: application/json
+
+{
+  "application_id": {{applicationId}},
+  "reviewer_id": {{reviewerId}},
+  "reviewer_name": "陳審核",
+  "action": "under_review",
+  "previous_status": "pending",
+  "new_status": "under_review",
+  "comments": "開始進行案件審核"
+}
+
+###
+
+# Step 4: 上傳現場勘查照片
+# （使用照片上傳 API）
+
+###
+
+# Step 5: 核准案件
+POST {{apiUrl}}/reviews/approve/{{applicationId}}?reviewer_id={{reviewerId}}&reviewer_name=陳審核&approved_amount=75000&decision_reason=經現場勘查確認災損情形，核准補助
+
+###
+
+# Step 6: 發行數位憑證
+POST {{apiUrl}}/certificates/?application_id={{applicationId}}&issued_by={{reviewerId}}&use_gov_api=true
+
+###
+
+### 【流程 3】發放補助完整流程
+
+# Step 1: 建立驗證請求（產生 QR Code）
+POST {{apiUrl}}/certificates/gov/create-verification-request
+
+###
+
+# Step 2: 災民出示憑證（掃描 QR Code）
+
+###
+
+# Step 3: 驗證憑證
+POST {{apiUrl}}/certificates/verify
+Content-Type: application/json
+
+{
+  "certificate_no": {{certificateNo}},
+  "verified_by": {{reviewerId}}
+}
+
+###
+
+# Step 4: 發放補助
+POST {{apiUrl}}/certificates/disburse
+Content-Type: application/json
+
+{
+  "certificate_id": {{certificateNo}},
+  "disbursement_method": "bank_transfer"
+}
+
+###
+
+# Step 5: 確認案件已完成
+GET {{apiUrl}}/applications/{{applicationId}}
+
+###############################################################################
+# 注意事項
+###############################################################################
+
+# 1. 使用前請確保：
+#    - FastAPI 服務正在運行（python main.py）
+#    - Supabase 資料庫已設定
+#    - 環境變數已正確配置
+
+# 2. 替換變數：
+#    - 將 {{applicationId}}, {{applicantId}} 等替換為實際的 ID
+#    - 可以從各個請求的回應中複製 ID
+
+# 3. 圖片上傳：
+#    - 建議使用 Postman 或 Insomnia 進行圖片上傳測試
+#    - 或使用 curl 命令：
+#      curl -X POST "http://localhost:8000/api/v1/photos/upload" \
+#        -F "application_id=xxx" \
+#        -F "photo_type=before_damage" \
+#        -F "file=@./path/to/image.jpg"
+
+# 4. VS Code REST Client：
+#    - 安裝 REST Client 擴充套件
+#    - 點擊請求上方的 "Send Request" 執行
+#    - 可以查看回應並複製需要的 ID
+
+###############################################################################
+
