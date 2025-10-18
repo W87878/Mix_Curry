@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>災民補助申請 - 線上申請系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        label .required {
+            color: #ef4444;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1e40af;
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .login-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .login-info.logged-in {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+        }
+
+        .my-applications {
+            margin-top: 20px;
+        }
+
+        .app-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.pending { background: #fef3c7; color: #92400e; }
+        .badge.approved { background: #d1fae5; color: #065f46; }
+        .badge.rejected { background: #fee2e2; color: #991b1b; }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 災民補助申請</h1>
+            <p>簡單、快速、安心</p>
+        </div>
+
+        <!-- 登入/註冊畫面 -->
+        <div id="authScreen" class="card">
+            <h2 style="margin-bottom: 20px; color: #333;">歡迎使用線上申請系統</h2>
+            
+            <div class="info-box">
+                💡 首次使用請先註冊帳號，已有帳號可直接登入
+            </div>
+
+            <div class="form-group">
+                <label>Email <span class="required">*</span></label>
+                <input type="email" id="authEmail" placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>姓名 <span class="required">*</span></label>
+                <input type="text" id="authName" placeholder="請輸入真實姓名">
+            </div>
+
+            <div class="form-group">
+                <label>身分證字號 <span class="required">*</span></label>
+                <input type="text" id="authIdNumber" placeholder="A123456789">
+            </div>
+
+            <div class="form-group">
+                <label>手機號碼 <span class="required">*</span></label>
+                <input type="tel" id="authPhone" placeholder="0912345678">
+            </div>
+
+            <button class="btn btn-primary" onclick="registerAndLogin()">開始申請</button>
+            
+            <div style="text-align: center; margin: 20px 0; color: #999;">
+                或
+            </div>
+
+            <button class="btn btn-secondary" onclick="showLoginOnly()">我已有帳號，直接登入</button>
+        </div>
+
+        <!-- 僅登入畫面 -->
+        <div id="loginOnlyScreen" class="card hidden">
+            <h2 style="margin-bottom: 20px; color: #333;">登入帳號</h2>
+
+            <div class="form-group">
+                <label>Email <span class="required">*</span></label>
+                <input type="email" id="loginEmail" placeholder="your@email.com">
+            </div>
+
+            <button class="btn btn-primary" onclick="loginOnly()">登入</button>
+            <button class="btn btn-secondary" onclick="backToAuth()">返回</button>
+        </div>
+
+        <!-- 主選單 -->
+        <div id="mainMenu" class="card hidden">
+            <div class="login-info logged-in">
+                <strong id="userNameDisplay"></strong> 已登入
+                <button onclick="logout()" style="float: right; padding: 5px 10px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer;">登出</button>
+            </div>
+
+            <h2 style="margin-bottom: 20px; color: #333;">請選擇功能</h2>
+
+            <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="showApplyForm()">
+                📝 提交新的補助申請
+            </button>
+
+            <button class="btn btn-secondary" onclick="showMyApplications()">
+                📋 查看我的申請紀錄
+            </button>
+        </div>
+
+        <!-- 申請表單 -->
+        <div id="applyForm" class="card hidden">
+            <div class="steps">
+                <div class="step" id="step1">1</div>
+                <div class="step" id="step2">2</div>
+                <div class="step" id="step3">3</div>
+                <div class="step" id="step4">4</div>
+            </div>
+
+            <!-- 步驟1：基本資料 -->
+            <div id="form-step1">
+                <h2 style="margin-bottom: 20px; color: #333;">基本資料</h2>
+
+                <div class="form-group">
+                    <label>姓名 <span class="required">*</span></label>
+                    <input type="text" id="appName">
+                </div>
+
+                <div class="form-group">
+                    <label>身分證字號 <span class="required">*</span></label>
+                    <input type="text" id="appIdNumber">
+                </div>
+
+                <div class="form-group">
+                    <label>手機號碼 <span class="required">*</span></label>
+                    <input type="tel" id="appPhone">
+                </div>
+
+                <div class="form-group">
+                    <label>聯絡地址 <span class="required">*</span></label>
+                    <input type="text" id="appAddress" placeholder="請輸入完整地址">
+                </div>
+
+                <button class="btn btn-primary" onclick="nextStep(2)">下一步 →</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">取消</button>
+            </div>
+
+            <!-- 步驟2：災害資訊 -->
+            <div id="form-step2" class="hidden">
+                <h2 style="margin-bottom: 20px; color: #333;">災害資訊</h2>
+
+                <div class="form-group">
+                    <label>災害發生日期 <span class="required">*</span></label>
+                    <input type="date" id="appDate">
+                </div>
+
+                <div class="form-group">
+                    <label>災害類型 <span class="required">*</span></label>
+                    <select id="appType">
+                        <option value="flood">水災</option>
+                        <option value="typhoon">颱風</option>
+                        <option value="earthquake">地震</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>災損地點 <span class="required">*</span></label>
+                    <input type="text" id="appDamageLocation" placeholder="災損發生的具體地點">
+                </div>
+
+                <div class="form-group">
+                    <label>災損描述 <span class="required">*</span></label>
+                    <textarea id="appDescription" rows="4" placeholder="請詳細描述災損情況，例如：一樓淹水約50公分，家具電器受損..."></textarea>
+                    <div class="helper-text">請盡量詳細描述，有助於加快審核速度</div>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextStep(3)">下一步 →</button>
+                <button class="btn btn-secondary" onclick="prevStep(1)">← 上一步</button>
+            </div>
+
+            <!-- 步驟3：補助金額 -->
+            <div id="form-step3" class="hidden">
+                <h2 style="margin-bottom: 20px; color: #333;">申請補助</h2>
+
+                <div class="info-box">
+                    💰 請根據實際損失填寫申請金額，審核人員會依據災損情況核定
+                </div>
+
+                <div class="form-group">
+                    <label>預估損失金額 <span class="required">*</span></label>
+                    <input type="number" id="appEstimatedLoss" placeholder="50000">
+                    <div class="helper-text">請填寫預估的總損失金額（新台幣）</div>
+                </div>
+
+                <div class="form-group">
+                    <label>申請補助金額 <span class="required">*</span></label>
+                    <input type="number" id="appAmount" placeholder="30000">
+                    <div class="helper-text">您希望申請的補助金額</div>
+                </div>
+
+                <div class="form-group">
+                    <label>補助類型</label>
+                    <select id="appSubsidyType">
+                        <option value="housing">房屋修繕</option>
+                        <option value="furniture">家具家電</option>
+                        <option value="living">生活補助</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextStep(4)">下一步 →</button>
+                <button class="btn btn-secondary" onclick="prevStep(2)">← 上一步</button>
+            </div>
+
+            <!-- 步驟4：確認送出 -->
+            <div id="form-step4" class="hidden">
+                <h2 style="margin-bottom: 20px; color: #333;">確認資料</h2>
+
+                <div class="info-box">
+                    📋 請確認以下資料無誤後送出申請
+                </div>
+
+                <div id="confirmData" style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <!-- 將由 JS 填充 -->
+                </div>
+
+                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+                    ⚠️ 提醒：請確保所填資料真實正確，虛報或不實申報將影響您的權益
+                </div>
+
+                <button class="btn btn-primary" onclick="submitApplication()">確認送出申請</button>
+                <button class="btn btn-secondary" onclick="prevStep(3)">← 上一步</button>
+            </div>
+        </div>
+
+        <!-- 成功畫面 -->
+        <div id="successScreen" class="card hidden">
+            <div class="success-icon">✓</div>
+            <h2 style="text-align: center; color: #333; margin-bottom: 15px;">申請已送出！</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                您的申請案件編號：<strong id="caseNumber"></strong>
+            </p>
+
+            <div class="info-box">
+                📱 我們已將申請資訊發送至您的手機，請保持手機暢通。<br>
+                👨‍💼 里長將在 3 個工作天內審核您的申請。<br>
+                🔔 審核結果將以簡訊通知，請留意訊息。
+            </div>
+
+            <button class="btn btn-primary" onclick="backToMenu()">返回主選單</button>
+        </div>
+
+        <!-- 我的申請 -->
+        <div id="myApplicationsScreen" class="card hidden">
+            <h2 style="margin-bottom: 20px; color: #333;">我的申請紀錄</h2>
+            
+            <div id="applicationsList"></div>
+
+            <button class="btn btn-secondary" onclick="backToMenu()">返回主選單</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+        let accessToken = localStorage.getItem('applicant_token');
+        let currentUser = JSON.parse(localStorage.getItem('applicant_user') || 'null');
+        let currentStep = 1;
+
+        // 初始化
+        if (accessToken && currentUser) {
+            showMainMenu();
+        }
+
+        function showScreen(screenId) {
+            ['authScreen', 'loginOnlyScreen', 'mainMenu', 'applyForm', 'successScreen', 'myApplicationsScreen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showLoginOnly() {
+            showScreen('loginOnlyScreen');
+        }
+
+        function backToAuth() {
+            showScreen('authScreen');
+        }
+
+        async function registerAndLogin() {
+            const data = {
+                email: document.getElementById('authEmail').value,
+                full_name: document.getElementById('authName').value,
+                id_number: document.getElementById('authIdNumber').value,
+                phone: document.getElementById('authPhone').value,
+                role: 'applicant'
+            };
+
+            // 註冊
+            const regResult = await fetch(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            // 登入
+            const loginResult = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: data.email,
+                    password: '',
+                    login_type: 'password'
+                })
+            });
+
+            if (loginResult.ok) {
+                const loginData = await loginResult.json();
+                accessToken = loginData.access_token;
+                currentUser = loginData.user;
+                localStorage.setItem('applicant_token', accessToken);
+                localStorage.setItem('applicant_user', JSON.stringify(currentUser));
+                showMainMenu();
+            } else {
+                alert('註冊失敗，Email 可能已被使用');
+            }
+        }
+
+        async function loginOnly() {
+            const email = document.getElementById('loginEmail').value;
+            const result = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    password: '',
+                    login_type: 'password'
+                })
+            });
+
+            if (result.ok) {
+                const data = await result.json();
+                accessToken = data.access_token;
+                currentUser = data.user;
+                localStorage.setItem('applicant_token', accessToken);
+                localStorage.setItem('applicant_user', JSON.stringify(currentUser));
+                showMainMenu();
+            } else {
+                alert('登入失敗，請確認 Email 是否正確');
+            }
+        }
+
+        function showMainMenu() {
+            document.getElementById('userNameDisplay').textContent = currentUser.full_name;
+            showScreen('mainMenu');
+        }
+
+        function logout() {
+            accessToken = null;
+            currentUser = null;
+            localStorage.removeItem('applicant_token');
+            localStorage.removeItem('applicant_user');
+            showScreen('authScreen');
+        }
+
+        function showApplyForm() {
+            showScreen('applyForm');
+            currentStep = 1;
+            updateSteps();
+            // 預填資料
+            document.getElementById('appName').value = currentUser.full_name;
+            document.getElementById('appIdNumber').value = currentUser.id_number;
+            document.getElementById('appPhone').value = currentUser.phone || '';
+        }
+
+        function backToMenu() {
+            showMainMenu();
+        }
+
+        function updateSteps() {
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.className = 'step';
+                if (i < currentStep) step.classList.add('completed');
+                if (i === currentStep) step.classList.add('active');
+                
+                document.getElementById(`form-step${i}`).classList.toggle('hidden', i !== currentStep);
+            }
+        }
+
+        function nextStep(step) {
+            // 驗證當前步驟
+            if (currentStep === 3) {
+                showConfirmData();
+            }
+            currentStep = step;
+            updateSteps();
+        }
+
+        function prevStep(step) {
+            currentStep = step;
+            updateSteps();
+        }
+
+        function showConfirmData() {
+            const html = `
+                <p><strong>姓名：</strong>${document.getElementById('appName').value}</p>
+                <p><strong>身分證字號：</strong>${document.getElementById('appIdNumber').value}</p>
+                <p><strong>手機：</strong>${document.getElementById('appPhone').value}</p>
+                <p><strong>地址：</strong>${document.getElementById('appAddress').value}</p>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #e0e0e0;">
+                <p><strong>災害日期：</strong>${document.getElementById('appDate').value}</p>
+                <p><strong>災害類型：</strong>${document.getElementById('appType').selectedOptions[0].text}</p>
+                <p><strong>申請金額：</strong>NT$ ${parseInt(document.getElementById('appAmount').value).toLocaleString()}</p>
+            `;
+            document.getElementById('confirmData').innerHTML = html;
+        }
+
+        async function submitApplication() {
+            const data = {
+                applicant_id: currentUser.id,
+                applicant_name: document.getElementById('appName').value,
+                id_number: document.getElementById('appIdNumber').value,
+                phone: document.getElementById('appPhone').value,
+                address: document.getElementById('appAddress').value,
+                disaster_date: document.getElementById('appDate').value,
+                disaster_type: document.getElementById('appType').value,
+                damage_description: document.getElementById('appDescription').value,
+                damage_location: document.getElementById('appDamageLocation').value,
+                estimated_loss: parseFloat(document.getElementById('appEstimatedLoss').value),
+                subsidy_type: document.getElementById('appSubsidyType').value,
+                requested_amount: parseFloat(document.getElementById('appAmount').value)
+            };
+
+            const result = await fetch(`${API_BASE}/applications/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (result.ok) {
+                const appData = await result.json();
+                document.getElementById('caseNumber').textContent = appData.case_no;
+                showScreen('successScreen');
+            } else {
+                alert('申請提交失敗，請稍後再試');
+            }
+        }
+
+        async function showMyApplications() {
+            try {
+                const result = await fetch(`${API_BASE}/applications/applicant/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                const list = document.getElementById('applicationsList');
+
+                if (result.ok) {
+                    const response = await result.json();
+                    // 處理 APIResponse 格式
+                    const apps = response.data?.applications || response.data || response;
+                    
+                    if (apps.length === 0) {
+                        list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 0;">尚無申請紀錄</p>';
+                    } else {
+                        list.innerHTML = apps.map(app => `
+                            <div class="app-item">
+                                <strong>${app.case_no}</strong>
+                                <span class="badge ${app.status}">${getStatusText(app.status)}</span>
+                                <p style="margin-top: 8px; font-size: 14px; color: #666;">
+                                    申請日期：${new Date(app.submitted_at).toLocaleDateString()}<br>
+                                    申請金額：NT$ ${app.requested_amount?.toLocaleString()}
+                                    ${app.approved_amount ? `<br>核准金額：NT$ ${app.approved_amount.toLocaleString()}` : ''}
+                                </p>
+                            </div>
+                        `).join('');
+                    }
+                    showScreen('myApplicationsScreen');
+                } else {
+                    const errorData = await result.json().catch(() => ({}));
+                    list.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                            <p style="color: #ef4444; font-size: 16px; margin-bottom: 8px;">無法載入申請紀錄</p>
+                            <p style="color: #999; font-size: 14px;">${errorData.detail || '請稍後再試或聯絡客服'}</p>
+                            <p style="color: #999; font-size: 12px; margin-top: 16px;">錯誤代碼: ${result.status}</p>
+                            <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;">返回主選單</button>
+                        </div>
+                    `;
+                    showScreen('myApplicationsScreen');
+                }
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                alert('載入失敗：' + error.message);
+            }
+        }
+
+        function getStatusText(status) {
+            const map = {
+                'pending': '待審核',
+                'under_review': '審核中',
+                'approved': '已核准',
+                'rejected': '已駁回',
+                'completed': '已完成'
+            };
+            return map[status] || status;
+        }
+    </script>
+</body>
+</html>
+

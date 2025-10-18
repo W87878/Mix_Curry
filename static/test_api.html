@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>災民補助申請系統 - API 測試頁面</title>
+    <title>災民補助申請系統 V2.0</title>
     <style>
         * {
             margin: 0;
@@ -12,523 +12,893 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5f6368;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34a853;
+        }
+
+        .status-dot.offline {
+            background: #ea4335;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #5f6368;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #f8f9fa;
+            border-color: #5f6368;
+        }
+
+        /* Main Content */
         .container {
-            max-width: 1200px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 24px;
+            max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
 
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        .main-title {
+            font-size: 48px;
+            font-weight: 300;
+            color: #202124;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
+        .subtitle {
+            font-size: 16px;
+            color: #5f6368;
+            margin-bottom: 40px;
+        }
+
+        /* Card */
         .card {
             background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            padding: 40px;
+            width: 100%;
+            margin-bottom: 24px;
         }
 
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
+        .card-title {
+            font-size: 24px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 24px;
         }
 
+        /* Form */
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 8px;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #202124;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 1px #1a73e8;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
             border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-right: 10px;
+            transition: all 0.2s;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
         }
 
-        button:active {
-            transform: translateY(0);
+        .btn-primary:hover {
+            background: #1557b0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn-secondary {
+            background: transparent;
+            color: #1a73e8;
+            border: 1px solid #dadce0;
         }
 
-        .response {
+        .btn-secondary:hover {
             background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
+        }
+
+        .btn-success {
+            background: #34a853;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2d8e47;
+        }
+
+        .btn-danger {
+            background: #ea4335;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d33b2c;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Navigation Pills */
+        .nav-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-pill:hover {
+            background: #f1f3f4;
+        }
+
+        .nav-pill.active {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        /* Response */
+        .response {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 4px solid #5f6368;
             font-family: 'Courier New', monospace;
             font-size: 13px;
-            max-height: 400px;
-            overflow-y: auto;
             white-space: pre-wrap;
-            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
         }
 
         .response.success {
-            background: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
+            background: #e6f4ea;
+            border-left-color: #34a853;
+            color: #1e8e3e;
         }
 
         .response.error {
-            background: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
+            background: #fce8e6;
+            border-left-color: #ea4335;
+            color: #c5221f;
         }
 
-        .loading {
-            display: none;
-            text-align: center;
-            color: #667eea;
-            margin: 20px 0;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 10px;
+        .token-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: #e8f0fe;
             border-radius: 4px;
             font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
+            color: #1967d2;
+            word-break: break-all;
+            display: none;
         }
 
-        .status-online {
-            background: #d4edda;
-            color: #155724;
+        /* Hide/Show */
+        .hidden {
+            display: none;
         }
 
-        .status-offline {
-            background: #f8d7da;
-            color: #721c24;
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
         }
 
-        .grid {
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Helper text */
+        .helper-text {
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 4px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            width: 100%;
+            margin-bottom: 32px;
         }
 
-        .api-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+        .quick-action {
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .api-info a {
-            color: white;
-            text-decoration: underline;
+        .quick-action:hover {
+            border-color: #1a73e8;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
         }
 
-        code {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .quick-action-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .quick-action-desc {
+            font-size: 13px;
+            color: #5f6368;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🌊 災民補助申請系統 - API 測試</h1>
+    <div class="header">
+        <div class="logo">🌊 災民補助申請系統 V2.0</div>
+        <div class="user-info">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="userName">未登入</span>
+            <button class="logout-btn hidden" id="logoutBtn" onclick="logout()">登出</button>
+        </div>
+    </div>
 
-        <div class="api-info">
-            <h3>📡 API 資訊</h3>
-            <p><strong>Base URL:</strong> <code id="apiBaseUrl">http://localhost:8000/api/v1</code></p>
-            <p><strong>文件:</strong> <a href="http://localhost:8000/docs" target="_blank">Swagger UI</a> | <a href="http://localhost:8000/redoc" target="_blank">ReDoc</a></p>
-            <p><strong>狀態:</strong> <span class="status-badge" id="apiStatus">檢查中...</span></p>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen">
+            <h1 class="main-title">歡迎使用</h1>
+            <p class="subtitle">選擇您要進行的操作</p>
+
+            <div class="quick-actions">
+                <div class="quick-action" onclick="showScreen('loginScreen')">
+                    <div class="quick-action-icon">🔐</div>
+                    <div class="quick-action-title">登入</div>
+                    <div class="quick-action-desc">已有帳號，立即登入</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('registerScreen')">
+                    <div class="quick-action-icon">📝</div>
+                    <div class="quick-action-title">註冊</div>
+                    <div class="quick-action-desc">建立新的使用者帳號</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('menuScreen')">
+                    <div class="quick-action-icon">🎯</div>
+                    <div class="quick-action-title">功能選單</div>
+                    <div class="quick-action-desc">查看所有功能</div>
+                </div>
+            </div>
         </div>
 
-        <div class="grid">
-            <!-- 建立使用者 -->
+        <!-- Login Screen -->
+        <div id="loginScreen" class="hidden">
             <div class="card">
-                <h2>1️⃣ 建立使用者</h2>
+                <h2 class="card-title">登入帳號</h2>
+                
                 <div class="form-group">
-                    <label>Email：</label>
-                    <input type="email" id="userEmail" value="test@example.com" placeholder="test@example.com">
+                    <label>Email 帳號</label>
+                    <input type="email" id="loginEmail" placeholder="user@example.com">
                 </div>
+
                 <div class="form-group">
-                    <label>姓名：</label>
-                    <input type="text" id="userFullName" value="王小明" placeholder="王小明">
+                    <label>密碼</label>
+                    <input type="password" id="loginPassword" placeholder="留空即可（開發模式）">
+                    <div class="helper-text">💡 開發模式下可以不輸入密碼</div>
                 </div>
-                <div class="form-group">
-                    <label>身分證字號：</label>
-                    <input type="text" id="userIdNumber" value="A123456789" placeholder="A123456789">
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('welcomeScreen')">返回</button>
+                    <button class="btn btn-primary" onclick="login()">登入</button>
                 </div>
+
+                <div id="loginResponse" class="response"></div>
+                <div id="loginToken" class="token-info"></div>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="registerScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">註冊新帳號</h2>
+
                 <div class="form-group">
-                    <label>電話：</label>
-                    <input type="tel" id="userPhone" value="0912345678" placeholder="0912345678">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="user@example.com">
                 </div>
+
                 <div class="form-group">
-                    <label>角色：</label>
-                    <select id="userRole">
+                    <label>姓名</label>
+                    <input type="text" id="regName" placeholder="王小明">
+                </div>
+
+                <div class="form-group">
+                    <label>身分證字號</label>
+                    <input type="text" id="regIdNumber" placeholder="A123456789">
+                </div>
+
+                <div class="form-group">
+                    <label>手機號碼</label>
+                    <input type="tel" id="regPhone" placeholder="0912345678">
+                </div>
+
+                <div class="form-group">
+                    <label>角色</label>
+                    <select id="regRole" onchange="toggleDistrictField()">
                         <option value="applicant">災民</option>
-                        <option value="reviewer">審核員</option>
+                        <option value="reviewer">里長</option>
                         <option value="admin">管理員</option>
                     </select>
                 </div>
-                <button onclick="createUser()">建立使用者</button>
-                <div class="response" id="userResponse"></div>
+
+                <div class="form-group hidden" id="districtField">
+                    <label>所屬區域</label>
+                    <select id="regDistrict"></select>
+                    <div class="helper-text">里長帳號必須選擇所屬區域</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('welcomeScreen')">返回</button>
+                    <button class="btn btn-primary" onclick="register()">註冊</button>
+                </div>
+
+                <div id="registerResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- Menu Screen -->
+        <div id="menuScreen" class="hidden">
+            <h2 class="card-title" style="text-align: center; margin-bottom: 32px;">功能選單</h2>
+
+            <div class="quick-actions">
+                <div class="quick-action" onclick="showScreen('applyScreen')">
+                    <div class="quick-action-icon">📋</div>
+                    <div class="quick-action-title">提交申請</div>
+                    <div class="quick-action-desc">災民填寫補助申請</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('reviewScreen')">
+                    <div class="quick-action-icon">✅</div>
+                    <div class="quick-action-title">審核案件</div>
+                    <div class="quick-action-desc">里長審核申請案件</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('queryScreen')">
+                    <div class="quick-action-icon">🔍</div>
+                    <div class="quick-action-title">查詢案件</div>
+                    <div class="quick-action-desc">查看申請狀態</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('notificationScreen')">
+                    <div class="quick-action-icon">🔔</div>
+                    <div class="quick-action-title">通知中心</div>
+                    <div class="quick-action-desc">查看系統通知</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('districtScreen')">
+                    <div class="quick-action-icon">🏘️</div>
+                    <div class="quick-action-title">區域管理</div>
+                    <div class="quick-action-desc">查看區域資訊</div>
+                </div>
+
+                <div class="quick-action" onclick="showScreen('certificateScreen')">
+                    <div class="quick-action-icon">📱</div>
+                    <div class="quick-action-title">數位憑證</div>
+                    <div class="quick-action-desc">憑證查詢與管理</div>
+                </div>
             </div>
 
-            <!-- 建立申請 -->
+            <div style="text-align: center;">
+                <button class="btn btn-secondary" onclick="showScreen('welcomeScreen')">返回首頁</button>
+            </div>
+        </div>
+
+        <!-- Apply Screen -->
+        <div id="applyScreen" class="hidden">
             <div class="card">
-                <h2>2️⃣ 建立申請案件</h2>
+                <h2 class="card-title">提交補助申請</h2>
+
                 <div class="form-group">
-                    <label>申請人 ID：</label>
-                    <input type="text" id="applicantId" placeholder="從步驟1複製使用者ID">
+                    <label>姓名</label>
+                    <input type="text" id="appName" placeholder="王小明">
                 </div>
+
                 <div class="form-group">
-                    <label>災害類型：</label>
-                    <select id="disasterType">
-                        <option value="typhoon">颱風</option>
+                    <label>身分證字號</label>
+                    <input type="text" id="appIdNumber" placeholder="A123456789">
+                </div>
+
+                <div class="form-group">
+                    <label>手機號碼</label>
+                    <input type="tel" id="appPhone" placeholder="0912345678">
+                </div>
+
+                <div class="form-group">
+                    <label>地址</label>
+                    <input type="text" id="appAddress" placeholder="台南市中西區民權路100號">
+                </div>
+
+                <div class="form-group">
+                    <label>災害日期</label>
+                    <input type="date" id="appDate">
+                </div>
+
+                <div class="form-group">
+                    <label>災害類型</label>
+                    <select id="appType">
                         <option value="flood">水災</option>
+                        <option value="typhoon">颱風</option>
                         <option value="earthquake">地震</option>
-                        <option value="fire">火災</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label>災損描述：</label>
-                    <textarea id="damageDescription" placeholder="請描述災損情形...">颱風造成一樓客廳淹水約50公分，家具電器泡水損壞</textarea>
+                    <label>災損描述</label>
+                    <textarea id="appDesc" rows="3" placeholder="請詳細描述災損情況..."></textarea>
                 </div>
+
                 <div class="form-group">
-                    <label>申請金額：</label>
-                    <input type="number" id="requestedAmount" value="50000" placeholder="50000">
+                    <label>申請金額</label>
+                    <input type="number" id="appAmount" placeholder="50000">
                 </div>
-                <button onclick="createApplication()">建立申請</button>
-                <div class="response" id="applicationResponse"></div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回</button>
+                    <button class="btn btn-primary" onclick="submitApplication()">提交申請</button>
+                </div>
+
+                <div id="applyResponse" class="response"></div>
             </div>
         </div>
 
-        <!-- 上傳照片 -->
-        <div class="card">
-            <h2>3️⃣ 上傳災損照片</h2>
-            <div class="form-group">
-                <label>案件 ID：</label>
-                <input type="text" id="photoApplicationId" placeholder="從步驟2複製案件ID">
+        <!-- Review Screen -->
+        <div id="reviewScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">審核申請案件</h2>
+
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <button class="btn btn-primary" onclick="loadPendingApplications()">載入待審核案件</button>
+                </div>
+
+                <div id="pendingList"></div>
+
+                <div id="reviewForm" class="hidden">
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid #dadce0;">
+
+                    <div class="form-group">
+                        <label>案件 ID</label>
+                        <input type="text" id="reviewAppId" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>審核意見</label>
+                        <textarea id="reviewComments" rows="2" placeholder="審核意見..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>核准金額</label>
+                        <input type="number" id="reviewAmount" placeholder="50000">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-danger" onclick="rejectApp()">❌ 駁回</button>
+                        <button class="btn btn-success" onclick="approveApp()">✅ 核准</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回選單</button>
+                </div>
+
+                <div id="reviewResponse" class="response"></div>
             </div>
-            <div class="form-group">
-                <label>上傳者 ID：</label>
-                <input type="text" id="uploaderId" placeholder="從步驟1複製使用者ID">
-            </div>
-            <div class="form-group">
-                <label>照片類型：</label>
-                <select id="photoType">
-                    <option value="before_damage">災前照片</option>
-                    <option value="after_damage">災後照片</option>
-                    <option value="inspection">現場勘查</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>照片說明：</label>
-                <input type="text" id="photoDescription" placeholder="一樓客廳淹水情形">
-            </div>
-            <div class="form-group">
-                <label>選擇照片：</label>
-                <input type="file" id="photoFile" accept="image/*">
-            </div>
-            <button onclick="uploadPhoto()">上傳照片</button>
-            <div class="response" id="photoResponse"></div>
         </div>
 
-        <!-- 查詢功能 -->
-        <div class="grid">
+        <!-- Query Screen -->
+        <div id="queryScreen" class="hidden">
             <div class="card">
-                <h2>4️⃣ 查詢案件</h2>
-                <div class="form-group">
-                    <label>案件 ID：</label>
-                    <input type="text" id="queryApplicationId" placeholder="輸入案件ID">
-                </div>
-                <button onclick="getApplication()">查詢案件</button>
-                <div class="response" id="queryResponse"></div>
-            </div>
+                <h2 class="card-title">查詢我的申請</h2>
 
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="getMyApplications()">查詢</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回</button>
+                </div>
+
+                <div id="queryResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- Notification Screen -->
+        <div id="notificationScreen" class="hidden">
             <div class="card">
-                <h2>5️⃣ 系統統計</h2>
-                <button onclick="getStats()">取得統計資料</button>
-                <div class="response" id="statsResponse"></div>
+                <h2 class="card-title">通知中心</h2>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="getNotifications()">所有通知</button>
+                    <button class="btn btn-secondary" onclick="getUnreadCount()">未讀數量</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回</button>
+                </div>
+
+                <div id="notifResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- District Screen -->
+        <div id="districtScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">區域管理</h2>
+
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="getDistricts()">查看所有區域</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回</button>
+                </div>
+
+                <div id="districtResponse" class="response"></div>
+            </div>
+        </div>
+
+        <!-- Certificate Screen -->
+        <div id="certificateScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">數位憑證</h2>
+
+                <div class="form-group">
+                    <label>憑證編號</label>
+                    <input type="text" id="certNo" placeholder="CERT-2025-00001">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showScreen('menuScreen')">返回</button>
+                    <button class="btn btn-primary" onclick="getCertificate()">查詢憑證</button>
+                </div>
+
+                <div id="certResponse" class="response"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8000/api/v1';
+        const API_BASE = 'http://localhost:8080/api/v1';
+        let accessToken = localStorage.getItem('access_token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 
-        // 檢查 API 狀態
-        async function checkApiStatus() {
-            try {
-                const response = await fetch('http://localhost:8000/health');
-                const data = await response.json();
-                
-                const statusBadge = document.getElementById('apiStatus');
-                if (response.ok) {
-                    statusBadge.className = 'status-badge status-online';
-                    statusBadge.textContent = '🟢 線上';
-                } else {
-                    statusBadge.className = 'status-badge status-offline';
-                    statusBadge.textContent = '🔴 離線';
-                }
-            } catch (error) {
-                const statusBadge = document.getElementById('apiStatus');
-                statusBadge.className = 'status-badge status-offline';
-                statusBadge.textContent = '🔴 離線';
+        // Initialize
+        updateAuthStatus();
+        loadDistrictsForSelect();
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.container > div').forEach(div => {
+                div.classList.add('hidden');
+            });
+            // Show selected screen
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function updateAuthStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const userName = document.getElementById('userName');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (accessToken && currentUser) {
+                statusDot.classList.remove('offline');
+                userName.textContent = `${currentUser.full_name} (${currentUser.role})`;
+                logoutBtn.classList.remove('hidden');
+            } else {
+                statusDot.classList.add('offline');
+                userName.textContent = '未登入';
+                logoutBtn.classList.add('hidden');
             }
         }
 
-        // 建立使用者
-        async function createUser() {
-            const userData = {
-                email: document.getElementById('userEmail').value,
-                full_name: document.getElementById('userFullName').value,
-                id_number: document.getElementById('userIdNumber').value,
-                phone: document.getElementById('userPhone').value,
-                role: document.getElementById('userRole').value
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `response ${isError ? 'error' : 'success'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null, requireAuth = false) {
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' }
             };
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/users/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
+            if (requireAuth && accessToken) {
+                options.headers['Authorization'] = `Bearer ${accessToken}`;
+            }
 
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
                 const data = await response.json();
-                const responseDiv = document.getElementById('userResponse');
-                
-                if (response.ok) {
-                    responseDiv.className = 'response success';
-                    responseDiv.textContent = `✅ 使用者建立成功！\n\n使用者 ID: ${data.data.id}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
-                    
-                    // 自動填入申請人ID
-                    document.getElementById('applicantId').value = data.data.id;
-                    document.getElementById('uploaderId').value = data.data.id;
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = `❌ 建立失敗：\n${JSON.stringify(data, null, 2)}`;
-                }
+                return { success: response.ok, data, status: response.status };
             } catch (error) {
-                const responseDiv = document.getElementById('userResponse');
-                responseDiv.className = 'response error';
-                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+                return { success: false, data: { error: error.message }, status: 0 };
             }
         }
 
-        // 建立申請
-        async function createApplication() {
-            const applicantId = document.getElementById('applicantId').value;
-            if (!applicantId) {
-                alert('請先建立使用者並複製使用者ID');
+        function toggleDistrictField() {
+            const role = document.getElementById('regRole').value;
+            const field = document.getElementById('districtField');
+            field.classList.toggle('hidden', role !== 'reviewer');
+        }
+
+        async function loadDistrictsForSelect() {
+            const result = await apiCall('/districts/', 'GET');
+            if (result.success) {
+                const select = document.getElementById('regDistrict');
+                select.innerHTML = '';
+                result.data.forEach(d => {
+                    const option = document.createElement('option');
+                    option.value = d.id;
+                    option.textContent = d.district_name;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        async function register() {
+            const data = {
+                email: document.getElementById('regEmail').value,
+                full_name: document.getElementById('regName').value,
+                id_number: document.getElementById('regIdNumber').value,
+                phone: document.getElementById('regPhone').value,
+                role: document.getElementById('regRole').value
+            };
+
+            if (data.role === 'reviewer') {
+                data.district_id = document.getElementById('regDistrict').value;
+            }
+
+            const result = await apiCall('/auth/register', 'POST', data);
+            showResponse('registerResponse', result.data, !result.success);
+        }
+
+        async function login() {
+            const data = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value || '',
+                login_type: 'password'
+            };
+
+            const result = await apiCall('/auth/login', 'POST', data);
+            showResponse('loginResponse', result.data, !result.success);
+
+            if (result.success) {
+                accessToken = result.data.access_token;
+                currentUser = result.data.user;
+                localStorage.setItem('access_token', accessToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                updateAuthStatus();
+
+                document.getElementById('loginToken').style.display = 'block';
+                document.getElementById('loginToken').textContent = `✅ 登入成功！Token 已儲存`;
+
+                setTimeout(() => showScreen('menuScreen'), 1500);
+            }
+        }
+
+        function logout() {
+            accessToken = null;
+            currentUser = null;
+            localStorage.clear();
+            updateAuthStatus();
+            showScreen('welcomeScreen');
+        }
+
+        async function submitApplication() {
+            if (!currentUser) {
+                alert('請先登入！');
+                showScreen('loginScreen');
                 return;
             }
 
-            const applicationData = {
-                applicant_id: applicantId,
-                applicant_name: document.getElementById('userFullName').value,
-                id_number: document.getElementById('userIdNumber').value,
-                phone: document.getElementById('userPhone').value,
-                address: '台南市中西區民權路100號',
-                disaster_date: new Date().toISOString().split('T')[0],
-                disaster_type: document.getElementById('disasterType').value,
-                damage_description: document.getElementById('damageDescription').value,
-                damage_location: '台南市中西區民權路100號1樓',
+            const data = {
+                applicant_id: currentUser.id,
+                applicant_name: document.getElementById('appName').value,
+                id_number: document.getElementById('appIdNumber').value,
+                phone: document.getElementById('appPhone').value,
+                address: document.getElementById('appAddress').value,
+                disaster_date: document.getElementById('appDate').value,
+                disaster_type: document.getElementById('appType').value,
+                damage_description: document.getElementById('appDesc').value,
+                damage_location: document.getElementById('appAddress').value,
                 subsidy_type: 'housing',
-                requested_amount: parseFloat(document.getElementById('requestedAmount').value)
+                requested_amount: parseFloat(document.getElementById('appAmount').value)
             };
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/applications/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(applicationData)
+            const result = await apiCall('/applications/', 'POST', data, true);
+            showResponse('applyResponse', result.data, !result.success);
+        }
+
+        async function loadPendingApplications() {
+            const result = await apiCall('/applications/status/pending', 'GET', null, true);
+            if (result.success && result.data.length > 0) {
+                const list = document.getElementById('pendingList');
+                list.innerHTML = '<h3 style="margin-bottom: 16px;">待審核案件</h3>';
+                result.data.forEach(app => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'padding: 12px; margin-bottom: 8px; background: #f8f9fa; border-radius: 4px; cursor: pointer;';
+                    item.innerHTML = `
+                        <strong>${app.case_no}</strong> - ${app.applicant_name}<br>
+                        <small style="color: #5f6368;">金額: $${app.requested_amount?.toLocaleString()}</small>
+                    `;
+                    item.onclick = () => selectApplicationForReview(app);
+                    list.appendChild(item);
                 });
-
-                const data = await response.json();
-                const responseDiv = document.getElementById('applicationResponse');
-                
-                if (response.ok) {
-                    responseDiv.className = 'response success';
-                    responseDiv.textContent = `✅ 申請建立成功！\n\n案件編號: ${data.data.case_no}\n案件 ID: ${data.data.id}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
-                    
-                    // 自動填入案件ID
-                    document.getElementById('photoApplicationId').value = data.data.id;
-                    document.getElementById('queryApplicationId').value = data.data.id;
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = `❌ 建立失敗：\n${JSON.stringify(data, null, 2)}`;
-                }
-            } catch (error) {
-                const responseDiv = document.getElementById('applicationResponse');
-                responseDiv.className = 'response error';
-                responseDiv.textContent = `❌ 錯誤：${error.message}`;
+            } else {
+                showResponse('reviewResponse', { message: '沒有待審核案件' }, false);
             }
         }
 
-        // 上傳照片
-        async function uploadPhoto() {
-            const applicationId = document.getElementById('photoApplicationId').value;
-            const uploaderId = document.getElementById('uploaderId').value;
-            const photoFile = document.getElementById('photoFile').files[0];
+        function selectApplicationForReview(app) {
+            document.getElementById('reviewAppId').value = app.id;
+            document.getElementById('reviewAmount').value = app.requested_amount;
+            document.getElementById('reviewForm').classList.remove('hidden');
+        }
 
-            if (!applicationId || !uploaderId) {
-                alert('請先建立申請案件');
+        async function approveApp() {
+            const appId = document.getElementById('reviewAppId').value;
+            const data = {
+                approved_amount: parseFloat(document.getElementById('reviewAmount').value),
+                comments: document.getElementById('reviewComments').value
+            };
+            const result = await apiCall(`/reviews/approve/${appId}`, 'POST', data, true);
+            showResponse('reviewResponse', result.data, !result.success);
+        }
+
+        async function rejectApp() {
+            const appId = document.getElementById('reviewAppId').value;
+            const data = {
+                rejection_reason: document.getElementById('reviewComments').value,
+                comments: document.getElementById('reviewComments').value
+            };
+            const result = await apiCall(`/reviews/reject/${appId}`, 'POST', data, true);
+            showResponse('reviewResponse', result.data, !result.success);
+        }
+
+        async function getMyApplications() {
+            if (!currentUser) {
+                alert('請先登入！');
                 return;
             }
-
-            if (!photoFile) {
-                alert('請選擇照片');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('application_id', applicationId);
-            formData.append('photo_type', document.getElementById('photoType').value);
-            formData.append('description', document.getElementById('photoDescription').value);
-            formData.append('uploaded_by', uploaderId);
-            formData.append('file', photoFile);
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/photos/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                const responseDiv = document.getElementById('photoResponse');
-                
-                if (response.ok) {
-                    responseDiv.className = 'response success';
-                    responseDiv.textContent = `✅ 照片上傳成功！\n\n照片 ID: ${data.data.id}\n照片 URL: ${data.data.photo_url}\n\n完整資料：\n${JSON.stringify(data, null, 2)}`;
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = `❌ 上傳失敗：\n${JSON.stringify(data, null, 2)}`;
-                }
-            } catch (error) {
-                const responseDiv = document.getElementById('photoResponse');
-                responseDiv.className = 'response error';
-                responseDiv.textContent = `❌ 錯誤：${error.message}`;
-            }
+            const result = await apiCall(`/applications/applicant/${currentUser.id}`, 'GET', null, true);
+            showResponse('queryResponse', result.data, !result.success);
         }
 
-        // 查詢案件
-        async function getApplication() {
-            const applicationId = document.getElementById('queryApplicationId').value;
-            if (!applicationId) {
-                alert('請輸入案件ID');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/applications/${applicationId}`);
-                const data = await response.json();
-                const responseDiv = document.getElementById('queryResponse');
-                
-                if (response.ok) {
-                    responseDiv.className = 'response success';
-                    responseDiv.textContent = `✅ 查詢成功！\n\n${JSON.stringify(data, null, 2)}`;
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = `❌ 查詢失敗：\n${JSON.stringify(data, null, 2)}`;
-                }
-            } catch (error) {
-                const responseDiv = document.getElementById('queryResponse');
-                responseDiv.className = 'response error';
-                responseDiv.textContent = `❌ 錯誤：${error.message}`;
-            }
+        async function getNotifications() {
+            const result = await apiCall('/notifications/', 'GET', null, true);
+            showResponse('notifResponse', result.data, !result.success);
         }
 
-        // 取得統計資料
-        async function getStats() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/stats`);
-                const data = await response.json();
-                const responseDiv = document.getElementById('statsResponse');
-                
-                if (response.ok) {
-                    responseDiv.className = 'response success';
-                    const stats = data.data;
-                    responseDiv.textContent = `✅ 統計資料：\n\n` +
-                        `總申請案件: ${stats.total_applications}\n` +
-                        `待審核: ${stats.pending_applications}\n` +
-                        `審核中: ${stats.under_review_applications}\n` +
-                        `已核准: ${stats.approved_applications}\n` +
-                        `已駁回: ${stats.rejected_applications}\n` +
-                        `已完成: ${stats.completed_applications}\n` +
-                        `總核准金額: ${stats.total_approved_amount}\n` +
-                        `已發放金額: ${stats.total_disbursed_amount}\n\n` +
-                        `完整資料：\n${JSON.stringify(data, null, 2)}`;
-                } else {
-                    responseDiv.className = 'response error';
-                    responseDiv.textContent = `❌ 查詢失敗：\n${JSON.stringify(data, null, 2)}`;
-                }
-            } catch (error) {
-                const responseDiv = document.getElementById('statsResponse');
-                responseDiv.className = 'response error';
-                responseDiv.textContent = `❌ 錯誤：${error.message}`;
-            }
+        async function getUnreadCount() {
+            const result = await apiCall('/notifications/unread-count', 'GET', null, true);
+            showResponse('notifResponse', result.data, !result.success);
         }
 
-        // 頁面載入時檢查 API 狀態
-        checkApiStatus();
-        setInterval(checkApiStatus, 10000); // 每 10 秒檢查一次
+        async function getDistricts() {
+            const result = await apiCall('/districts/', 'GET');
+            showResponse('districtResponse', result.data, !result.success);
+        }
+
+        async function getCertificate() {
+            const certNo = document.getElementById('certNo').value;
+            const result = await apiCall(`/certificates/${certNo}`, 'GET', null, true);
+            showResponse('certResponse', result.data, !result.success);
+        }
     </script>
 </body>
 </html>
-

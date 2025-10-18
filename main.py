@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.settings import get_settings
-from app.routers import applications, users, reviews, certificates, photos
+from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications
 from contextlib import asynccontextmanager
 import os
 
@@ -65,11 +65,14 @@ app.add_middleware(
 )
 
 # 註冊路由
+app.include_router(auth.router)  # 身份驗證
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(applications.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
 app.include_router(certificates.router, prefix="/api/v1")
 app.include_router(photos.router, prefix="/api/v1")
+app.include_router(districts.router)  # 區域管理
+app.include_router(notifications.router)  # 通知系統
 
 # 掛載靜態檔案（如果存在）
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -98,6 +101,26 @@ async def test_page():
         return FileResponse(static_file)
     else:
         raise HTTPException(status_code=404, detail="測試頁面不存在")
+
+# 災民前台
+@app.get("/applicant")
+async def applicant_page():
+    """災民申請前台"""
+    static_file = os.path.join(os.path.dirname(__file__), "static", "applicant.html")
+    if os.path.exists(static_file):
+        return FileResponse(static_file)
+    else:
+        raise HTTPException(status_code=404, detail="災民前台不存在")
+
+# 里長後台
+@app.get("/admin")
+async def admin_page():
+    """里長審核後台"""
+    static_file = os.path.join(os.path.dirname(__file__), "static", "admin.html")
+    if os.path.exists(static_file):
+        return FileResponse(static_file)
+    else:
+        raise HTTPException(status_code=404, detail="里長後台不存在")
 
 # 健康檢查
 @app.get("/health")
@@ -166,6 +189,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8080,
         reload=settings.DEBUG
     )

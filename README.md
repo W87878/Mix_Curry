@@ -1,41 +1,66 @@
-# 🌊 災民補助申請系統 (Mix_Curry)
+# 🌊 災民補助申請系統 (Mix_Curry) V2.0
 
 ## 颱風水災受災戶透過數位憑證領取補助
 
 基於政府數位憑證沙盒的災民補助申請管理系統，使用 FastAPI + Supabase 開發。
 
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB.svg)](https://www.python.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E.svg)](https://supabase.com)
+
+---
+
 ## 📋 專案簡介
 
 本系統專注於**颱風水災受災戶的補助申請與發放**，旨在簡化災民補助申請流程，從傳統紙本申請（需時 30-60 分鐘）縮短至數位化申請（8-12 分鐘），並**整合政府數位憑證沙盒 API** 實現憑證驗證與發放功能。
 
+### 🎯 V2.0 新功能
+
+- ✅ **完整身份驗證系統** - JWT Token + 角色權限管理
+- ✅ **區域管理** - 里長只能查看和審核自己轄區的案件
+- ✅ **通知系統** - 簡訊 + Email + App 推送通知
+- ✅ **銀行 API 整合** - 帳戶驗證、重複申請檢查、交易記錄
+- ✅ **補件流程** - 里長可要求災民補充資料或安排現場勘查
+- ✅ **完整的前後台分離** - 災民端 + 里長端
+
 ### 主要功能
 
-- **🙋 災民申請** - 線上填寫申請表單、上傳災損照片
-- **👨‍💼 審核管理** - 審核員審核、現場勘查、電子簽核
+- **🙋 災民申請** - 線上填寫申請表單、上傳災損照片、銀行帳戶驗證
+- **👨‍💼 審核管理** - 審核員審核、現場勘查、電子簽核、要求補件
 - **📱 數位憑證** - QR Code 憑證生成、驗證、發放
 - **📊 統計儀表板** - 即時統計申請案件與補助金額
 - **🖼️ 照片管理** - Supabase Storage 整合，支援災損照片上傳
+- **🔔 通知系統** - 申請提交、審核結果、補件要求等自動通知
+- **🏛️ 區域管理** - 按照里/鄰區域分配審核權限
 
 ### 技術架構
 
 - **後端框架**: FastAPI 0.109.0
 - **資料庫**: Supabase (PostgreSQL) - 使用 Supabase Client 作為 ORM
 - **檔案儲存**: Supabase Storage
+- **身份驗證**: JWT Token + BCrypt 密碼加密
 - **QR Code 生成**: qrcode + Pillow
 - **API 文件**: Swagger UI / ReDoc
 - **政府 API 整合**: 
   - 發行端: https://issuer-sandbox.wallet.gov.tw/swaggerui/
   - 驗證端: https://verifier-sandbox.wallet.gov.tw/swaggerui/
-- **前端整合**: 支援 React, Vue, Next.js 等前端框架（詳見 [前端整合指南](./FRONTEND_GUIDE.md)）
+- **前端整合**: 支援 React, Vue, Next.js 等前端框架
+
+---
 
 ## 📚 完整文件
 
-- **[🏗️ 系統架構文件](./ARCHITECTURE.md)** - 完整的系統架構圖和資料庫 ER 圖（⭐ 新增！）
-- **[前端整合指南](./FRONTEND_GUIDE.md)** - React/Vue/Next.js 呼叫 API 的完整範例
-- **[政府 API 整合](./GOV_API_INTEGRATION.md)** - 數位憑證沙盒 API 整合說明
-- **[HTTP 測試檔案](./https/test.http)** - 完整 API 測試集合
-- **[網頁測試介面](http://localhost:8000/test)** - 瀏覽器中直接測試 API（需先啟動服務）
-- **[API 文件 (Swagger)](http://localhost:8000/docs)** - 互動式 API 文件
+- **[🌊 完整流程圖](./FLOW_DIAGRAM.md)** - 完整的系統流程圖和架構圖（⭐ 新增！）
+- **[🏗️ 系統架構文件](./ARCHITECTURE.md)** - 完整的系統架構圖和資料庫 ER 圖
+- **[🎨 前端整合完整指南](./FRONTEND_INTEGRATION_GUIDE.md)** - React/Vue 完整範例（⭐ 新增！）
+- **[📘 前端整合指南](./FRONTEND_GUIDE.md)** - 簡化版 API 呼叫範例
+- **[🏛️ 政府 API 整合](./GOV_API_INTEGRATION.md)** - 數位憑證沙盒 API 整合說明
+- **[🗄️ Supabase 設定](./SUPABASE_SETUP.md)** - 資料庫和 Storage 設定清單
+- **[🧪 HTTP 測試檔案](./https/test.http)** - 完整 API 測試集合
+- **[🌐 網頁測試介面](http://localhost:8080/test)** - 瀏覽器中直接測試 API
+- **[📖 API 文件 (Swagger)](http://localhost:8080/docs)** - 互動式 API 文件
+
+---
 
 ## 🚀 快速開始
 
@@ -72,6 +97,15 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 # FastAPI 設定
 DEBUG=True
 SECRET_KEY=your-secret-key-change-in-production
+
+# 銀行 API 設定（可選）
+BANK_API_URL=https://bank-api.example.com
+BANK_API_KEY=your-bank-api-key
+
+# 簡訊/Email 服務設定（可選）
+# SMS_API_KEY=your-sms-api-key
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
 ```
 
 > 💡 在 Supabase Dashboard 的 Settings > API 可以找到您的專案 URL 和金鑰
@@ -85,6 +119,11 @@ SECRET_KEY=your-secret-key-change-in-production
 3. 點擊左側 **SQL Editor**
 4. 複製 `database_schema.sql` 的內容並執行
 5. 確認所有資料表和索引建立成功
+
+**新增的資料表：**
+- ✅ `districts` - 區域管理（里/鄰）
+- ✅ `notifications` - 通知系統
+- ✅ `bank_verification_records` - 銀行驗證記錄
 
 ### 5. 建立 Storage Buckets
 
@@ -123,8 +162,6 @@ python command.py stats
 python command.py clear
 ```
 
-更多指令請參考下方「管理工具」章節。
-
 ### 7. 啟動服務
 
 ```bash
@@ -132,81 +169,33 @@ python command.py clear
 python main.py
 
 # 或使用 uvicorn
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --port 8080
 ```
 
-API 服務將在 http://localhost:8000 啟動
+API 服務將在 http://localhost:8080 啟動
+
+---
 
 ## 📚 API 文件與測試
 
 啟動服務後，可以透過以下網址存取：
 
-- **🌐 網頁測試介面**: http://localhost:8000/test（⭐ 推薦！最簡單的測試方式）
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **🌐 網頁測試介面**: http://localhost:8080/test（⭐ 推薦！最簡單的測試方式）
+- **Swagger UI**: http://localhost:8080/docs
+- **ReDoc**: http://localhost:8080/redoc
 
-### 快速測試 API
-
-使用內建的網頁測試介面是最簡單的方式：
-
-1. 啟動服務：`python main.py`
-2. 開啟瀏覽器：http://localhost:8000/test
-3. 在網頁介面中依序測試：
-   - ✅ 建立使用者
-   - ✅ 建立申請案件
-   - ✅ 上傳災損照片
-   - ✅ 查詢案件資料
-   - ✅ 查看系統統計
-
-測試頁面會自動處理 ID 的傳遞，讓您輕鬆完成完整流程測試！
-
-## 🗂️ 專案結構
-
-```
-Mix_Curry/
-├── main.py                      # FastAPI 主程式
-├── command.py                   # 🆕 資料庫管理工具
-├── test_api.py                  # API 測試腳本
-├── app/                         # 應用程式核心
-│   ├── settings.py              # 設定檔
-│   ├── models/                  # 資料模型
-│   │   ├── database.py          # Supabase 資料庫服務（ORM）
-│   │   └── models.py            # Pydantic 資料模型
-│   ├── services/                # 服務層
-│   │   ├── storage.py           # Supabase Storage 服務
-│   │   └── gov_wallet.py        # 政府數位憑證 API 整合
-│   └── routers/                 # API 路由
-│       ├── __init__.py
-│       ├── applications.py      # 申請案件 API
-│       ├── users.py             # 使用者 API
-│       ├── reviews.py           # 審核 API
-│       ├── certificates.py      # 憑證 API（整合政府沙盒）
-│       └── photos.py            # 照片上傳 API
-├── database_schema.sql          # 資料庫結構 SQL
-├── requirements.txt             # Python 依賴套件
-├── pyproject.toml               # 專案配置檔
-├── .env                         # 環境變數（需自行建立）
-├── .gitignore
-├── README.md                    # 專案說明
-├── SETUP_GUIDE.md               # 詳細安裝指南
-├── SUPABASE_SETUP.md            # Supabase 設定清單
-└── GOV_API_INTEGRATION.md       # 政府 API 整合說明
-```
-
-## 📊 資料庫結構
-
-### 主要資料表
-
-1. **users** - 使用者（災民、審核員、管理員）
-2. **applications** - 申請案件主表
-3. **damage_photos** - 災損照片
-4. **review_records** - 審核記錄
-5. **digital_certificates** - 數位憑證
-6. **subsidy_items** - 補助項目明細
-
-詳細結構請參考 `database_schema.sql`
+---
 
 ## 🔌 API 端點
+
+### 身份驗證 (`/api/v1/auth`) - 🆕
+
+- `POST /register` - 註冊新使用者
+- `POST /login` - 使用者登入（支援密碼或數位憑證）
+- `POST /refresh` - 刷新 Access Token
+- `GET /me` - 取得當前使用者資訊
+- `POST /verify-digital-id` - 驗證數位身份
+- `POST /logout` - 登出
 
 ### 使用者管理 (`/api/v1/users`)
 
@@ -217,7 +206,7 @@ Mix_Curry/
 
 ### 申請案件 (`/api/v1/applications`)
 
-- `POST /` - 建立新申請案件
+- `POST /` - 建立新申請案件（包含銀行帳戶驗證）
 - `GET /{application_id}` - 取得申請案件詳情
 - `GET /case-no/{case_no}` - 根據案件編號查詢
 - `GET /applicant/{applicant_id}` - 查詢特定申請人的所有案件
@@ -228,10 +217,10 @@ Mix_Curry/
 
 - `POST /` - 建立審核記錄
 - `GET /application/{application_id}` - 取得審核記錄
-- `POST /approve/{application_id}` - 核准申請
-- `POST /reject/{application_id}` - 駁回申請
+- `POST /approve/{application_id}` - 核准申請（自動發送通知）
+- `POST /reject/{application_id}` - 駁回申請（自動發送通知）
 
-### 數位憑證 (`/api/v1/certificates`) - 整合政府沙盒 API
+### 數位憑證 (`/api/v1/certificates`)
 
 - `POST /` - 建立數位憑證（整合政府發行端 API）
 - `GET /{certificate_no}` - 查詢憑證
@@ -250,177 +239,108 @@ Mix_Curry/
 - `DELETE /{photo_id}` - 刪除照片
 - `POST /inspection/upload` - 上傳現場勘查照片
 
+### 區域管理 (`/api/v1/districts`) - 🆕
+
+- `GET /` - 取得區域列表
+- `GET /{district_id}` - 取得區域詳情
+- `POST /` - 建立新區域（僅管理員）
+- `PATCH /{district_id}` - 更新區域資訊（僅管理員）
+- `DELETE /{district_id}` - 停用區域（僅管理員）
+- `GET /{district_id}/applications` - 取得區域的申請案件
+- `GET /{district_id}/stats` - 取得區域統計
+
+### 通知系統 (`/api/v1/notifications`) - 🆕
+
+- `GET /` - 取得通知列表
+- `GET /unread-count` - 取得未讀通知數量
+- `PATCH /{notification_id}/read` - 標記通知為已讀
+- `POST /mark-all-read` - 標記所有通知為已讀
+- `GET /types` - 取得支援的通知類型
+
 ### 統計資料
 
 - `GET /api/v1/stats` - 取得系統統計資料
 
-## 🛠️ 管理工具 (command.py)
+---
 
-專案提供完整的資料庫管理工具 `command.py`。
+## 🗂️ 專案結構
 
-### 可用指令
-
-#### 1. 測試資料庫連線
-```bash
-python command.py test
 ```
-測試 Supabase 連線和 RPC 函數。
-
-#### 2. 建立測試資料
-```bash
-python command.py create-test-data
-```
-自動建立：
-- ✅ 1 位測試災民
-- ✅ 1 位測試審核員  
-- ✅ 1 個測試申請案件
-- ✅ 1 筆審核記錄
-
-#### 3. 查看統計資訊
-```bash
-python command.py stats
-```
-顯示所有資料表的筆數和案件狀態分佈。
-
-#### 4. 清除資料表
-```bash
-# 清除所有資料表（會要求確認）
-python command.py clear
-
-# 強制清除（不要求確認）
-python command.py clear --force
-
-# 清除指定資料表
-python command.py clear-table users
-python command.py clear-table applications
-```
-
-### 快速開發流程
-
-```bash
-# 1. 清空資料庫
-python command.py clear --force
-
-# 2. 建立測試資料
-python command.py create-test-data
-
-# 3. 執行測試
-python test_api.py
-
-# 4. 查看結果
-python command.py stats
+Mix_Curry/
+├── main.py                      # FastAPI 主程式
+├── command.py                   # 資料庫管理工具
+├── test_api.py                  # API 測試腳本
+├── app/                         # 應用程式核心
+│   ├── settings.py              # 設定檔
+│   ├── models/                  # 資料模型
+│   │   ├── database.py          # Supabase 資料庫服務（ORM）
+│   │   └── models.py            # Pydantic 資料模型
+│   ├── services/                # 服務層
+│   │   ├── storage.py           # Supabase Storage 服務
+│   │   ├── gov_wallet.py        # 政府數位憑證 API 整合
+│   │   ├── auth.py              # 🆕 身份驗證服務
+│   │   ├── notifications.py     # 🆕 通知系統服務
+│   │   └── bank_api.py          # 🆕 銀行 API 整合服務
+│   └── routers/                 # API 路由
+│       ├── __init__.py
+│       ├── applications.py      # 申請案件 API
+│       ├── users.py             # 使用者 API
+│       ├── reviews.py           # 審核 API
+│       ├── certificates.py      # 憑證 API（整合政府沙盒）
+│       ├── photos.py            # 照片上傳 API
+│       ├── auth.py              # 🆕 身份驗證 API
+│       ├── districts.py         # 🆕 區域管理 API
+│       └── notifications.py     # 🆕 通知系統 API
+├── database_schema.sql          # 資料庫結構 SQL (V2)
+├── requirements.txt             # Python 依賴套件
+├── pyproject.toml               # 專案配置檔
+├── .env                         # 環境變數（需自行建立）
+├── .gitignore
+├── README.md                    # 專案說明
+├── FLOW_DIAGRAM.md              # 🆕 完整流程圖
+├── FRONTEND_INTEGRATION_GUIDE.md # 🆕 前端整合完整指南
+├── FRONTEND_GUIDE.md            # 前端整合簡化指南
+├── ARCHITECTURE.md              # 系統架構文件
+├── SUPABASE_SETUP.md            # Supabase 設定清單
+└── GOV_API_INTEGRATION.md       # 政府 API 整合說明
 ```
 
-## 🧪 測試
+---
 
-### 方法 1：使用管理工具
-```bash
-# 建立測試資料
-python command.py create-test-data
+## 📊 資料庫結構
 
-# 查看統計
-python command.py stats
-```
+### 主要資料表
 
-### 方法 2：使用測試腳本
-```bash
-python test_api.py
-```
+1. **districts** 🆕 - 區域管理（里/鄰）
+2. **users** - 使用者（災民、審核員、管理員）
+3. **applications** - 申請案件主表
+4. **damage_photos** - 災損照片
+5. **review_records** - 審核記錄
+6. **digital_certificates** - 數位憑證
+7. **subsidy_items** - 補助項目明細
+8. **notifications** 🆕 - 通知系統
+9. **bank_verification_records** 🆕 - 銀行驗證記錄
+10. **system_settings** - 系統設定
 
-### 方法 3：使用 Swagger UI
-訪問 http://localhost:8000/docs
+詳細結構請參考 `database_schema.sql`
 
-### 方法 4：手動測試政府 API
-- 發行端 Swagger: https://issuer-sandbox.wallet.gov.tw/swaggerui/
-- 驗證端 Swagger: https://verifier-sandbox.wallet.gov.tw/swaggerui/
-
-## 🎓 專題展示建議
-
-1. **展示真實政府表單** - 說明我們完全基於台南市政府實務設計（颱風水災受災戶）
-2. **Demo 災民填寫流程** - 展示從 8-12 分鐘完成（vs 紙本 30-60 分鐘）
-3. **Demo 審核端介面** - 現場勘查 + 電子簽核流程
-4. **展示數位憑證整合** - **使用政府數位憑證沙盒 API**
-   - 發行憑證 → 災民掃描 QR Code → 憑證加入皮夾
-   - 發放窗口驗證 → 掃描災民憑證 → 驗證通過 → 發放補助
-5. **數據對比** - 展示效益評估表
-
-### 🌟 展示亮點
-
-- ✅ **完整整合政府數位憑證沙盒**（發行端 + 驗證端）
-- ✅ **符合 W3C Verifiable Credentials 標準**
-- ✅ **實現從申請到發放的完整流程**
-- ✅ **支援 Fallback 機制**（政府 API 失敗時自動切換本地模式）
-
-## 💡 使用範例
-
-### 快速開始（使用管理工具）
-
-```bash
-# 1. 建立測試資料
-python command.py create-test-data
-
-# 2. 查看 API 文件
-open http://localhost:8000/docs
-
-# 3. 執行測試腳本
-python test_api.py
-```
-
-### API 使用範例
-
-#### 建立使用者
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/users/" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "phone": "0912345678",
-    "full_name": "王小明",
-    "id_number": "A123456789",
-    "role": "applicant"
-  }'
-```
-
-### 建立申請案件
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/applications/" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "applicant_id": "user-uuid",
-    "applicant_name": "王小明",
-    "id_number": "A123456789",
-    "phone": "0912345678",
-    "address": "台南市中西區民權路100號",
-    "disaster_date": "2025-10-10",
-    "disaster_type": "flood",
-    "damage_description": "一樓淹水約50公分，家具電器受損",
-    "damage_location": "台南市中西區民權路100號1樓",
-    "subsidy_type": "housing",
-    "requested_amount": 50000
-  }'
-```
-
-### 上傳災損照片
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/photos/upload" \
-  -F "application_id=application-uuid" \
-  -F "photo_type=before_damage" \
-  -F "description=一樓客廳淹水情形" \
-  -F "file=@photo.jpg"
-```
+---
 
 ## 🔐 安全性考量
 
+- ✅ JWT Token 身份驗證 + Refresh Token 機制
+- ✅ BCrypt 密碼加密
+- ✅ 角色權限管理（災民、里長、管理員）
+- ✅ 區域權限隔離（里長只能看自己轄區）
 - ✅ Row Level Security (RLS) 已在資料庫層級設定
 - ✅ 照片儲存使用私有 Bucket 和簽名 URL
 - ✅ API 支援 CORS，生產環境需限制來源網域
 - ✅ 整合政府數位憑證 API，憑證驗證符合國家標準
-- ⚠️ 建議加入 JWT 身份驗證機制
+- ✅ 銀行 API 整合，支援帳戶驗證和重複申請檢查
 - ⚠️ 生產環境需使用 HTTPS
 - ⚠️ 目前使用沙盒環境，正式環境需更換為生產 API
+
+---
 
 ## 🏛️ 政府 API 整合
 
@@ -438,13 +358,70 @@ curl -X POST "http://localhost:8000/api/v1/photos/upload" \
 
 詳細整合說明請參考 [GOV_API_INTEGRATION.md](GOV_API_INTEGRATION.md)
 
+---
+
+## 🎓 專題展示建議
+
+1. **展示真實政府表單** - 說明我們完全基於台南市政府實務設計（颱風水災受災戶）
+2. **Demo 災民填寫流程** - 展示從 8-12 分鐘完成（vs 紙本 30-60 分鐘）
+3. **Demo 審核端介面** - 現場勘查 + 電子簽核流程 + 補件要求
+4. **展示數位憑證整合** - **使用政府數位憑證沙盒 API**
+   - 發行憑證 → 災民掃描 QR Code → 憑證加入皮夾
+   - 發放窗口驗證 → 掃描災民憑證 → 驗證通過 → 發放補助
+5. **展示通知系統** - 申請提交、審核結果、補件要求等自動通知
+6. **展示區域管理** - 里長只能查看自己轄區的案件
+7. **數據對比** - 展示效益評估表
+
+### 🌟 展示亮點
+
+- ✅ **完整整合政府數位憑證沙盒**（發行端 + 驗證端）
+- ✅ **符合 W3C Verifiable Credentials 標準**
+- ✅ **實現從申請到發放的完整流程**
+- ✅ **支援 Fallback 機制**（政府 API 失敗時自動切換本地模式）
+- ✅ **完整的身份驗證和權限管理**
+- ✅ **區域管理和通知系統**
+- ✅ **銀行 API 整合（帳戶驗證、重複申請檢查）**
+- ✅ **前後台完全分離**
+
+---
+
+## 🛠️ 開發指南
+
+### API 使用範例
+
+詳細範例請參考：
+- [FRONTEND_INTEGRATION_GUIDE.md](./FRONTEND_INTEGRATION_GUIDE.md) - 完整的 React/Vue 範例
+- [FRONTEND_GUIDE.md](./FRONTEND_GUIDE.md) - 簡化版 API 呼叫範例
+
+### 測試流程
+
+```bash
+# 1. 清空資料庫
+python command.py clear --force
+
+# 2. 建立測試資料
+python command.py create-test-data
+
+# 3. 執行測試
+python test_api.py
+
+# 4. 查看結果
+python command.py stats
+```
+
+---
+
 ## 🤝 貢獻
 
 歡迎提交 Issue 或 Pull Request！
 
+---
+
 ## 📄 授權
 
 本專案基於台南市政府公開的災民補助申請表單設計，僅供學術研究與專題展示使用。
+
+---
 
 ## 📞 聯絡資訊
 
@@ -452,4 +429,9 @@ curl -X POST "http://localhost:8000/api/v1/photos/upload" \
 
 ---
 
-**🚀 所有設計都已完成，可以直接進入開發或用於專題報告！**
+**🚀 V2.0 已完成！可以直接用於專題報告或實際部署！**
+
+### 版本歷史
+
+- **V2.0** (2025-10) - 新增身份驗證、區域管理、通知系統、銀行 API 整合
+- **V1.0** (2025-09) - 基本申請、審核、憑證功能
