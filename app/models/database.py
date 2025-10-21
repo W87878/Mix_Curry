@@ -64,15 +64,64 @@ class DatabaseService:
     
     def create_application(self, application_data: dict):
         """建立新申請案件"""
-        # 生成案件編號
-        case_no_result = self.client.rpc('generate_case_no').execute()
-        application_data['case_no'] = case_no_result.data
+        from datetime import datetime
         
-        # 序列化資料
-        serialized_data = serialize_data(application_data)
+        max_retries = 5
+        last_error = None
         
-        result = self.client.table('applications').insert(serialized_data).execute()
-        return result.data[0] if result.data else None
+        for attempt in range(max_retries):
+            try:
+                # 直接在 Python 中生成案件編號
+                case_year = datetime.now().strftime('%Y')
+                
+                # 查詢今年度最新的案件編號
+                latest_result = self.client.table('applications')\
+                    .select('case_no')\
+                    .like('case_no', f'CASE-{case_year}-%')\
+                    .order('case_no', desc=True)\
+                    .limit(1)\
+                    .execute()
+                
+                if latest_result.data and len(latest_result.data) > 0:
+                    # 從最新的案件編號提取序號
+                    latest_case_no = latest_result.data[0]['case_no']
+                    # 格式: CASE-2025-00001
+                    seq_str = latest_case_no.split('-')[-1]
+                    next_seq = int(seq_str) + 1
+                else:
+                    # 今年第一筆
+                    next_seq = 1
+                
+                # 生成新的案件編號
+                new_case_no = f'CASE-{case_year}-{str(next_seq).zfill(5)}'
+                application_data['case_no'] = new_case_no
+                
+                print(f"生成新案件編號: {new_case_no} (嘗試 {attempt + 1}/{max_retries})")
+                
+                # 序列化資料
+                serialized_data = serialize_data(application_data)
+                
+                result = self.client.table('applications').insert(serialized_data).execute()
+                return result.data[0] if result.data else None
+                
+            except Exception as e:
+                last_error = e
+                error_str = str(e)
+                
+                # 如果是 case_no 重複錯誤，重試
+                if 'case_no' in error_str and 'duplicate' in error_str:
+                    print(f"⚠️  案件編號 {application_data.get('case_no')} 重複，重試中...")
+                    # 短暫延遲避免並發衝突
+                    import time
+                    time.sleep(0.1)
+                    continue
+                else:
+                    # 其他錯誤直接拋出
+                    raise
+        
+        # 所有重試都失敗
+        print(f"❌ 創建申請失敗，已重試 {max_retries} 次")
+        raise last_error if last_error else Exception("創建申請失敗")
     
     def get_application_by_id(self, application_id: str):
         """根據 ID 取得申請案件"""

@@ -16,6 +16,7 @@
 
 ### 🎯 V2.0 新功能
 
+- ✅ **數位憑證登入** - 整合政府數位憑證，無密碼安全登入
 - ✅ **完整身份驗證系統** - JWT Token + 角色權限管理
 - ✅ **區域管理** - 里長只能查看和審核自己轄區的案件
 - ✅ **通知系統** - 簡訊 + Email + App 推送通知
@@ -97,6 +98,11 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 # FastAPI 設定
 DEBUG=True
 SECRET_KEY=your-secret-key-change-in-production
+
+# 數位憑證 API 設定（開發時使用模擬）
+TWFIDO_API_URL=https://twfido-sandbox.nat.gov.tw
+DIGITAL_ID_API_URL=https://digital-id-sandbox.gov.tw
+DIGITAL_ID_API_KEY=your-digital-id-api-key  # 生產環境需申請
 
 # 銀行 API 設定（可選）
 BANK_API_URL=https://bank-api.example.com
@@ -390,8 +396,31 @@ Mix_Curry/
 ### API 使用範例
 
 詳細範例請參考：
+- [DIGITAL_ID_GUIDE.md](./DIGITAL_ID_GUIDE.md) - **數位憑證登入完整指南** 🆕
 - [FRONTEND_INTEGRATION_GUIDE.md](./FRONTEND_INTEGRATION_GUIDE.md) - 完整的 React/Vue 範例
 - [FRONTEND_GUIDE.md](./FRONTEND_GUIDE.md) - 簡化版 API 呼叫範例
+
+### 數位憑證登入快速測試
+
+**1. 產生測試用 QR Code：**
+```bash
+# 訪問以下網址
+http://localhost:8080/api/v1/auth/digital-id/generate-test-qr?id_number=A123456789&full_name=測試用戶
+```
+
+**2. 使用數位憑證登入：**
+- 災民前台：http://localhost:8080/applicant
+- 里長後台：http://localhost:8080/admin
+- 貼上步驟 1 產生的 QR Code 資料
+- 首次使用補充手機號碼即可
+
+**3. 或使用 Email 登入（備用）：**
+```bash
+# 先用測試頁面註冊帳號
+http://localhost:8080/test
+```
+
+詳細說明請參考 [DIGITAL_ID_GUIDE.md](./DIGITAL_ID_GUIDE.md)
 
 ### 測試流程
 

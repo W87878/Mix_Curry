@@ -278,15 +278,42 @@
 
         <!-- 僅登入畫面 -->
         <div id="loginOnlyScreen" class="card hidden">
-            <h2 style="margin-bottom: 20px; color: #333;">登入帳號</h2>
+            <h2 style="margin-bottom: 20px; color: #333;">選擇登入方式</h2>
 
-            <div class="form-group">
-                <label>Email <span class="required">*</span></label>
-                <input type="email" id="loginEmail" placeholder="your@email.com">
+            <!-- 數位憑證登入（主要） -->
+            <div style="margin-bottom: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">📱 數位憑證登入（推薦）</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用政府數位憑證，快速且安全</p>
+                
+                <div class="form-group">
+                    <label>數位憑證 QR Code 資料 <span class="required">*</span></label>
+                    <textarea id="digitalQrCode" placeholder="貼上數位憑證 QR Code 掃描結果" style="min-height: 80px; resize: vertical;"></textarea>
+                    <small style="color: #666; margin-top: 5px; display: block;">
+                        <a href="/docs" target="_blank" style="color: #667eea;">不知道如何取得？點此查看測試用 QR Code</a>
+                    </small>
+                </div>
+                
+                <button class="btn btn-primary" onclick="loginWithDigitalID()" style="width: 100%;">
+                    🔐 使用數位憑證登入
+                </button>
             </div>
 
-            <button class="btn btn-primary" onclick="loginOnly()">登入</button>
-            <button class="btn btn-secondary" onclick="backToAuth()">返回</button>
+            <!-- Email 登入（備用） -->
+            <div style="padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                <h3 style="color: #666; margin-bottom: 15px;">📧 Email 登入（備用）</h3>
+                <p style="color: #999; font-size: 14px; margin-bottom: 15px;">如果您沒有數位憑證，可使用此方式</p>
+                
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+
+                <button class="btn" onclick="loginOnly()" style="width: 100%; background: #999;">
+                    📧 使用 Email 登入
+                </button>
+            </div>
+
+            <button class="btn btn-secondary" onclick="backToAuth()" style="margin-top: 20px; width: 100%;">返回</button>
         </div>
 
         <!-- 主選單 -->
@@ -461,7 +488,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8080/api/v1';
+        const API_BASE = 'https://589b9ef47213.ngrok-free.app/api/v1';
         let accessToken = localStorage.getItem('applicant_token');
         let currentUser = JSON.parse(localStorage.getItem('applicant_user') || 'null');
         let currentStep = 1;
@@ -546,6 +573,75 @@
                 showMainMenu();
             } else {
                 alert('登入失敗，請確認 Email 是否正確');
+            }
+        }
+
+        async function loginWithDigitalID() {
+            const qrCodeData = document.getElementById('digitalQrCode').value.trim();
+            
+            if (!qrCodeData) {
+                alert('請輸入數位憑證 QR Code 資料');
+                return;
+            }
+
+            try {
+                // 首先嘗試使用現有帳號登入
+                const result = await fetch(`${API_BASE}/auth/digital-id/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        qr_code_data: qrCodeData,
+                        role: 'applicant'  // 災民身份
+                    })
+                });
+
+                if (result.ok) {
+                    const data = await result.json();
+                    accessToken = data.access_token;
+                    currentUser = data.user;
+                    localStorage.setItem('applicant_token', accessToken);
+                    localStorage.setItem('applicant_user', JSON.stringify(currentUser));
+                    alert(`歡迎回來，${currentUser.full_name}！`);
+                    showMainMenu();
+                } else {
+                    const error = await result.json();
+                    
+                    // 如果是首次使用，需要補充資料
+                    if (error.detail && error.detail.includes('首次使用')) {
+                        const phone = prompt('首次使用，請輸入您的手機號碼（用於接收通知）：', '09');
+                        
+                        if (phone) {
+                            // 再次提交，這次包含手機號碼
+                            const retryResult = await fetch(`${API_BASE}/auth/digital-id/login`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    qr_code_data: qrCodeData,
+                                    role: 'applicant',
+                                    phone: phone
+                                })
+                            });
+
+                            if (retryResult.ok) {
+                                const data = await retryResult.json();
+                                accessToken = data.access_token;
+                                currentUser = data.user;
+                                localStorage.setItem('applicant_token', accessToken);
+                                localStorage.setItem('applicant_user', JSON.stringify(currentUser));
+                                alert(`註冊並登入成功！歡迎，${currentUser.full_name}！`);
+                                showMainMenu();
+                            } else {
+                                const retryError = await retryResult.json();
+                                alert(`登入失敗：${retryError.detail}`);
+                            }
+                        }
+                    } else {
+                        alert(`登入失敗：${error.detail}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Digital ID login error:', error);
+                alert('數位憑證登入失敗，請稍後再試');
             }
         }
 

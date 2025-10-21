@@ -10,13 +10,19 @@ class Settings(BaseSettings):
     
     # FastAPI 設定
     APP_NAME: str = "災民補助申請系統"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "2.0.0"
     DEBUG: bool = False
     
     # JWT 設定
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # 政府數位憑證 API 設定
+    ISSUER_API_BASE: str = "https://issuer-sandbox.wallet.gov.tw"
+    ISSUER_API_KEY: str = "bE3uHSqJzz5GSHVHh6PGpTXPyCIjEtHA"
+    VERIFIER_API_BASE: str = "https://verifier-sandbox.wallet.gov.tw"
+    VERIFIER_API_KEY: str = "BLrdNlMkYL2vsCvudEsbd7N5tRlX58HS"
     
     # Storage 設定
     DAMAGE_PHOTOS_BUCKET: str = "damage-photos"

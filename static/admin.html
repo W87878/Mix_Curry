@@ -521,7 +521,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8080/api/v1';
+        const API_BASE = 'https://589b9ef47213.ngrok-free.app/api/v1';
         let accessToken = localStorage.getItem('admin_token');
         let currentUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
         let currentApplication = null;
@@ -534,33 +534,157 @@
         }
 
         function showLoginPrompt() {
-            const email = prompt('請輸入里長 Email 登入：');
-            if (!email) {
-                document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 20px; color: #999;">請重新整理頁面並登入</div>';
-                return;
-            }
+            // 創建登入對話框
+            const loginModal = document.createElement('div');
+            loginModal.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                    <div style="background: white; padding: 40px; border-radius: 12px; max-width: 500px; width: 90%;">
+                        <h2 style="margin-bottom: 20px; color: #333;">里長/管理員登入</h2>
+                        
+                        <!-- 數位憑證登入 -->
+                        <div style="margin-bottom: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
+                            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 16px;">📱 數位憑證登入（推薦）</h3>
+                            <textarea id="adminDigitalQrCode" placeholder="貼上數位憑證 QR Code 資料" style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: monospace; font-size: 12px;"></textarea>
+                            <small style="color: #666; margin-top: 5px; display: block;">
+                                <a href="/docs#/身份驗證/generate_test_qr_api_v1_auth_digital_id_generate_test_qr_get" target="_blank" style="color: #667eea;">點此產生測試用 QR Code</a>
+                            </small>
+                            <button id="btnDigitalLogin" style="width: 100%; margin-top: 15px; padding: 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                                🔐 使用數位憑證登入
+                            </button>
+                        </div>
+                        
+                        <!-- Email 登入 -->
+                        <div style="padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                            <h3 style="color: #666; margin-bottom: 15px; font-size: 16px;">📧 Email 登入（備用）</h3>
+                            <input type="email" id="adminEmail" placeholder="your@email.com" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                            <button id="btnEmailLogin" style="width: 100%; padding: 12px; background: #999; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                                📧 使用 Email 登入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loginModal);
 
-            fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    password: '',
-                    login_type: 'password'
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.access_token && data.user.role === 'reviewer') {
-                    accessToken = data.access_token;
-                    currentUser = data.user;
-                    localStorage.setItem('admin_token', accessToken);
-                    localStorage.setItem('admin_user', JSON.stringify(currentUser));
-                    location.reload();
-                } else {
-                    alert('登入失敗或權限不足');
-                    showLoginPrompt();
+            // 數位憑證登入事件
+            document.getElementById('btnDigitalLogin').addEventListener('click', async () => {
+                const qrCodeData = document.getElementById('adminDigitalQrCode').value.trim();
+                
+                if (!qrCodeData) {
+                    alert('請輸入數位憑證 QR Code 資料');
+                    return;
                 }
+
+                try {
+                    const result = await fetch(`${API_BASE}/auth/digital-id/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            qr_code_data: qrCodeData
+                        })
+                    });
+
+                    if (result.ok) {
+                        const data = await result.json();
+                        if (data.user.role === 'reviewer' || data.user.role === 'admin') {
+                            accessToken = data.access_token;
+                            currentUser = data.user;
+                            localStorage.setItem('admin_token', accessToken);
+                            localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                            location.reload();
+                        } else {
+                            alert('此帳號沒有管理權限');
+                        }
+                    } else {
+                        const error = await result.json();
+                        
+                        // 如果是首次使用，需要補充資料
+                        if (error.detail && error.detail.includes('首次使用')) {
+                            const role = prompt('首次使用，請選擇角色（輸入 reviewer 為里長，admin 為管理員）：', 'reviewer');
+                            const phone = prompt('請輸入手機號碼：', '09');
+                            
+                            if (role && phone) {
+                                let districtId = null;
+                                if (role === 'reviewer') {
+                                    // 取得區域列表
+                                    const districtsRes = await fetch(`${API_BASE}/districts/`);
+                                    if (districtsRes.ok) {
+                                        const districts = await districtsRes.json();
+                                        const districtOptions = districts.map(d => `${d.district_code}: ${d.district_name}`).join('\\n');
+                                        const selectedCode = prompt(`請選擇管轄區域（輸入代碼）：\\n${districtOptions}`);
+                                        const selectedDistrict = districts.find(d => d.district_code === selectedCode);
+                                        districtId = selectedDistrict ? selectedDistrict.id : null;
+                                    }
+                                }
+                                
+                                // 再次提交，包含補充資料
+                                const retryResult = await fetch(`${API_BASE}/auth/digital-id/login`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        qr_code_data: qrCodeData,
+                                        role: role,
+                                        phone: phone,
+                                        district_id: districtId
+                                    })
+                                });
+
+                                if (retryResult.ok) {
+                                    const data = await retryResult.json();
+                                    accessToken = data.access_token;
+                                    currentUser = data.user;
+                                    localStorage.setItem('admin_token', accessToken);
+                                    localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                                    location.reload();
+                                } else {
+                                    const retryError = await retryResult.json();
+                                    alert(`登入失敗：${retryError.detail}`);
+                                }
+                            }
+                        } else {
+                            alert(`登入失敗：${error.detail}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Digital ID login error:', error);
+                    alert('數位憑證登入失敗，請稍後再試');
+                }
+            });
+
+            // Email 登入事件
+            document.getElementById('btnEmailLogin').addEventListener('click', async () => {
+                const email = document.getElementById('adminEmail').value.trim();
+                
+                if (!email) {
+                    alert('請輸入 Email');
+                    return;
+                }
+
+                fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        password: '',
+                        login_type: 'password'
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.access_token && (data.user.role === 'reviewer' || data.user.role === 'admin')) {
+                        accessToken = data.access_token;
+                        currentUser = data.user;
+                        localStorage.setItem('admin_token', accessToken);
+                        localStorage.setItem('admin_user', JSON.stringify(currentUser));
+                        location.reload();
+                    } else {
+                        alert('登入失敗或權限不足');
+                    }
+                })
+                .catch(error => {
+                    alert('登入失敗');
+                    console.error(error);
+                });
             });
         }
 
@@ -593,7 +717,25 @@
             });
 
             if (result.ok) {
-                const apps = await result.json();
+                const response = await result.json();
+                
+                // 處理不同的回應格式
+                let apps = [];
+                if (Array.isArray(response)) {
+                    apps = response;
+                } else if (response.data) {
+                    // 處理嵌套結構: {data: {applications: [...]}}
+                    if (response.data.applications && Array.isArray(response.data.applications)) {
+                        apps = response.data.applications;
+                    } else if (Array.isArray(response.data)) {
+                        apps = response.data;
+                    } else {
+                        apps = [response.data];
+                    }
+                } else if (response.applications) {
+                    apps = Array.isArray(response.applications) ? response.applications : [response.applications];
+                }
+                
                 document.getElementById('statPending').textContent = apps.length;
 
                 // 簡單統計
@@ -611,7 +753,27 @@
             });
 
             if (result.ok) {
-                const apps = await result.json();
+                const response = await result.json();
+                console.log('API Response:', response);  // 除錯用
+                
+                // 處理不同的回應格式
+                let apps = [];
+                if (Array.isArray(response)) {
+                    apps = response;
+                } else if (response.data) {
+                    // 處理嵌套結構: {data: {applications: [...]}}
+                    if (response.data.applications && Array.isArray(response.data.applications)) {
+                        apps = response.data.applications;
+                    } else if (Array.isArray(response.data)) {
+                        apps = response.data;
+                    } else {
+                        apps = [response.data];
+                    }
+                } else if (response.applications) {
+                    apps = Array.isArray(response.applications) ? response.applications : [response.applications];
+                }
+                
+                console.log('Parsed apps:', apps);  // 除錯用
                 displayApplications(apps, 'recentApplications');
                 displayApplications(apps, 'applicationsList');
             }
@@ -719,26 +881,92 @@
                 return;
             }
 
-            const result = await fetch(`${API_BASE}/reviews/approve/${currentApplication.id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    approved_amount: parseFloat(amount),
-                    comments: comments
-                })
-            });
+            // 使用新的完整流程 API（整合政府發行端）
+            try {
+                const result = await fetch(`/api/v1/complete-flow/review-and-issue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        application_id: currentApplication.id,
+                        approved: true,
+                        review_notes: comments
+                    })
+                });
 
-            if (result.ok) {
-                alert('✅ 核准成功！');
-                closeReviewModal();
-                loadDashboardStats();
-                loadPendingApplications();
-            } else {
-                alert('操作失敗，請稍後再試');
+                const data = await result.json();
+                console.log('審核回應數據:', data);  // 調試用
+                console.log('data.qr_code 存在?', !!data.qr_code);
+                console.log('data.qr_code 類型:', typeof data.qr_code);
+                console.log('data 所有鍵:', Object.keys(data));
+
+                if (data.success) {
+                    // 顯示 QR Code 給災民
+                    showQRCodeModal(data);
+                    
+                    closeReviewModal();
+                    loadDashboardStats();
+                    loadPendingApplications();
+                } else {
+                    alert(`操作失敗：${data.message || '請稍後再試'}`);
+                }
+            } catch (error) {
+                console.error('審核錯誤:', error);
+                alert(`系統錯誤：${error.message}`);
             }
+        }
+
+        // 顯示 QR Code 給災民掃描
+        function showQRCodeModal(data) {
+            console.log('QR Code Modal 數據:', data);  // 調試用
+            console.log('qr_code 存在嗎?', !!data.qr_code);  // 調試用
+            console.log('qr_code 長度:', data.qr_code?.length);  // 調試用
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            
+            const qrCodeDisplay = data.qr_code ? 
+                `<img src="${data.qr_code}" style="max-width: 300px; border: 3px solid #4CAF50; border-radius: 10px; padding: 10px;" onload="console.log('QR Code 圖片載入成功')" onerror="console.error('QR Code 圖片載入失敗')">` :
+                `<div style="padding: 20px; background: #f0f0f0; border-radius: 10px;">❌ QR Code 未生成<br>Transaction ID: ${data.transaction_id}</div>`;
+            
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2 style="color: #4CAF50;">✅ 核准成功！</h2>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <h3>數位憑證 QR Code</h3>
+                        <p style="color: #666; margin: 10px 0;">請轉發給災民掃描</p>
+                        ${qrCodeDisplay}
+                        <p style="margin-top: 15px; font-size: 14px; color: #888;">
+                            Transaction ID: ${data.transaction_id || 'N/A'}
+                        </p>
+                        ${data.deep_link && data.deep_link.startsWith('twfido://') ? `
+                            <a href="${data.deep_link}" target="_blank" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 5px;">
+                                📱 開啟數位憑證 APP
+                            </a>
+                        ` : ''}
+                        ${data.deep_link && !data.deep_link.startsWith('twfido://') ? `
+                            <p style="margin-top: 10px; font-size: 12px; color: #999;">Deep Link: ${data.deep_link.substring(0, 50)}...</p>
+                        ` : ''}
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <strong>📱 災民操作步驟：</strong>
+                        <ol style="margin: 10px 0 0 20px; text-align: left;">
+                            <li>打開「TW FidO 數位憑證皮夾」APP</li>
+                            <li>掃描此 QR Code</li>
+                            <li>確認並儲存憑證</li>
+                            <li>到 7-11 機台領取補助</li>
+                        </ol>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; font-size: 16px;">
+                        關閉
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         }
 
         async function rejectApplication() {

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.settings import get_settings
-from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications
+from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications, simplified_flow, complete_flow
 from contextlib import asynccontextmanager
 import os
 
@@ -58,7 +58,7 @@ app = FastAPI(
 # CORS 設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生產環境請改為特定網域
+    allow_origins=["https://589b9ef47213.ngrok-free.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,6 +66,8 @@ app.add_middleware(
 
 # 註冊路由
 app.include_router(auth.router)  # 身份驗證
+app.include_router(complete_flow.router)  # 🎯 完整流程（真實政府 API 流程）
+app.include_router(simplified_flow.router)  # 簡化版流程
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(applications.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
@@ -121,6 +123,25 @@ async def admin_page():
         return FileResponse(static_file)
     else:
         raise HTTPException(status_code=404, detail="里長後台不存在")
+
+
+@app.get("/digital-id-v2")
+async def digital_id_v2_demo():
+    """數位憑證登入 V2 示範頁面（完整掃描流程）"""
+    static_file = os.path.join(os.path.dirname(__file__), "static", "digital_id_v2_demo.html")
+    if os.path.exists(static_file):
+        return FileResponse(static_file)
+    else:
+        raise HTTPException(status_code=404, detail="頁面不存在")
+
+@app.get("/gov-api-demo")
+async def gov_api_demo():
+    """政府 API 完整流程測試頁面"""
+    static_file = os.path.join(os.path.dirname(__file__), "static", "gov_api_demo.html")
+    if os.path.exists(static_file):
+        return FileResponse(static_file)
+    else:
+        raise HTTPException(status_code=404, detail="頁面不存在")
 
 # 健康檢查
 @app.get("/health")

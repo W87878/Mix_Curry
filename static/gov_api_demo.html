@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>政府數位憑證 API 完整流程測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .flow-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-box.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .result-box.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .qr-code-display {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-code-display img {
+            max-width: 300px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .deep-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .deep-link:hover {
+            background: #0056b3;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ 政府數位憑證 API 完整流程</h1>
+            <p>災害補助申請 + 數位憑證驗證系統</p>
+        </div>
+
+        <div class="flow-container">
+            <!-- 步驟 1: 災民申請 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">災民申請</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="applicant_name" value="王小明">
+                </div>
+                
+                <div class="form-group">
+                    <label>身分證字號</label>
+                    <input type="text" id="id_number" value="A123456789">
+                </div>
+                
+                <div class="form-group">
+                    <label>電話</label>
+                    <input type="text" id="phone" value="0912345678">
+                </div>
+                
+                <div class="form-group">
+                    <label>戶籍地址</label>
+                    <input type="text" id="address" value="台南市中西區民生路100號">
+                </div>
+                
+                <div class="form-group">
+                    <label>受災地址</label>
+                    <input type="text" id="damage_address" value="台南市中西區民生路100號">
+                </div>
+                
+                <button onclick="submitApplication()">提交申請</button>
+                
+                <div id="step1_result" class="result-box"></div>
+            </div>
+
+            <!-- 步驟 2: 里長審核 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">里長審核 + 發行憑證</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>申請案件 ID</label>
+                    <input type="text" id="application_id" placeholder="從步驟 1 取得">
+                </div>
+                
+                <div class="form-group">
+                    <label>審核結果</label>
+                    <select id="approved">
+                        <option value="true">通過</option>
+                        <option value="false">駁回</option>
+                    </select>
+                </div>
+                
+                <button onclick="reviewAndIssue()">審核並發行憑證</button>
+                
+                <div id="step2_result" class="result-box"></div>
+            </div>
+
+            <!-- 步驟 3: QR Code 顯示 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">數位憑證 QR Code</div>
+                </div>
+                
+                <div class="qr-code-display" id="qr_code_display">
+                    <p class="info-text">審核通過後，QR Code 會顯示在這裡<br>請用「TW FidO 數位憑證皮夾」APP 掃描</p>
+                </div>
+                
+                <div id="step3_result" class="result-box"></div>
+            </div>
+        </div>
+
+        <div class="flow-container">
+            <!-- 步驟 4: 7-11 機台驗證 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">7-11 機台 - 產生 VP QR Code</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>VP 驗證服務代碼 (ref)</label>
+                    <input type="text" id="vp_ref" value="00000000_subsidy_667">
+                    <p class="info-text">從 VP 面板取得的驗證服務代碼</p>
+                </div>
+                
+                <button onclick="generateVPQRCode()">產生 VP QR Code</button>
+                
+                <div class="qr-code-display" id="vp_qr_code_display">
+                    <p class="info-text">點擊上方按鈕產生 VP 驗證 QR Code<br>災民用 APP 掃描後出示憑證</p>
+                </div>
+                
+                <div id="step4_result" class="result-box"></div>
+            </div>
+
+            <!-- 步驟 5: 驗證結果 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div class="step-title">驗證 VP 並發放補助</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Transaction ID</label>
+                    <input type="text" id="vp_transaction_id" placeholder="從步驟 4 取得">
+                </div>
+                
+                <button onclick="verifyVP()">驗證並發放</button>
+                
+                <div id="step5_result" class="result-box"></div>
+            </div>
+
+            <!-- API 狀態 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <div class="step-number">ℹ️</div>
+                    <div class="step-title">系統狀態</div>
+                </div>
+                
+                <div id="api_status">
+                    <p class="info-text">載入中...</p>
+                </div>
+                
+                <button onclick="checkAPIStatus()">檢查 API 狀態</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1/complete-flow';
+        
+        // 頁面載入時檢查 API 狀態
+        window.onload = () => {
+            checkAPIStatus();
+        };
+
+        // 檢查 API 狀態
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                document.getElementById('api_status').innerHTML = `
+                    <p><strong>狀態：</strong> ${data.status}</p>
+                    <p><strong>發行端 API：</strong> <span class="status-badge ${data.issuer_api === 'connected' ? 'success' : 'pending'}">${data.issuer_api === 'connected' ? '已連接 ✅' : '模擬模式 ⚠️'}</span></p>
+                    <p><strong>驗證端 API：</strong> <span class="status-badge ${data.verifier_api === 'connected' ? 'success' : 'pending'}">${data.verifier_api === 'connected' ? '已連接 ✅' : '模擬模式 ⚠️'}</span></p>
+                `;
+            } catch (error) {
+                document.getElementById('api_status').innerHTML = `
+                    <p class="status-badge error">❌ 無法連接到 API</p>
+                `;
+            }
+        }
+
+        // 步驟 1：提交申請
+        async function submitApplication() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            showResult('step1_result', 'pending', '提交中...');
+            
+            // 生成唯一的 UUID
+            function generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+            
+            const userId = generateUUID();
+            
+            // 提交申請（後端會自動創建用戶）
+            const applicationData = {
+                applicant_id: userId,
+                applicant_name: document.getElementById('applicant_name').value,
+                id_number: document.getElementById('id_number').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                disaster_date: today,
+                disaster_type: 'typhoon',
+                damage_description: '房屋受颱風損壞，屋頂破損，家具受損',
+                damage_location: document.getElementById('damage_address').value,
+                subsidy_type: 'housing',
+                requested_amount: 50000
+            };
+
+            try {
+                const response = await fetch('/api/v1/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(applicationData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const applicationId = data.data?.id || data.id;
+                    document.getElementById('application_id').value = applicationId;
+                    
+                    showResult('step1_result', 'success', `
+                        ✅ 申請提交成功！<br>
+                        <strong>案件 ID：</strong>${applicationId}<br>
+                        <span class="info-text">已自動填入步驟 2</span>
+                    `);
+                } else {
+                    // 更好的錯誤訊息顯示
+                    let errorMsg = '未知錯誤';
+                    if (data.message) {
+                        errorMsg = typeof data.message === 'object' ? JSON.stringify(data.message, null, 2) : data.message;
+                    } else if (data.detail) {
+                        errorMsg = typeof data.detail === 'object' ? JSON.stringify(data.detail, null, 2) : data.detail;
+                    } else {
+                        errorMsg = JSON.stringify(data, null, 2);
+                    }
+                    showResult('step1_result', 'error', `❌ 提交失敗：<pre>${errorMsg}</pre>`);
+                }
+            } catch (error) {
+                showResult('step1_result', 'error', `❌ 錯誤：${error.message}`);
+            }
+        }
+
+        // 步驟 2：里長審核並發行憑證
+        async function reviewAndIssue() {
+            const applicationId = document.getElementById('application_id').value;
+            const approved = document.getElementById('approved').value === 'true';
+
+            if (!applicationId) {
+                showResult('step2_result', 'error', '請先完成步驟 1 或輸入案件 ID');
+                return;
+            }
+
+            showResult('step2_result', 'pending', '審核中...');
+
+            try {
+                const response = await fetch(`${API_BASE}/review-and-issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        application_id: applicationId,
+                        approved: approved,
+                        review_notes: '審核通過'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && approved) {
+                    // 顯示 QR Code
+                    displayQRCode(data.qr_code, data.deep_link, data.transaction_id);
+                    
+                    showResult('step2_result', 'success', `
+                        ✅ 憑證發行成功！<br>
+                        <strong>Transaction ID：</strong>${data.transaction_id}<br>
+                        <span class="info-text">QR Code 已顯示在步驟 3</span>
+                    `);
+                } else {
+                    showResult('step2_result', 'error', `❌ ${data.message}`);
+                }
+            } catch (error) {
+                showResult('step2_result', 'error', `❌ 錯誤：${error.message}`);
+            }
+        }
+
+        // 顯示 QR Code
+        function displayQRCode(qrCodeData, deepLink, transactionId) {
+            const display = document.getElementById('qr_code_display');
+            
+            // 如果 qrCodeData 是 base64，直接顯示
+            let qrHTML = '';
+            if (qrCodeData) {
+                if (qrCodeData.startsWith('data:image')) {
+                    qrHTML = `<img src="${qrCodeData}" alt="QR Code">`;
+                } else if (qrCodeData.startsWith('iVBOR')) {
+                    qrHTML = `<img src="data:image/png;base64,${qrCodeData}" alt="QR Code">`;
+                } else {
+                    // JSON 格式，顯示文字
+                    qrHTML = `<pre>${qrCodeData}</pre>`;
+                }
+            }
+            
+            display.innerHTML = `
+                ${qrHTML}
+                <p class="info-text">📱 請使用「TW FidO 數位憑證皮夾」APP 掃描</p>
+                ${deepLink ? `<a href="${deepLink}" class="deep-link">🔗 或點此開啟 APP</a>` : ''}
+                <p class="info-text" style="margin-top: 15px;">Transaction ID: ${transactionId}</p>
+            `;
+            
+            showResult('step3_result', 'success', '✅ 請用 APP 掃描 QR Code 並儲存憑證');
+        }
+
+        // 步驟 4：產生 VP QR Code
+        async function generateVPQRCode() {
+            const vpRef = document.getElementById('vp_ref').value;
+
+            if (!vpRef) {
+                showResult('step4_result', 'error', '請輸入 VP 驗證服務代碼');
+                return;
+            }
+
+            showResult('step4_result', 'pending', '產生中...');
+
+            try {
+                const response = await fetch(`${API_BASE}/generate-vp-qrcode`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ref: vpRef })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 顯示 VP QR Code
+                    displayVPQRCode(data.qrcode_image, data.auth_uri, data.transaction_id);
+                    
+                    // 自動填入 transaction_id
+                    document.getElementById('vp_transaction_id').value = data.transaction_id;
+                    
+                    showResult('step4_result', 'success', `
+                        ✅ VP QR Code 產生成功！<br>
+                        <strong>Transaction ID：</strong>${data.transaction_id}<br>
+                        <span class="info-text">已自動填入步驟 5</span>
+                    `);
+                } else {
+                    showResult('step4_result', 'error', `❌ ${data.message}`);
+                }
+            } catch (error) {
+                showResult('step4_result', 'error', `❌ 錯誤：${error.message}`);
+            }
+        }
+
+        // 顯示 VP QR Code
+        function displayVPQRCode(qrcodeImage, authUri, transactionId) {
+            const display = document.getElementById('vp_qr_code_display');
+            
+            let qrHTML = '';
+            if (qrcodeImage) {
+                if (qrcodeImage.startsWith('data:image') || qrcodeImage.startsWith('http')) {
+                    qrHTML = `<img src="${qrcodeImage}" alt="VP QR Code">`;
+                } else {
+                    qrHTML = `<img src="data:image/png;base64,${qrcodeImage}" alt="VP QR Code">`;
+                }
+            }
+            
+            display.innerHTML = `
+                ${qrHTML}
+                <p class="info-text">📱 請使用「TW FidO 數位憑證皮夾」APP 掃描</p>
+                ${authUri ? `<a href="${authUri}" class="deep-link">🔗 或點此開啟 APP</a>` : ''}
+                <p class="info-text" style="margin-top: 15px;">Transaction ID: ${transactionId}</p>
+            `;
+        }
+
+        // 步驟 5：驗證 VP
+        async function verifyVP() {
+            const transactionId = document.getElementById('vp_transaction_id').value;
+
+            if (!transactionId) {
+                showResult('step5_result', 'error', '請先完成步驟 4 或輸入 Transaction ID');
+                return;
+            }
+
+            showResult('step5_result', 'pending', '驗證中...');
+
+            try {
+                const response = await fetch(`${API_BASE}/verify-vp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transaction_id: transactionId })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.verified) {
+                    showResult('step5_result', 'success', `
+                        ✅ 驗證成功！補助已發放！<br><br>
+                        <strong>災民資訊：</strong><br>
+                        ${formatCredentialData(data.credential_data)}
+                    `);
+                } else {
+                    showResult('step5_result', 'error', `❌ ${data.message}`);
+                }
+            } catch (error) {
+                showResult('step5_result', 'error', `❌ 錯誤：${error.message}`);
+            }
+        }
+
+        // 格式化憑證資料
+        function formatCredentialData(data) {
+            if (!data) return '';
+            
+            let html = '';
+            for (const [key, value] of Object.entries(data)) {
+                html += `${key}: ${value}<br>`;
+            }
+            return html;
+        }
+
+        // 顯示結果
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result-box show ${type}`;
+            element.innerHTML = message;
+        }
+    </script>
+</body>
+</html>
+

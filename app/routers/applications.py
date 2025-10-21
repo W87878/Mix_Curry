@@ -4,6 +4,7 @@
 """
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List, Optional
+from datetime import datetime
 from app.models.models import (
     ApplicationCreate, 
     ApplicationResponse, 
@@ -32,13 +33,45 @@ async def create_application(application: ApplicationCreate):
     - **subsidy_type**: 補助類型
     """
     try:
-        # 檢查使用者是否存在
-        user = db_service.get_user_by_id(application.applicant_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="使用者不存在"
-            )
+        # 確保用戶存在，如果不存在則創建
+        user_exists = False
+        try:
+            user = db_service.get_user_by_id(application.applicant_id)
+            if user:
+                user_exists = True
+        except Exception as e:
+            print(f"檢查用戶存在時出錯: {e}")
+        
+        if not user_exists:
+            # 必須先創建用戶
+            try:
+                user_data = {
+                    "id": application.applicant_id,
+                    "email": f"{application.id_number}@auto.generated",
+                    "full_name": application.applicant_name,
+                    "id_number": application.id_number,
+                    "phone": application.phone,
+                    "role": "applicant",
+                    "created_at": datetime.now().isoformat(),
+                    "is_active": True
+                }
+                
+                user_result = db_service.client.table("users").insert(user_data).execute()
+                
+                if not user_result.data:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="無法創建用戶"
+                    )
+                    
+                print(f"成功創建用戶: {application.applicant_id}")
+                
+            except Exception as e:
+                print(f"創建用戶失敗: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"創建用戶失敗: {str(e)}"
+                )
         
         # 建立申請案件
         application_data = application.model_dump()

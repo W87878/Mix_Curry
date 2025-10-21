@@ -12,7 +12,7 @@ from app.models.models import (
 )
 from app.models.database import db_service
 from app.services.storage import storage_service
-from app.services.gov_wallet import gov_wallet_service
+from app.services.gov_wallet import get_gov_wallet_service
 from datetime import datetime, timedelta
 import json
 
@@ -68,7 +68,8 @@ async def create_certificate(
         if use_gov_api:
             # 使用政府數位憑證 API 發行憑證
             try:
-                gov_credential = await gov_wallet_service.create_disaster_relief_credential(
+                gov_wallet_service = get_gov_wallet_service()
+                gov_credential = gov_wallet_service.issue_disaster_relief_qrcode(
                     application_data=application,
                     approved_amount=float(application['approved_amount']),
                     case_no=application['case_no']
@@ -409,6 +410,7 @@ async def verify_qr_with_gov_api(qr_data: str):
     """
     try:
         # 呼叫政府驗證 API
+        gov_wallet_service = get_gov_wallet_service()
         verification_result = await gov_wallet_service.scan_qr_code_for_verification(qr_data)
         
         if verification_result.get('success') and verification_result.get('verified'):
@@ -453,6 +455,7 @@ async def create_verification_request():
     """
     try:
         # 建立驗證請求
+        gov_wallet_service = get_gov_wallet_service()
         verification_request = await gov_wallet_service.create_verification_request(
             required_credentials=["DisasterReliefCredential"],
             purpose="颱風水災補助發放"

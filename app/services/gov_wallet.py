@@ -1,18 +1,24 @@
 """
-政府數位憑證沙盒 API 整合服務
-整合發行端和驗證端 API
+政府數位憑證服務 - 發行端 + 驗證端 API 整合
 """
 import httpx
 import json
-from typing import Optional, Dict, Any
+import qrcode
+import io
+import base64
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 from app.settings import get_settings
 
 settings = get_settings()
 
 # 政府數位憑證沙盒 API 端點
-ISSUER_API_BASE = "https://issuer-sandbox.wallet.gov.tw"
-VERIFIER_API_BASE = "https://verifier-sandbox.wallet.gov.tw"
+ISSUER_API_BASE = getattr(settings, 'ISSUER_API_BASE', "https://issuer-sandbox.wallet.gov.tw")
+VERIFIER_API_BASE = getattr(settings, 'VERIFIER_API_BASE', "https://verifier-sandbox.wallet.gov.tw")
+
+# API 金鑰（從環境變數讀取）
+ISSUER_API_KEY = getattr(settings, 'ISSUER_API_KEY', '')
+VERIFIER_API_KEY = getattr(settings, 'VERIFIER_API_KEY', '')
 
 class GovWalletService:
     """政府數位憑證服務"""
@@ -20,307 +26,409 @@ class GovWalletService:
     def __init__(self):
         self.issuer_base_url = ISSUER_API_BASE
         self.verifier_base_url = VERIFIER_API_BASE
+        self.issuer_api_key = ISSUER_API_KEY
+        self.verifier_api_key = VERIFIER_API_KEY
         self.timeout = 30.0
+        self.use_real_api = bool(ISSUER_API_KEY)  # 有 API 金鑰時使用真實 API
     
     # ==========================================
-    # 發行端 API (Issuer)
+    # 發行端 API (Issuer) - 真實政府 API
     # ==========================================
     
-    async def issue_credential(
+    async def generate_qrcode_data(
         self,
-        credential_data: Dict[str, Any]
+        vctid: str,
+        issuance_date: str,
+        expired_date: str,
+        fields: List[Dict[str, str]]
     ) -> Dict[str, Any]:
         """
-        發行數位憑證
+        呼叫政府發行端 API 產生 QR Code
+        
+        API: POST /api/qrcode/data
         
         Args:
-            credential_data: 憑證資料，包含：
-                - credentialSubject: 憑證主體資料
-                - type: 憑證類型
-                - issuer: 發行者資訊
-                - expirationDate: 過期日期
+            vctid: VC 憑證 ID（例如：00000000_vpms_20250506_0522）
+            issuance_date: 發行日期（格式：YYYYMMDD）
+            expired_date: 過期日期（格式：YYYYMMDD）
+            fields: 欄位列表，每個欄位包含：
+                - ename: 欄位名稱（如：name, company, email）
+                - content: 欄位內容
         
         Returns:
-            包含憑證 ID 和 QR Code 資料的字典
+            包含 QR Code 和其他資訊的字典
         """
+        if not self.use_real_api:
+            # 沒有 API 金鑰，返回模擬資料
+            return self._mock_qrcode_data(vctid, fields)
+        
         try:
+            payload = {
+                "vcUid": vctid,  # 注意：政府 API 使用 vcUid，不是 vctid
+                "issuanceDate": issuance_date,
+                "expiredDate": expired_date,
+                "fields": fields
+            }
+            
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.issuer_base_url}/api/v1/credentials/issue",
-                    json=credential_data,
-                    headers={"Content-Type": "application/json"}
+                    f"{self.issuer_base_url}/api/qrcode/data",
+                    json=payload,
+                    headers={
+                        "Access-Token": self.issuer_api_key,
+                        "Content-Type": "application/json"
+                    }
                 )
+                
                 response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            print(f"發行憑證失敗: {e}")
-            raise Exception(f"政府 API 發行憑證失敗: {str(e)}")
+                result = response.json()
+                
+                return {
+                    "success": True,
+                    "qr_code_data": result.get("qrCode"),
+                    "transaction_id": result.get("transactionId"),
+                    "deep_link": result.get("deepLink"),
+                    "message": "QR Code 產生成功（真實 API）"
+                }
+                
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.text if hasattr(e, 'response') else str(e)
+            print(f"呼叫政府發行端 API 失敗: {e}")
+            print(f"詳細錯誤: {error_detail}")
+            return {
+                "success": False,
+                "error": str(e),
+                "error_detail": error_detail,
+                "message": f"政府 API 呼叫失敗: {error_detail}"
+            }
+        except Exception as e:
+            print(f"呼叫政府發行端 API 失敗: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"政府 API 呼叫失敗: {str(e)}"
+            }
     
-    async def create_disaster_relief_credential(
+    async def issue_disaster_relief_qrcode(
         self,
         application_data: Dict[str, Any],
         approved_amount: float,
         case_no: str
     ) -> Dict[str, Any]:
         """
-        建立災民補助數位憑證
+        為災民補助申請發行數位憑證 QR Code
         
         Args:
-            application_data: 申請案件資料
+            application_data: 申請資料
             approved_amount: 核准金額
             case_no: 案件編號
         
         Returns:
-            憑證資料和 QR Code
-        """
-        # 準備憑證資料（符合政府 API 格式）
-        credential_data = {
-            "@context": [
-                "https://www.w3.org/2018/credentials/v1",
-                "https://wallet.gov.tw/credentials/disaster-relief/v1"
-            ],
-            "type": ["VerifiableCredential", "DisasterReliefCredential"],
-            "issuer": {
-                "id": "did:tw:gov:disaster-relief",
-                "name": "災害應變中心"
-            },
-            "issuanceDate": datetime.now().isoformat(),
-            "expirationDate": (datetime.now() + timedelta(days=365)).isoformat(),
-            "credentialSubject": {
-                "id": f"did:tw:citizen:{application_data['id_number']}",
-                "caseNumber": case_no,
-                "applicantName": application_data['applicant_name'],
-                "idNumber": application_data['id_number'],
-                "disasterType": self._translate_disaster_type(application_data.get('disaster_type', 'typhoon')),
-                "disasterDate": application_data.get('disaster_date', ''),
-                "approvedAmount": approved_amount,
-                "currency": "TWD",
-                "address": application_data.get('address', ''),
-                "damageDescription": application_data.get('damage_description', ''),
-                "subsidyType": self._translate_subsidy_type(application_data.get('subsidy_type', 'housing'))
-            }
-        }
-        
-        # 呼叫政府 API 發行憑證
-        result = await self.issue_credential(credential_data)
-        return result
-    
-    async def generate_qr_code_for_credential(
-        self,
-        credential_id: str
-    ) -> Dict[str, Any]:
-        """
-        為憑證生成 QR Code（用於出示）
-        
-        Args:
-            credential_id: 憑證 ID
-        
-        Returns:
             QR Code 資料
         """
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.issuer_base_url}/api/v1/credentials/{credential_id}/qrcode",
-                    headers={"Content-Type": "application/json"}
+        # 產生 vctid（VC 憑證 ID）
+        vctid = f"{case_no}_{datetime.now().strftime('%Y%m%d_%H%M')}"
+        
+        # 計算發行日期和過期日期
+        now = datetime.now()
+        issuance_date = now.strftime("%Y%m%d")
+        expired_date = (now + timedelta(days=90)).strftime("%Y%m%d")  # 90 天後過期
+        
+        # 準備欄位資料
+        fields = [
+            {
+                "ename": "expiredDate",
+                "content": expired_date
+            },
+            {
+                "ename": "name",
+                "content": application_data.get('applicant_name', '')
+            },
+            {
+                "ename": "idNumber",
+                "content": application_data.get('id_number', '')
+            },
+            {
+                "ename": "caseNumber",
+                "content": case_no
+            },
+            {
+                "ename": "approvedAmount",
+                "content": str(approved_amount)
+            },
+            {
+                "ename": "disasterType",
+                "content": self._translate_disaster_type(
+                    application_data.get('disaster_type', 'typhoon')
                 )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            print(f"生成 QR Code 失敗: {e}")
-            raise Exception(f"生成 QR Code 失敗: {str(e)}")
+            },
+            {
+                "ename": "issuer",
+                "content": "災害應變中心"
+            }
+        ]
+        
+        # 呼叫真實 API
+        result = await self.generate_qrcode_data(
+            vctid=vctid,
+            issuance_date=issuance_date,
+            expired_date=expired_date,
+            fields=fields
+        )
+        
+        return result
     
-    async def add_credential_to_wallet(
-        self,
-        credential_data: Dict[str, Any],
-        wallet_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def _mock_qrcode_data(self, vctid: str, fields: List[Dict[str, str]]) -> Dict[str, Any]:
         """
-        將憑證加入數位憑證皮夾
-        
-        Args:
-            credential_data: 憑證資料
-            wallet_id: 皮夾 ID（選填）
-        
-        Returns:
-            加入結果
+        模擬 QR Code 資料（開發用）
+        生成真實的 QR Code 圖片
         """
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                payload = {
-                    "credential": credential_data,
-                    "walletId": wallet_id
-                }
-                response = await client.post(
-                    f"{self.issuer_base_url}/api/v1/wallet/add",
-                    json=payload,
-                    headers={"Content-Type": "application/json"}
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            print(f"加入憑證失敗: {e}")
-            raise Exception(f"加入憑證失敗: {str(e)}")
+        # 準備 QR Code 內容
+        qr_content = json.dumps({
+            "vctid": vctid,
+            "fields": fields,
+            "mock": True,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        # 生成 QR Code 圖片
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_content)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # 轉換為 base64
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        img_base64 = base64.b64encode(buffer.getvalue()).decode()
+        
+        transaction_id = f"mock_{vctid[:20]}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        return {
+            "success": True,
+            "qr_code_data": img_base64,  # 返回 base64 編碼的圖片
+            "transaction_id": transaction_id,
+            "deep_link": f"twfido://verify?vctid={vctid}",
+            "message": "QR Code 產生成功（模擬模式）"
+        }
     
     # ==========================================
-    # 驗證端 API (Verifier)
+    # 驗證端 API (Verifier) - 真實政府 API
     # ==========================================
     
-    async def verify_credential(
+    async def generate_vp_qrcode(
         self,
-        credential_or_qr_data: str
+        ref: str,
+        transaction_id: str
     ) -> Dict[str, Any]:
         """
-        驗證數位憑證
+        產生 VP 驗證 QR Code（7-11 機台用）
+        
+        API: GET /api/oidvp/qrcode?ref=xxx&transactionId=xxx
         
         Args:
-            credential_or_qr_data: 憑證 JSON 字串或 QR Code 掃描資料
+            ref: VP 驗證服務代碼（例如：00000000_subsidy_667）
+            transaction_id: 交易 ID（隨機產生，不超過50字元）
         
         Returns:
-            驗證結果
+            包含 qrcodeImage, authUri, transactionId 的字典
         """
+        if not self.verifier_api_key:
+            # 沒有 API 金鑰，返回模擬資料
+            return self._mock_vp_qrcode(ref, transaction_id)
+        
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.verifier_base_url}/api/v1/verify",
-                    json={"credential": credential_or_qr_data},
-                    headers={"Content-Type": "application/json"}
+                response = await client.get(
+                    f"{self.verifier_base_url}/api/oidvp/qrcode",
+                    params={
+                        "ref": ref,
+                        "transactionId": transaction_id
+                    },
+                    headers={
+                        "Access-Token": self.verifier_api_key
+                    }
                 )
+                
                 response.raise_for_status()
                 result = response.json()
                 
-                # 檢查驗證結果
-                if result.get('verified') == True:
-                    return {
-                        "success": True,
-                        "verified": True,
-                        "credential": result.get('credential', {}),
-                        "message": "憑證驗證成功"
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "verified": False,
-                        "reason": result.get('reason', '憑證驗證失敗'),
-                        "message": "憑證驗證失敗"
-                    }
-        except httpx.HTTPError as e:
-            print(f"驗證憑證失敗: {e}")
-            return {
-                "success": False,
-                "verified": False,
-                "reason": str(e),
-                "message": "驗證 API 呼叫失敗"
-            }
-    
-    async def create_verification_request(
-        self,
-        required_credentials: list,
-        purpose: str = "災民補助發放驗證"
-    ) -> Dict[str, Any]:
-        """
-        建立驗證請求（用於發放補助時）
-        
-        Args:
-            required_credentials: 需要的憑證類型列表
-            purpose: 驗證目的
-        
-        Returns:
-            驗證請求資料（包含 QR Code）
-        """
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                payload = {
-                    "purpose": purpose,
-                    "requiredCredentials": required_credentials,
-                    "verifier": {
-                        "id": "did:tw:gov:disaster-relief-verifier",
-                        "name": "災害應變中心（發放窗口）"
-                    }
+                return {
+                    "success": True,
+                    "qrcode_image": result.get("qrcodeImage"),
+                    "auth_uri": result.get("authUri"),
+                    "transaction_id": result.get("transactionId"),
+                    "message": "VP QR Code 產生成功（真實 API）"
                 }
-                response = await client.post(
-                    f"{self.verifier_base_url}/api/v1/verification/request",
-                    json=payload,
-                    headers={"Content-Type": "application/json"}
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            print(f"建立驗證請求失敗: {e}")
-            raise Exception(f"建立驗證請求失敗: {str(e)}")
+                
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.text if hasattr(e, 'response') else str(e)
+            print(f"呼叫政府驗證端 API 失敗: {e}")
+            print(f"詳細錯誤: {error_detail}")
+            return {
+                "success": False,
+                "error": str(e),
+                "error_detail": error_detail,
+                "message": f"政府 API 呼叫失敗: {error_detail}"
+            }
+        except Exception as e:
+            print(f"呼叫政府驗證端 API 失敗: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"政府 API 呼叫失敗: {str(e)}"
+            }
     
-    async def scan_qr_code_for_verification(
+    async def verify_vp_result(
         self,
-        qr_data: str
+        transaction_id: str
     ) -> Dict[str, Any]:
         """
-        掃描 QR Code 並驗證憑證
+        驗證 VP 掃描結果
+        
+        API: POST /api/oidvp/result
         
         Args:
-            qr_data: QR Code 掃描後的資料
+            transaction_id: 從 generate_vp_qrcode 取得的 transactionId
         
         Returns:
-            驗證結果和憑證內容
+            驗證結果，包含 verifyResult (bool)
         """
-        # 解析 QR Code 資料
+        if not self.verifier_api_key:
+            # 沒有 API 金鑰，返回模擬資料
+            return self._mock_vp_result(transaction_id)
+        
         try:
-            qr_json = json.loads(qr_data) if isinstance(qr_data, str) else qr_data
-        except:
-            return {
-                "success": False,
-                "message": "QR Code 格式錯誤"
+            payload = {
+                "transactionId": transaction_id
             }
-        
-        # 驗證憑證
-        verification_result = await self.verify_credential(qr_data)
-        
-        if verification_result.get('verified'):
-            credential = verification_result.get('credential', {})
-            credential_subject = credential.get('credentialSubject', {})
             
-            return {
-                "success": True,
-                "verified": True,
-                "case_number": credential_subject.get('caseNumber'),
-                "applicant_name": credential_subject.get('applicantName'),
-                "id_number": credential_subject.get('idNumber'),
-                "approved_amount": credential_subject.get('approvedAmount'),
-                "disaster_type": credential_subject.get('disasterType'),
-                "expiration_date": credential.get('expirationDate'),
-                "credential_data": credential
-            }
-        else:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    f"{self.verifier_base_url}/api/oidvp/result",
+                    json=payload,
+                    headers={
+                        "Access-Token": self.verifier_api_key,
+                        "Content-Type": "application/json"
+                    }
+                )
+                
+                response.raise_for_status()
+                result = response.json()
+                
+                return {
+                    "success": True,
+                    "verify_result": result.get("verifyResult", False),
+                    "credential_data": result.get("credentialData"),
+                    "message": "驗證成功（真實 API）"
+                }
+                
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.text if hasattr(e, 'response') else str(e)
+            print(f"呼叫政府驗證端 API 失敗: {e}")
+            print(f"詳細錯誤: {error_detail}")
             return {
                 "success": False,
-                "verified": False,
-                "reason": verification_result.get('reason', '憑證驗證失敗')
+                "verify_result": False,
+                "error": str(e),
+                "error_detail": error_detail,
+                "message": f"政府 API 呼叫失敗: {error_detail}"
             }
+        except Exception as e:
+            print(f"呼叫政府驗證端 API 失敗: {e}")
+            return {
+                "success": False,
+                "verify_result": False,
+                "error": str(e),
+                "message": f"政府 API 呼叫失敗: {str(e)}"
+            }
+    
+    def _mock_vp_qrcode(self, ref: str, transaction_id: str) -> Dict[str, Any]:
+        """模擬 VP QR Code 產生（開發用）
+        生成真實的 QR Code 圖片
+        """
+        # 準備 VP 驗證 QR Code 內容
+        auth_uri = f"twfido://verify?ref={ref}&txn={transaction_id}"
+        
+        # 生成 QR Code 圖片
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(auth_uri)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # 轉換為 base64
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        img_base64 = base64.b64encode(buffer.getvalue()).decode()
+        
+        return {
+            "success": True,
+            "qrcode_image": img_base64,  # 返回 base64 編碼的圖片
+            "auth_uri": auth_uri,
+            "transaction_id": transaction_id,
+            "message": "VP QR Code 產生成功（模擬模式）"
+        }
+    
+    def _mock_vp_result(self, transaction_id: str) -> Dict[str, Any]:
+        """模擬 VP 驗證結果（開發用）"""
+        return {
+            "success": True,
+            "verify_result": True,
+            "credential_data": {
+                "name": "王小明",
+                "id_number": "A123456789",
+                "phone_number": "0912345678",
+                "address": "台南市中西區民生路100號",
+                "approved_amount": 50000
+            },
+            "message": "驗證成功（模擬模式）"
+        }
     
     # ==========================================
-    # 輔助方法
+    # 輔助函數
     # ==========================================
     
     def _translate_disaster_type(self, disaster_type: str) -> str:
-        """翻譯災害類型為中文"""
-        type_map = {
-            "flood": "水災",
+        """翻譯災害類型"""
+        translations = {
             "typhoon": "颱風",
+            "flood": "水災",
             "earthquake": "地震",
-            "fire": "火災",
-            "other": "其他"
+            "landslide": "土石流",
+            "fire": "火災"
         }
-        return type_map.get(disaster_type, disaster_type)
+        return translations.get(disaster_type, disaster_type)
     
     def _translate_subsidy_type(self, subsidy_type: str) -> str:
-        """翻譯補助類型為中文"""
-        type_map = {
-            "housing": "房屋補助",
-            "equipment": "設備補助",
+        """翻譯補助類型"""
+        translations = {
+            "housing": "房屋修繕",
             "living": "生活補助",
-            "business": "營業補助"
+            "medical": "醫療補助",
+            "business": "營業損失"
         }
-        return type_map.get(subsidy_type, subsidy_type)
+        return translations.get(subsidy_type, subsidy_type)
 
-# 全域服務實例
-gov_wallet_service = GovWalletService()
+
+# 單例模式
+_gov_wallet_service = None
+
+def get_gov_wallet_service() -> GovWalletService:
+    """取得政府數位憑證服務實例"""
+    global _gov_wallet_service
+    if _gov_wallet_service is None:
+        _gov_wallet_service = GovWalletService()
+    return _gov_wallet_service
 

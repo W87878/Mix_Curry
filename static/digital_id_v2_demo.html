@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數位憑證登入 V2 - 完整掃描流程</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .qr-container {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .qr-container.active {
+            display: block;
+        }
+
+        #qrcode {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        .status.verified {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .status.expired {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .info-box strong {
+            color: #2196F3;
+        }
+
+        .countdown {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .user-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .user-info.active {
+            display: block;
+        }
+
+        .user-info h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .user-info p {
+            margin: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .mock-controls {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .mock-controls h4 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #ddd;
+            z-index: 0;
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-size: 14px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step.active .step-circle {
+            background: #667eea;
+        }
+
+        .step.completed .step-circle {
+            background: #28a745;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 數位憑證登入</h1>
+        <p class="subtitle">
+            <span class="version-badge">V2 正確版</span>
+            完整的 APP 掃描流程
+        </p>
+
+        <!-- 步驟指示器 -->
+        <div class="steps">
+            <div class="step" id="step1">
+                <div class="step-circle">1</div>
+                <div class="step-label">產生 QR</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-circle">2</div>
+                <div class="step-label">掃描驗證</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-circle">3</div>
+                <div class="step-label">完成登入</div>
+            </div>
+        </div>
+
+        <!-- 初始畫面 -->
+        <div id="initialScreen">
+            <div class="info-box">
+                <strong>💡 這是什麼？</strong><br>
+                這是正確的數位憑證登入流程展示。<br>
+                使用者用政府 APP 掃描 QR Code 完成身份驗證。
+            </div>
+
+            <button class="btn btn-primary" onclick="startDigitalIDLogin()">
+                📱 開始數位憑證登入
+            </button>
+
+            <button class="btn btn-secondary" onclick="window.location.href='/applicant'">
+                ← 返回 V1 簡化版
+            </button>
+        </div>
+
+        <!-- QR Code 畫面 -->
+        <div id="qrScreen" class="qr-container">
+            <h3 style="margin-bottom: 15px;">📱 請使用政府 APP 掃描</h3>
+            <div id="qrcode"></div>
+            <div class="status pending">
+                <div class="spinner"></div>
+                <span id="statusText">等待掃描中...</span>
+            </div>
+            <div class="countdown" id="countdown"></div>
+        </div>
+
+        <!-- 用戶資訊確認 -->
+        <div id="userInfoScreen" class="user-info">
+            <h3>✅ 驗證成功！</h3>
+            <p><strong>姓名：</strong><span id="userName"></span></p>
+            <p><strong>身分證：</strong><span id="userID"></span></p>
+
+            <div class="form-group">
+                <label>選擇角色：</label>
+                <select id="userRole">
+                    <option value="applicant">災民（申請補助）</option>
+                    <option value="reviewer">里長（審核案件）</option>
+                    <option value="admin">管理員</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>手機號碼：</label>
+                <input type="tel" id="userPhone" placeholder="0912345678">
+            </div>
+
+            <div class="form-group" id="districtGroup" style="display: none;">
+                <label>管轄區域：</label>
+                <select id="userDistrict"></select>
+            </div>
+
+            <button class="btn btn-success" onclick="completeLogin()">
+                ✅ 完成登入
+            </button>
+        </div>
+
+        <!-- 模擬控制（測試用） -->
+        <div class="mock-controls" id="mockControls" style="display: none;">
+            <h4>🧪 測試控制（模擬 APP 掃描）</h4>
+            <p style="font-size: 12px; color: #856404; margin-bottom: 10px;">
+                在沒有真實政府 APP 的情況下，使用此功能模擬掃描
+            </p>
+            <div class="form-group">
+                <input type="text" id="mockName" placeholder="姓名" value="測試用戶">
+            </div>
+            <div class="form-group">
+                <input type="text" id="mockID" placeholder="身分證字號" value="A123456789">
+            </div>
+            <button class="btn btn-secondary" onclick="mockScan()">
+                🔧 模擬 APP 掃描
+            </button>
+        </div>
+    </div>
+
+    <!-- QR Code 生成庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        const API_BASE = 'https://589b9ef47213.ngrok-free.app/api/v1';
+        let currentSessionId = null;
+        let pollInterval = null;
+        let countdownInterval = null;
+        let expiresAt = null;
+
+        // 更新步驟狀態
+        function updateStep(step) {
+            ['step1', 'step2', 'step3'].forEach(id => {
+                document.getElementById(id).classList.remove('active', 'completed');
+            });
+
+            if (step >= 1) document.getElementById('step1').classList.add('completed');
+            if (step >= 2) document.getElementById('step2').classList.add('completed');
+            if (step >= 3) document.getElementById('step3').classList.add('completed');
+
+            if (step === 1) document.getElementById('step1').classList.add('active');
+            if (step === 2) document.getElementById('step2').classList.add('active');
+            if (step === 3) document.getElementById('step3').classList.add('active');
+        }
+
+        // 開始數位憑證登入
+        async function startDigitalIDLogin() {
+            try {
+                updateStep(1);
+                document.getElementById('initialScreen').style.display = 'none';
+
+                // 呼叫 API 產生 QR Code
+                const response = await fetch(`${API_BASE}/auth/digital-id-v2/generate-qr`);
+                
+                if (!response.ok) {
+                    throw new Error(`API 錯誤: ${response.status}`);
+                }
+
+                const data = await response.json();
+                currentSessionId = data.session_id;
+                expiresAt = Date.now() + (data.expires_in * 1000);
+
+                // 顯示 QR Code
+                document.getElementById('qrScreen').classList.add('active');
+                document.getElementById('mockControls').style.display = 'block';
+
+                // 生成 QR Code
+                document.getElementById('qrcode').innerHTML = '';
+                new QRCode(document.getElementById('qrcode'), {
+                    text: data.qr_code_data,
+                    width: 200,
+                    height: 200
+                });
+
+                updateStep(2);
+
+                // 開始輪詢
+                startPolling();
+
+                // 開始倒數計時
+                startCountdown();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('產生 QR Code 失敗：' + error.message);
+                location.reload();
+            }
+        }
+
+        // 開始輪詢狀態
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(
+                        `${API_BASE}/auth/digital-id-v2/check-status/${currentSessionId}`
+                    );
+                    const status = await response.json();
+
+                    if (status.status === 'verified') {
+                        // 驗證成功
+                        clearInterval(pollInterval);
+                        clearInterval(countdownInterval);
+                        showUserInfo(status.user_info);
+                    } else if (status.status === 'expired') {
+                        // 過期
+                        clearInterval(pollInterval);
+                        clearInterval(countdownInterval);
+                        showExpired();
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000); // 每 2 秒檢查一次
+        }
+
+        // 開始倒數計時
+        function startCountdown() {
+            countdownInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                
+                document.getElementById('countdown').textContent = 
+                    `QR Code 有效時間：${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                if (remaining === 0) {
+                    clearInterval(countdownInterval);
+                    clearInterval(pollInterval);
+                    showExpired();
+                }
+            }, 1000);
+        }
+
+        // 顯示過期訊息
+        function showExpired() {
+            const statusDiv = document.querySelector('.status');
+            statusDiv.className = 'status expired';
+            statusDiv.innerHTML = '❌ QR Code 已過期';
+            document.getElementById('mockControls').style.display = 'none';
+            
+            setTimeout(() => {
+                if (confirm('QR Code 已過期，是否重新產生？')) {
+                    location.reload();
+                }
+            }, 2000);
+        }
+
+        // 顯示用戶資訊
+        async function showUserInfo(userInfo) {
+            updateStep(3);
+            
+            // 隱藏 QR Code
+            document.getElementById('qrScreen').classList.remove('active');
+            document.getElementById('mockControls').style.display = 'none';
+
+            // 顯示用戶資訊
+            document.getElementById('userName').textContent = userInfo.full_name;
+            document.getElementById('userID').textContent = userInfo.id_number;
+            document.getElementById('userInfoScreen').classList.add('active');
+
+            // 載入區域列表
+            await loadDistricts();
+
+            // 監聽角色變更
+            document.getElementById('userRole').addEventListener('change', function() {
+                if (this.value === 'reviewer') {
+                    document.getElementById('districtGroup').style.display = 'block';
+                } else {
+                    document.getElementById('districtGroup').style.display = 'none';
+                }
+            });
+        }
+
+        // 載入區域列表
+        async function loadDistricts() {
+            try {
+                const response = await fetch(`${API_BASE}/districts/`);
+                const districts = await response.json();
+                
+                const select = document.getElementById('userDistrict');
+                select.innerHTML = '<option value="">請選擇區域</option>';
+                
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.id;
+                    option.textContent = district.district_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Load districts error:', error);
+            }
+        }
+
+        // 完成登入
+        async function completeLogin() {
+            const role = document.getElementById('userRole').value;
+            const phone = document.getElementById('userPhone').value;
+            const districtId = document.getElementById('userDistrict').value;
+
+            if (!phone) {
+                alert('請輸入手機號碼');
+                return;
+            }
+
+            if (role === 'reviewer' && !districtId) {
+                alert('里長請選擇管轄區域');
+                return;
+            }
+
+            try {
+                const payload = {
+                    role: role,
+                    phone: phone
+                };
+
+                if (districtId) {
+                    payload.district_id = districtId;
+                }
+
+                const response = await fetch(
+                    `${API_BASE}/auth/digital-id-v2/complete-login/${currentSessionId}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || '登入失敗');
+                }
+
+                const data = await response.json();
+
+                // 儲存 Token
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                alert(`✅ 登入成功！歡迎，${data.user.full_name}`);
+
+                // 根據角色跳轉
+                if (role === 'applicant') {
+                    window.location.href = '/applicant';
+                } else {
+                    window.location.href = '/admin';
+                }
+
+            } catch (error) {
+                console.error('Complete login error:', error);
+                alert('完成登入失敗：' + error.message);
+            }
+        }
+
+        // 模擬 APP 掃描（測試用）
+        async function mockScan() {
+            const name = document.getElementById('mockName').value;
+            const idNumber = document.getElementById('mockID').value;
+
+            if (!name || !idNumber) {
+                alert('請填寫姓名和身分證字號');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/auth/digital-id-v2/mock-scan`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            session_id: currentSessionId,
+                            id_number: idNumber,
+                            full_name: name
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || '模擬掃描失敗');
+                }
+
+                const data = await response.json();
+                alert('✅ 模擬掃描成功！系統會自動檢測到驗證完成。');
+
+            } catch (error) {
+                console.error('Mock scan error:', error);
+                alert('模擬掃描失敗：' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
