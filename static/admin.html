@@ -520,17 +520,37 @@
         </div>
     </div>
 
+    <!-- 載入配置管理模組 -->
+    <script src="/static/js/config.js"></script>
     <script>
-        const API_BASE = 'https://589b9ef47213.ngrok-free.app/api/v1';
+        // 全域變數
+        let API_BASE = null;  // 將由配置模組設定
         let accessToken = localStorage.getItem('admin_token');
         let currentUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
         let currentApplication = null;
 
-        // 檢查登入
-        if (!accessToken || !currentUser || currentUser.role !== 'reviewer') {
-            showLoginPrompt();
-        } else {
-            initDashboard();
+        // 初始化應用程式
+        async function initializeApp() {
+            // 載入配置
+            await initializeConfig();
+            API_BASE = getApiBase();
+            
+            // 檢查登入
+            if (!accessToken || !currentUser || currentUser.role !== 'reviewer') {
+                showLoginPrompt();
+            } else {
+                showDashboard();
+            }
+        }
+
+        // 頁面載入完成時初始化
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        function showDashboard() {
+            document.getElementById('adminName').textContent = currentUser.full_name;
+            document.getElementById('adminAvatar').textContent = currentUser.full_name.charAt(0);
+            loadDashboardStats();
+            loadPendingApplications();
         }
 
         function showLoginPrompt() {
@@ -568,6 +588,12 @@
 
             // 數位憑證登入事件
             document.getElementById('btnDigitalLogin').addEventListener('click', async () => {
+                // 確保配置已載入
+                if (!API_BASE) {
+                    await initializeConfig();
+                    API_BASE = getApiBase();
+                }
+
                 const qrCodeData = document.getElementById('adminDigitalQrCode').value.trim();
                 
                 if (!qrCodeData) {
@@ -576,6 +602,8 @@
                 }
 
                 try {
+                    console.log('Admin 使用 API_BASE:', API_BASE);
+                    
                     const result = await fetch(`${API_BASE}/auth/digital-id/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -653,12 +681,20 @@
 
             // Email 登入事件
             document.getElementById('btnEmailLogin').addEventListener('click', async () => {
+                // 確保配置已載入
+                if (!API_BASE) {
+                    await initializeConfig();
+                    API_BASE = getApiBase();
+                }
+
                 const email = document.getElementById('adminEmail').value.trim();
                 
                 if (!email) {
                     alert('請輸入 Email');
                     return;
                 }
+
+                console.log('Admin Email 登入使用 API_BASE:', API_BASE);
 
                 fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',

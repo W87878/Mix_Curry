@@ -406,13 +406,27 @@
 
     <!-- QR Code 生成庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- 載入配置管理模組 -->
+    <script src="/static/js/config.js"></script>
 
     <script>
-        const API_BASE = 'https://589b9ef47213.ngrok-free.app/api/v1';
+        // 全域變數
+        let API_BASE = null;  // 將由配置模組設定
         let currentSessionId = null;
         let pollInterval = null;
         let countdownInterval = null;
         let expiresAt = null;
+
+        // 初始化應用程式
+        async function initializeApp() {
+            // 載入配置
+            await initializeConfig();
+            API_BASE = getApiBase().replace('/api/v1', ''); // 去除 /api/v1 後綴，因為這個 demo 直接連接到根路徑
+            console.log('Digital ID V2 Demo - API_BASE 設為:', API_BASE);
+        }
+
+        // 頁面載入完成時初始化
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
         // 更新步驟狀態
         function updateStep(step) {

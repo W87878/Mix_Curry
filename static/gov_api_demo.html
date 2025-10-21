@@ -367,8 +367,16 @@
         </div>
     </div>
 
+    <!-- 載入動態配置 -->
+    <script src="/static/js/dynamic-config.js"></script>
     <script>
-        const API_BASE = '/api/v1/complete-flow';
+        let API_BASE = '/api/v1/complete-flow'; // 預設值
+        
+        // 監聽配置載入完成
+        window.addEventListener('configLoaded', function(event) {
+            API_BASE = event.detail.API_BASE.replace('/api/v1', '/api/v1/complete-flow');
+            console.log('配置已載入，API_BASE 設為:', API_BASE);
+        });
         
         // 頁面載入時檢查 API 狀態
         window.onload = () => {

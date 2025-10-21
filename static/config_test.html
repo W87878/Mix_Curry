@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置測試頁面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 登入配置測試頁面</h1>
+    
+    <div id="configStatus" class="status info">載入中...</div>
+    
+    <h2>配置資訊</h2>
+    <pre id="configInfo">載入中...</pre>
+    
+    <h2>測試按鈕</h2>
+    <button class="btn-primary" onclick="testConfigAPI()">測試配置 API</button>
+    <button class="btn-success" onclick="testLoginAPI()">測試登入 API</button>
+    <button class="btn-primary" onclick="checkConsole()">檢查控制台</button>
+    
+    <h2>測試結果</h2>
+    <div id="testResults"></div>
+
+    <!-- 載入動態配置 -->
+    <script src="/static/js/dynamic-config.js"></script>
+    <script>
+        let API_BASE = null;
+        
+        // 監聽配置載入完成
+        window.addEventListener('configLoaded', function(event) {
+            API_BASE = event.detail.API_BASE;
+            
+            document.getElementById('configStatus').innerHTML = '✅ 配置載入成功！';
+            document.getElementById('configStatus').className = 'status success';
+            
+            document.getElementById('configInfo').textContent = JSON.stringify(event.detail, null, 2);
+            
+            console.log('🎉 配置載入完成:', event.detail);
+        });
+        
+        // 頁面載入完成後的檢查
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (!API_BASE) {
+                    document.getElementById('configStatus').innerHTML = '❌ 配置載入失敗或超時';
+                    document.getElementById('configStatus').className = 'status error';
+                    document.getElementById('configInfo').textContent = '無法載入配置';
+                }
+            }, 3000);
+        });
+        
+        async function testConfigAPI() {
+            try {
+                const response = await fetch('/api/v1/config/frontend');
+                const data = await response.json();
+                
+                addResult('✅ 配置 API 測試成功', JSON.stringify(data, null, 2));
+            } catch (error) {
+                addResult('❌ 配置 API 測試失敗', error.message);
+            }
+        }
+        
+        async function testLoginAPI() {
+            if (!API_BASE) {
+                addResult('❌ API_BASE 未設定', '請先確保配置已載入');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'test@test.com',
+                        password: '',
+                        login_type: 'password'
+                    })
+                });
+                
+                if (response.status === 404) {
+                    addResult('❌ 登入 API 不存在 (404)', '路由可能未正確註冊');
+                } else {
+                    addResult(`✅ 登入 API 存在 (${response.status})`, '路由正常，可能是驗證錯誤');
+                }
+            } catch (error) {
+                addResult('❌ 登入 API 測試失敗', error.message);
+            }
+        }
+        
+        function checkConsole() {
+            addResult('📋 請檢查控制台', '按 F12 打開開發者工具，查看 Console 標籤');
+            console.log('=== 配置檢查 ===');
+            console.log('API_BASE:', API_BASE);
+            console.log('window.AppConfig:', window.AppConfig);
+            console.log('window.API_BASE:', window.API_BASE);
+        }
+        
+        function addResult(title, content) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${content}</pre>
+                <hr>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        // 初始檢查
+        console.log('🚀 配置測試頁面已載入');
+        console.log('當前 URL:', window.location.href);
+    </script>
+</body>
+</html>

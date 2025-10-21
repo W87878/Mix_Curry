@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     # Supabase 設定
@@ -13,6 +14,9 @@ class Settings(BaseSettings):
     APP_VERSION: str = "2.0.0"
     DEBUG: bool = False
     
+    # API 設定
+    API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
+
     # JWT 設定
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"

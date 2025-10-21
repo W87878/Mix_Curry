@@ -666,10 +666,18 @@
         </div>
     </div>
 
+    <!-- 載入動態配置 -->
+    <script src="/static/js/dynamic-config.js"></script>
     <script>
-        const API_BASE = '/api/v1';
+        let API_BASE = '/api/v1'; // 預設值
         let accessToken = localStorage.getItem('access_token');
         let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+        // 監聽配置載入完成
+        window.addEventListener('configLoaded', function(event) {
+            API_BASE = event.detail.API_BASE;
+            console.log('配置已載入，API_BASE 設為:', API_BASE);
+        });
 
         // Initialize
         updateAuthStatus();

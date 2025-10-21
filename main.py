@@ -58,14 +58,20 @@ app = FastAPI(
 # CORS 設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://589b9ef47213.ngrok-free.app"],
+    allow_origins=[
+        os.getenv("API_BASE_URL", "http://localhost:3000"),
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:*",  # 允許所有 localhost 端口
+        "*"  # 開發環境允許所有來源
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # 註冊路由
-app.include_router(auth.router)  # 身份驗證
+app.include_router(auth.router)  # 身份驗證 - 已經包含 /api/v1/auth prefix
 app.include_router(complete_flow.router)  # 🎯 完整流程（真實政府 API 流程）
 app.include_router(simplified_flow.router)  # 簡化版流程
 app.include_router(users.router, prefix="/api/v1")
@@ -75,6 +81,10 @@ app.include_router(certificates.router, prefix="/api/v1")
 app.include_router(photos.router, prefix="/api/v1")
 app.include_router(districts.router)  # 區域管理
 app.include_router(notifications.router)  # 通知系統
+
+# 引入 config 路由
+from app.routers import config
+app.include_router(config.router, prefix="/api/v1")
 
 # 掛載靜態檔案（如果存在）
 static_dir = os.path.join(os.path.dirname(__file__), "static")
