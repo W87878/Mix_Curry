@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>災害補助審核結果通知</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 20px -30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .info-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #fecaca;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #7c2d12;
+        }
+        .value {
+            color: #991b1b;
+        }
+        .reason-box {
+            background-color: #fff7ed;
+            border: 2px solid #fb923c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .reason-box h3 {
+            margin-top: 0;
+            color: #c2410c;
+        }
+        .reason-text {
+            color: #9a3412;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .appeal-box {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .appeal-box h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        .appeal-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .appeal-box li {
+            margin: 8px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .contact-info {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 災害補助審核結果通知</h1>
+            <div class="status-badge">審核未通過</div>
+        </div>
+
+        <p>親愛的 <strong>{{ applicant_name }}</strong> 您好：</p>
+
+        <p>感謝您申請災害補助。經審核後，您的申請案件未能通過審核標準。</p>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="label">案件編號：</span>
+                <span class="value">{{ case_no }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">申請人姓名：</span>
+                <span class="value">{{ applicant_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">通知日期：</span>
+                <span class="value">{{ notification_date }}</span>
+            </div>
+        </div>
+
+        <div class="reason-box">
+            <h3>❗ 未通過原因</h3>
+            <p class="reason-text">{{ rejection_reason }}</p>
+        </div>
+
+        <div class="appeal-box">
+            <h3>🔄 後續處理選項</h3>
+            <ul>
+                <li><strong>提出申覆：</strong>如您認為審核結果有誤，可於收到通知後 <strong>15 個工作天內</strong> 提出申覆</li>
+                <li><strong>重新申請：</strong>若您已補齊相關文件或資格，可重新提出申請</li>
+                <li><strong>諮詢服務：</strong>可透過服務專線了解詳細的審核標準與補件方式</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="https://disaster-relief.gov.tw/applications/{{ application_id }}/appeal" class="btn">
+                提出申覆
+            </a>
+            <a href="https://disaster-relief.gov.tw/applications/new" class="btn btn-secondary">
+                重新申請
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <p><strong>如需進一步協助，請聯繫我們：</strong></p>
+            <p>�� Email: support@disaster-relief.gov.tw</p>
+            <p>📞 服務專線: 0800-123-456</p>
+            <p>🕐 服務時間: 週一至週五 09:00-18:00</p>
+        </div>
+
+        <div class="footer">
+            <p>此為系統自動發送的通知信件，請勿直接回覆。</p>
+            <p>© 2025 災害補助管理平台 | 內政部</p>
+            <p style="margin-top: 10px; font-size: 12px;">
+                我們了解災害帶來的困難，若您在申請過程中遇到任何問題，<br>
+                請隨時與我們聯繫，我們將竭誠為您服務。
+            </p>
+        </div>
+    </div>
+</body>
+</html>

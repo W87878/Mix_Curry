@@ -55,19 +55,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS 設定
+# CORS 設定 - 支援開發環境和 ngrok
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv("API_BASE_URL", "http://localhost:3000"),
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:*",  # 允許所有 localhost 端口
-        "*"  # 開發環境允許所有來源
-    ],
+    allow_origins=["*"],  # 開發環境允許所有來源
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # preflight 請求快取 1 小時
 )
 
 # 註冊路由
