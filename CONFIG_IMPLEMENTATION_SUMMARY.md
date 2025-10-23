@@ -15,7 +15,7 @@
 - ✅ 已註冊到主應用程式
 
 **環境變數檔案 (.env)**
-- ✅ 設定 `API_BASE_URL=https://7bebfdd5e1ec.ngrok-free.app/api/v1`
+- ✅ 設定 `API_BASE_URL= https://9788602440a4.ngrok-free.app/api/v1`
 - ✅ 包含所有必要的應用程式設定
 - ✅ 支援動態 URL 配置
 
