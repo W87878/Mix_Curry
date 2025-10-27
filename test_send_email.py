@@ -37,9 +37,9 @@ def test_send_email():
         return False
     
     # 獲取收件人 Email
-    recipient_email = input("📧 請輸入測試收件人 Email (預設: 88wang23@gmail.com): ").strip()
+    recipient_email = input("📧 請輸入測試收件人 Email (預設: wangyouzhi248@gmail.com): ").strip()
     if not recipient_email:
-        recipient_email = "88wang23@gmail.com"
+        recipient_email = "wangyouzhi248@gmail.com"
     
     print("\n請選擇測試類型：")
     print("1. 核准通知")

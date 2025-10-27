@@ -98,7 +98,7 @@ async def reject_application(
 
 ```sql
 -- 創建通知記錄表
-CREATE TABLE IF NOT EXISTS notification_log (
+CREATE TABLE IF NOT EXISTS notifications (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     notification_type VARCHAR(50) NOT NULL,
@@ -117,12 +117,12 @@ CREATE TABLE IF NOT EXISTS notification_log (
 
 -- 防止重複發送的唯一約束
 CREATE UNIQUE INDEX idx_unique_notification 
-ON notification_log (application_id, notification_type);
+ON notifications (application_id, notification_type);
 
 -- 註解
-COMMENT ON TABLE notification_log IS '通知發送記錄表';
-COMMENT ON COLUMN notification_log.notification_type IS '通知類型: approval, rejection';
-COMMENT ON COLUMN notification_log.case_no IS '案件編號';
+COMMENT ON TABLE notifications IS '通知發送記錄表';
+COMMENT ON COLUMN notifications.notification_type IS '通知類型: approval, rejection';
+COMMENT ON COLUMN notifications.case_no IS '案件編號';
 ```
 
 ### 3. 設定自動化批次處理（可選）
@@ -207,7 +207,7 @@ python -c "
 from supabase import create_client
 import os
 supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE'))
-result = supabase.table('notification_log').select('notification_type').execute()
+result = supabase.table('notifications').select('notification_type').execute()
 print(f'總共發送: {len(result.data)} 封通知')
 "
 ```
@@ -267,7 +267,7 @@ print(f'總共發送: {len(result.data)} 封通知')
 ### 問題 2：重複發送
 
 **解決方案：**
-- notification_log 表的唯一約束會防止重複
+- notifications 表的唯一約束會防止重複
 - 檢查是否有多個程序同時執行
 
 ### 問題 3：發送速度太慢
@@ -313,7 +313,7 @@ class NotificationPreference:
 
 - [ ] 環境變數已設定
 - [ ] Gmail API 已配置
-- [ ] notification_log 表已創建
+- [ ] notifications 表已創建
 - [ ] Email 模板已客製化
 - [ ] 測試腳本執行成功
 - [ ] cron job 已設定（如需要）

@@ -35,12 +35,14 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Gmail 設定
 rootdir = Path(__file__).parent.parent
 
+# 正確的 gmaillib 路徑
 sys.path.append(str(rootdir / 'gmaillib'))
-from gmaillib.simplegmail.gmail import Gmail
+from simplegmail.gmail import Gmail
 
 # 使用災害補助專用的 Gmail 帳號
-SENDER_EMAIL = os.environ.get('NOTIFICATION_EMAIL', '88wang23@gmail.com')
-WORKING_DIR = os.environ.get('GMAIL_PROFILE_DIR', rootdir + '/edm/profiles/disaster')
+SENDER_EMAIL = os.environ.get('NOTIFICATION_EMAIL', 'wangyouzhi248@gmail.com')
+WORKING_DIR = os.environ.get('GMAIL_PROFILE_DIR', str(rootdir / 'edm' / 'profiles' / 'disaster'))
+EMAIL_COL = "email"  # or "to_email"
 
 # 設定模板路徑
 TEMPLATE_DIR = Path(__file__).parent / 'templates'
@@ -60,7 +62,8 @@ class DisasterNotificationService:
                                    applicant_name: str,
                                    case_no: str,
                                    approved_amount: float,
-                                   application_id: int) -> bool:
+                                   application_id: str,  # UUID 字串
+                                   user_id: str = None) -> bool:  # 新增 user_id 參數
         """
         發送核准通知
         
@@ -69,7 +72,8 @@ class DisasterNotificationService:
             applicant_name: 申請人姓名
             case_no: 案件編號
             approved_amount: 核准金額
-            application_id: 申請 ID
+            application_id: 申請 ID (UUID)
+            user_id: 使用者 ID (UUID)，如果為 None 則使用 application_id
             
         Returns:
             是否發送成功
@@ -111,7 +115,8 @@ class DisasterNotificationService:
                 email=recipient_email,
                 notification_type='approval',
                 case_no=case_no,
-                application_id=application_id
+                application_id=application_id,
+                user_id=user_id or application_id  # 如果沒有提供 user_id，使用 application_id
             )
             
             return True
@@ -126,7 +131,8 @@ class DisasterNotificationService:
                                     applicant_name: str,
                                     case_no: str,
                                     rejection_reason: str,
-                                    application_id: int) -> bool:
+                                    application_id: str,  # UUID 字串
+                                    user_id: str = None) -> bool:  # 新增 user_id 參數
         """
         發送駁回通知
         
@@ -135,7 +141,8 @@ class DisasterNotificationService:
             applicant_name: 申請人姓名
             case_no: 案件編號
             rejection_reason: 駁回原因
-            application_id: 申請 ID
+            application_id: 申請 ID (UUID)
+            user_id: 使用者 ID (UUID)，如果為 None 則使用 application_id
             
         Returns:
             是否發送成功
@@ -177,7 +184,8 @@ class DisasterNotificationService:
                 email=recipient_email,
                 notification_type='rejection',
                 case_no=case_no,
-                application_id=application_id
+                application_id=application_id,
+                user_id=user_id or application_id  # 如果沒有提供 user_id，使用 application_id
             )
             
             return True
@@ -194,37 +202,50 @@ class DisasterNotificationService:
         template = template_env.get_template(template_name)
         return template.render(**data)
     
-    def _log_notification(self, 
-                         email: str, 
-                         notification_type: str,
-                         case_no: str,
-                         application_id: int):
-        """記錄通知發送歷史到 Supabase"""
+    def _log_notification(
+        self,
+        email: str,
+        notification_type: str,
+        case_no: str,
+        application_id: str,  # UUID 字串
+        user_id: str = None,  # 新增 user_id 參數
+    ):
+        """
+        記錄通知發送歷史到 Supabase
+        - 符合 notifications 表結構
+        - 使用含時區的 ISO 8601 時間
+        - application_id 和 user_id 都是 UUID 字串
+        """
         try:
-            # 檢查是否已存在相同通知
-            response = supabase.table('notification_log').select('id') \
-                .eq('email', email) \
-                .eq('application_id', application_id) \
-                .eq('notification_type', notification_type) \
-                .execute()
+            # 如果沒有提供 user_id，嘗試從 application 查詢
+            if not user_id:
+                try:
+                    app_data = supabase.table("applications").select("applicant_id").eq("id", application_id).single().execute()
+                    user_id = app_data.data.get("applicant_id") if app_data.data else application_id
+                except Exception as e:
+                    logger.warning(f"無法查詢 applicant_id，使用 application_id: {e}")
+                    user_id = application_id
             
-            if response.data:
-                logger.info(f"通知已存在，跳過記錄: {email} - {notification_type}")
-                return
-            
-            # 插入新記錄
-            supabase.table('notification_log').insert({
-                'email': email,
-                'notification_type': notification_type,
-                'case_no': case_no,
-                'application_id': application_id,
-                'sent_at': datetime.datetime.now().isoformat()
-            }).execute()
-            
-            logger.info(f"通知記錄已儲存: {email} - {notification_type}")
-            
+            # 基本 payload - 符合 notifications 表結構
+            payload = {
+                "user_id": user_id,
+                "application_id": application_id,
+                "email": email,
+                "notification_type": notification_type,
+                "title": f"【災害補助{'核准' if notification_type == 'approval' else '審核結果'}通知】案件編號: {case_no}",
+                "content": f"您的災害補助申請（案件編號：{case_no}）已{'核准' if notification_type == 'approval' else '審核完成'}",
+                "sent_via_email": True,
+                "email_sent_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "is_read": False,
+            }
+
+            # 直接 insert 新通知記錄
+            res = supabase.table("notifications").insert(payload).execute()
+
+            logger.info(f"✅ 通知記錄已儲存: {email} - {notification_type} - {case_no}")
+
         except Exception as e:
-            logger.error(f"儲存通知記錄失敗: {e}")
+            logger.error(f"❌ 儲存通知記錄失敗: {getattr(e, 'message', e)}")
             traceback.print_exc()
     
     def get_pending_notifications(self) -> List[Dict]:
@@ -244,7 +265,7 @@ class DisasterNotificationService:
             pending = []
             for app in response.data:
                 # 檢查是否已發送通知
-                log_check = supabase.table('notification_log') \
+                log_check = supabase.table('notifications') \
                     .select('id') \
                     .eq('application_id', app['id']) \
                     .eq('notification_type', app['status']) \
