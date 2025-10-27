@@ -7,7 +7,7 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
+ 
 from app.services.edm.send_disaster_notification import DisasterNotificationService
 import logging
 
