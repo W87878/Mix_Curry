@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.settings import get_settings
-from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications, simplified_flow, complete_flow
+from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications, simplified_flow, complete_flow, maps
 from contextlib import asynccontextmanager
 import os
 
@@ -70,6 +70,7 @@ app.add_middleware(
 app.include_router(auth.router)  # 身份驗證 - 已經包含 /api/v1/auth prefix
 app.include_router(complete_flow.router)  # 🎯 完整流程（真實政府 API 流程）
 app.include_router(simplified_flow.router)  # 簡化版流程
+app.include_router(maps.router)  # 🗺️ Google Maps 服務
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(applications.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")

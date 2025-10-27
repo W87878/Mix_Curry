@@ -39,6 +39,19 @@ async def create_application(application: ApplicationCreate):
             user = db_service.get_user_by_id(application.applicant_id)
             if user:
                 user_exists = True
+                
+                # 如果是 Google 登入的使用者（id_number 以 GOOGLE_ 開頭）
+                # 則更新為真實的身分證字號和手機號碼
+                if user.get("id_number", "").startswith("GOOGLE_"):
+                    update_data = {
+                        "id_number": application.id_number,
+                        "phone": application.phone,
+                        "is_verified": True,  # 填寫完整資料後標記為已驗證
+                        "updated_at": datetime.now().isoformat()
+                    }
+                    db_service.client.table("users").update(update_data).eq("id", application.applicant_id).execute()
+                    print(f"已更新 Google 登入使用者的身分證和手機: {application.applicant_id}")
+                
         except Exception as e:
             print(f"檢查用戶存在時出錯: {e}")
         

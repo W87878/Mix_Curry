@@ -16,8 +16,10 @@
 
 ### 🎯 V2.0 新功能
 
+- ✅ **Google OAuth 登入** - 使用 Gmail 帳號快速登入，無需記住密碼 🆕
 - ✅ **數位憑證登入** - 整合政府數位憑證，無密碼安全登入
 - ✅ **完整身份驗證系統** - JWT Token + 角色權限管理
+- ✅ **Google Maps 整合** - 地址驗證、地理編碼、距離計算 🆕
 - ✅ **區域管理** - 里長只能查看和審核自己轄區的案件
 - ✅ **通知系統** - 簡訊 + Email + App 推送通知
 - ✅ **銀行 API 整合** - 帳戶驗證、重複申請檢查、交易記錄
@@ -51,9 +53,11 @@
 
 ## 📚 完整文件
 
-- **[🌊 完整流程圖](./FLOW_DIAGRAM.md)** - 完整的系統流程圖和架構圖（⭐ 新增！）
+- **[🔐 Google OAuth 登入指南](./GOOGLE_OAUTH_QUICKSTART.md)** - Gmail 登入快速開始 🆕
+- **[🗺️ Google Maps 整合](./docs/GOOGLE_MAPS_INTEGRATION.md)** - 地址驗證與地理編碼
+- **[🌊 完整流程圖](./FLOW_DIAGRAM.md)** - 完整的系統流程圖和架構圖
 - **[🏗️ 系統架構文件](./ARCHITECTURE.md)** - 完整的系統架構圖和資料庫 ER 圖
-- **[🎨 前端整合完整指南](./FRONTEND_INTEGRATION_GUIDE.md)** - React/Vue 完整範例（⭐ 新增！）
+- **[🎨 前端整合完整指南](./FRONTEND_INTEGRATION_GUIDE.md)** - React/Vue 完整範例
 - **[📘 前端整合指南](./FRONTEND_GUIDE.md)** - 簡化版 API 呼叫範例
 - **[🏛️ 政府 API 整合](./GOV_API_INTEGRATION.md)** - 數位憑證沙盒 API 整合說明
 - **[🗄️ Supabase 設定](./SUPABASE_SETUP.md)** - 資料庫和 Storage 設定清單
@@ -103,6 +107,14 @@ SECRET_KEY=your-secret-key-change-in-production
 TWFIDO_API_URL=https://twfido-sandbox.nat.gov.tw
 DIGITAL_ID_API_URL=https://digital-id-sandbox.gov.tw
 DIGITAL_ID_API_KEY=your-digital-id-api-key  # 生產環境需申請
+
+# Google OAuth 設定（Gmail 登入）
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8080/api/v1/auth/google/callback
+
+# Google Maps API 設定（地址驗證）
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 
 # 銀行 API 設定（可選）
 BANK_API_URL=https://bank-api.example.com

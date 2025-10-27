@@ -2,10 +2,12 @@
 身份驗證 API 路由
 處理登入、註冊、Token 刷新等功能
 """
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Dict
 from datetime import timedelta
+import secrets
 
 from app.services.auth import (
     auth_service,
@@ -21,6 +23,7 @@ from app.services.digital_id_v2 import (
     check_login_status,
     mock_verify
 )
+from app.services.google_oauth import google_oauth_service
 from app.models.database import db_service
 
 router = APIRouter(prefix="/api/v1/auth", tags=["身份驗證"])
@@ -944,4 +947,159 @@ async def mock_app_scan(request: MockScanRequest):
         "user_info": result["user_info"],
         "next_step": "呼叫 /complete-login/{session_id} 完成登入"
     }
+
+
+# ==========================================
+# Google OAuth 登入端點
+# ==========================================
+
+@router.get("/google/login", summary="Google OAuth 登入")
+async def google_login():
+    """
+    開始 Google OAuth 登入流程
+    
+    重定向到 Google 授權頁面
+    使用者同意授權後會重定向回 /api/v1/auth/google/callback
+    """
+    try:
+        # 生成隨機 state 參數（用於防止 CSRF 攻擊）
+        state = secrets.token_urlsafe(32)
+        
+        # 取得 Google 授權 URL
+        auth_url = google_oauth_service.get_authorization_url(state=state)
+        
+        # 重定向到 Google 授權頁面
+        return RedirectResponse(url=auth_url)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"無法建立 Google 登入連結: {str(e)}"
+        )
+
+
+@router.get("/google/callback", summary="Google OAuth 回調")
+async def google_callback(code: Optional[str] = None, error: Optional[str] = None, state: Optional[str] = None):
+    """
+    Google OAuth 回調端點
+    
+    Google 授權後會重定向到這裡，帶著 authorization code
+    用 code 換取 access token，然後取得使用者資訊
+    """
+    # 檢查是否有錯誤
+    if error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Google 授權失敗: {error}"
+        )
+    
+    if not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少授權碼"
+        )
+    
+    try:
+        # 1. 用 code 換取 access token
+        token_data = await google_oauth_service.exchange_code_for_token(code)
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            raise Exception("無法取得 access token")
+        
+        # 2. 用 access token 取得使用者資訊
+        user_info = await google_oauth_service.get_user_info(access_token)
+        
+        # 3. 在資料庫中查找或建立使用者
+        user = await google_oauth_service.login_or_create_user(user_info, db_service)
+        
+        # 4. 建立 JWT Token
+        token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_access_token = auth_service.create_access_token(
+            data={"sub": str(user["id"]), "role": user["role"]},
+            expires_delta=token_expires
+        )
+        jwt_refresh_token = auth_service.create_refresh_token(
+            data={"sub": str(user["id"])}
+        )
+        
+        # 5. 回傳結果（可以重定向到前端頁面，並帶上 token）
+        # 這裡示範重定向到前端，並透過 URL fragment 傳遞 token
+        frontend_url = f"/applicant?access_token={jwt_access_token}&refresh_token={jwt_refresh_token}"
+        
+        return RedirectResponse(url=frontend_url)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google 登入失敗: {str(e)}"
+        )
+
+
+@router.post("/google/token", response_model=LoginResponse, summary="Google Token 登入")
+async def google_token_login(request: Dict):
+    """
+    使用 Google ID Token 進行登入（適用於前端已取得 ID Token 的情況）
+    
+    前端可以使用 Google Sign-In JavaScript Library 取得 ID Token
+    然後呼叫此 API 完成登入
+    
+    請求格式：
+    {
+        "id_token": "Google ID Token"
+    }
+    """
+    id_token = request.get("id_token")
+    
+    if not id_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少 ID Token"
+        )
+    
+    try:
+        # 1. 驗證 ID Token（簡化版，生產環境應驗證簽章）
+        payload = google_oauth_service.verify_id_token(id_token)
+        
+        # 2. 提取使用者資訊
+        user_info = {
+            "email": payload.get("email"),
+            "name": payload.get("name"),
+            "id": payload.get("sub"),
+            "picture": payload.get("picture"),
+            "verified_email": payload.get("email_verified", False)
+        }
+        
+        # 3. 在資料庫中查找或建立使用者
+        user = await google_oauth_service.login_or_create_user(user_info, db_service)
+        
+        # 4. 建立 JWT Token
+        token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_access_token = auth_service.create_access_token(
+            data={"sub": str(user["id"]), "role": user["role"]},
+            expires_delta=token_expires
+        )
+        jwt_refresh_token = auth_service.create_refresh_token(
+            data={"sub": str(user["id"])}
+        )
+        
+        return {
+            "access_token": jwt_access_token,
+            "refresh_token": jwt_refresh_token,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user["id"]),
+                "email": user["email"],
+                "full_name": user.get("full_name", ""),
+                "role": user["role"],
+                "is_verified": user.get("is_verified", False)
+            },
+            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google 登入失敗: {str(e)}"
+        )
 
