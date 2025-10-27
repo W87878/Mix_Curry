@@ -192,7 +192,8 @@ async def get_current_user(
     token = credentials.credentials
     payload = AuthService.verify_token(token)
     
-    user_id = payload.get("user_id")
+    # Support both "user_id" (traditional) and "sub" (Google OAuth) fields
+    user_id = payload.get("user_id") or payload.get("sub")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

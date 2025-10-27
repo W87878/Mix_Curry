@@ -64,6 +64,27 @@ async def create_user(user: UserCreate):
             detail=f"發生錯誤: {str(e)}"
         )
 
+@router.get("/me", response_model=APIResponse)
+async def get_current_user_info(current_user: dict = Depends(get_current_user)):
+    """
+    取得當前登入使用者的資料
+    
+    需要提供有效的 JWT token
+    """
+    try:
+        # current_user 已經包含完整的使用者資料
+        return APIResponse(
+            success=True,
+            message="取得使用者資料成功",
+            data=current_user
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"發生錯誤: {str(e)}"
+        )
+
 @router.get("/{user_id}", response_model=APIResponse)
 async def get_user(user_id: str):
     """
