@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20),
     full_name VARCHAR(100) NOT NULL,
-    id_number VARCHAR(20) UNIQUE NOT NULL, -- 身分證字號
+    id_number VARCHAR(20), -- 身分證字號
     
     -- 角色與權限
     role VARCHAR(20) NOT NULL DEFAULT 'applicant', -- applicant(災民), reviewer(里長), admin(管理員)

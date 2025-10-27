@@ -1,11 +1,23 @@
 """
 使用者相關 API 路由
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel, Field
+from typing import Optional
 from app.models.models import UserCreate, UserResponse, APIResponse
 from app.models.database import db_service
+from app.services.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["使用者管理"])
+
+
+class UpdateUserProfileRequest(BaseModel):
+    """更新使用者資料請求"""
+    id_number: Optional[str] = Field(None, description="身分證字號（10 碼）")
+    phone: Optional[str] = Field(None, description="手機號碼")
+    full_name: Optional[str] = Field(None, description="姓名")
+    address: Optional[str] = Field(None, description="地址")
+
 
 @router.post("/", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate):
@@ -43,19 +55,6 @@ async def create_user(user: UserCreate):
         
         # 建立使用者
         user_data = user.model_dump()
-        result = db_service.create_user(user_data)
-        
-        if not result:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="建立使用者失敗"
-            )
-        
-        return APIResponse(
-            success=True,
-            message="使用者建立成功",
-            data=result
-        )
     
     except HTTPException:
         raise

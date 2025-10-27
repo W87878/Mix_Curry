@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     
     # API 設定
-    API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
+    API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8080/api/v1")
 
     # JWT 設定
     SECRET_KEY: str = "your-secret-key-change-in-production"

@@ -105,7 +105,7 @@ window.addEventListener('configLoaded', function(event) {
 
 1. **後端配置:**
    ```bash
-   curl http://localhost:8000/api/v1/config/frontend
+   curl http://localhost:8080/api/v1/config/frontend
    ```
 
 2. **前端配置:**

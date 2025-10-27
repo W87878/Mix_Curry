@@ -33,3 +33,4 @@ google-api-python-client
 google-auth 
 google-auth-oauthlib
 oauth2client
+google-auth-httplib2

@@ -55,10 +55,10 @@
 
 ```bash
 # 健康檢查
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 
 # 建立使用者
-curl -X POST "http://localhost:8000/api/v1/users/" \
+curl -X POST "http://localhost:8080/api/v1/users/" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -150,7 +150,7 @@ https/test_images/
 
 ```bash
 # 上傳災前照片
-curl -X POST "http://localhost:8000/api/v1/photos/upload" \
+curl -X POST "http://localhost:8080/api/v1/photos/upload" \
   -F "application_id=你的案件ID" \
   -F "photo_type=before_damage" \
   -F "description=一樓客廳淹水情形" \
@@ -158,7 +158,7 @@ curl -X POST "http://localhost:8000/api/v1/photos/upload" \
   -F "file=@./https/test_images/damage_before.jpg"
 
 # 上傳災後照片
-curl -X POST "http://localhost:8000/api/v1/photos/upload" \
+curl -X POST "http://localhost:8080/api/v1/photos/upload" \
   -F "application_id=你的案件ID" \
   -F "photo_type=after_damage" \
   -F "description=災後清理情形" \
@@ -166,7 +166,7 @@ curl -X POST "http://localhost:8000/api/v1/photos/upload" \
   -F "file=@./https/test_images/damage_after.jpg"
 
 # 上傳現場勘查照片（審核員）
-curl -X POST "http://localhost:8000/api/v1/photos/inspection/upload" \
+curl -X POST "http://localhost:8080/api/v1/photos/inspection/upload" \
   -F "application_id=你的案件ID" \
   -F "reviewer_id=審核員ID" \
   -F "description=現場勘查確認災損情形" \
@@ -176,7 +176,7 @@ curl -X POST "http://localhost:8000/api/v1/photos/inspection/upload" \
 ### 使用 Postman 上傳圖片
 
 1. 選擇請求方法：`POST`
-2. URL：`http://localhost:8000/api/v1/photos/upload`
+2. URL：`http://localhost:8080/api/v1/photos/upload`
 3. Body 選擇：`form-data`
 4. 添加欄位：
    - `application_id` (text): 你的案件 ID

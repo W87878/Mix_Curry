@@ -5,7 +5,7 @@
 ###############################################################################
 
 ### 設定變數
-@baseUrl = http://localhost:8000
+@baseUrl = http://localhost:8080
 @apiUrl = {{baseUrl}}/api/v1
 
 # ⚠️ 重要使用說明：
@@ -21,7 +21,7 @@
 #
 # 方法 2（最簡單）：使用網頁測試介面
 # ------------------------------------------------
-# 開啟瀏覽器：http://localhost:8000/test
+# 開啟瀏覽器：http://localhost:8080/test
 # 網頁會自動處理所有 ID 的傳遞，無需手動複製貼上！
 #
 # 方法 3：使用測試流程（見文件底部）
@@ -476,7 +476,7 @@ GET {{apiUrl}}/applications/{{applicationId}}
 # 3. 圖片上傳：
 #    - 建議使用 Postman 或 Insomnia 進行圖片上傳測試
 #    - 或使用 curl 命令：
-#      curl -X POST "http://localhost:8000/api/v1/photos/upload" \
+#      curl -X POST "http://localhost:8080/api/v1/photos/upload" \
 #        -F "application_id=xxx" \
 #        -F "photo_type=before_damage" \
 #        -F "file=@./path/to/image.jpg"
