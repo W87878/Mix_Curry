@@ -36,7 +36,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 rootdir = Path(__file__).parent.parent
 
 sys.path.append(str(rootdir / 'gmaillib'))
-from gmaillib.simplegmail import Gmail
+from gmaillib.simplegmail.gmail import Gmail
 
 # 使用災害補助專用的 Gmail 帳號
 SENDER_EMAIL = os.environ.get('NOTIFICATION_EMAIL', '88wang23@gmail.com')
@@ -97,7 +97,7 @@ class DisasterNotificationService:
             
             msgHtml = MIMEText(html_content, 'html', 'utf-8')
             msgRoot.attach(msgHtml)
-            msgRoot.add_header('reply-to', 'support@disaster-relief.gov.tw')
+            msgRoot.add_header('reply-to', 'wangyouzhi248@gmail.com')
             
             # 發送郵件
             gmail = Gmail()
