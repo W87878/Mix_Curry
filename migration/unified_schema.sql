@@ -1,6 +1,15 @@
 -- ==========================================
--- 災民補助申請系統 - Supabase 資料庫結構 (V2)
--- 新增：區域管理、通知系統、銀行驗證記錄
+-- 災民補助申請系統 - 統一資料庫結構檔案
+-- 包含所有 CREATE TABLE、ALTER TABLE、索引、觸發器、函數和初始化資料
+-- ==========================================
+-- 檔案說明：
+-- 1. 此檔案整合了 database_schema.sql、add_gov_api_fields.sql、fix_system_settings.sql
+-- 2. 可直接在乾淨的資料庫執行，建立完整的結構
+-- 3. 包含 10 個主表、索引、RLS 政策、觸發器和函數
+-- ==========================================
+
+-- ==========================================
+-- PART 1: 建立所有資料表
 -- ==========================================
 
 -- 1. 區域表（里/鄰區域管理）
@@ -91,6 +100,14 @@ CREATE TABLE IF NOT EXISTS applications (
     
     -- 審核人員
     assigned_reviewer_id UUID REFERENCES users(id), -- 指派的審核員
+    
+    -- 政府數位憑證相關欄位（來自 add_gov_api_fields.sql）
+    gov_qr_code_data TEXT, -- 政府發行端返回的 QR Code（Base64）
+    gov_transaction_id VARCHAR(255), -- 政府的 transaction ID
+    gov_deep_link TEXT, -- Deep link for APP
+    gov_vc_uid VARCHAR(255), -- VC 憑證 ID
+    vp_transaction_id VARCHAR(255), -- VP 驗證的 transaction ID
+    disbursed_at TIMESTAMP WITH TIME ZONE, -- 補助發放時間
     
     -- 時間記錄
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -196,12 +213,15 @@ CREATE TABLE IF NOT EXISTS subsidy_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 8. 通知系統表（新增）
+-- 8. 通知系統表
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- 接收通知的使用者
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE, -- 相關申請案件
     
+    -- email
+    email VARCHAR(255),
+
     -- 通知類型
     notification_type VARCHAR(50) NOT NULL,
     -- application_submitted(申請已提交), application_approved(申請核准),
@@ -229,7 +249,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 9. 銀行驗證記錄表（新增）
+-- 9. 銀行驗證記錄表
 CREATE TABLE IF NOT EXISTS bank_verification_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
@@ -278,63 +298,79 @@ CREATE TABLE IF NOT EXISTS system_settings (
 );
 
 -- ==========================================
--- 建立索引以提升查詢效能
+-- PART 2: 建立索引以提升查詢效能
 -- ==========================================
 
 -- Districts 索引
-CREATE INDEX idx_districts_district_code ON districts(district_code);
-CREATE INDEX idx_districts_city ON districts(city);
-CREATE INDEX idx_districts_is_active ON districts(is_active);
+CREATE INDEX IF NOT EXISTS idx_districts_district_code ON districts(district_code);
+CREATE INDEX IF NOT EXISTS idx_districts_city ON districts(city);
+CREATE INDEX IF NOT EXISTS idx_districts_is_active ON districts(is_active);
 
 -- Users 索引
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_district_id ON users(district_id);
-CREATE INDEX idx_users_id_number ON users(id_number);
-CREATE INDEX idx_users_is_active ON users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_district_id ON users(district_id);
+CREATE INDEX IF NOT EXISTS idx_users_id_number ON users(id_number);
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
 
 -- Applications 索引
-CREATE INDEX idx_applications_applicant_id ON applications(applicant_id);
-CREATE INDEX idx_applications_district_id ON applications(district_id);
-CREATE INDEX idx_applications_status ON applications(status);
-CREATE INDEX idx_applications_case_no ON applications(case_no);
-CREATE INDEX idx_applications_submitted_at ON applications(submitted_at DESC);
-CREATE INDEX idx_applications_assigned_reviewer ON applications(assigned_reviewer_id);
-CREATE INDEX idx_applications_disaster_date ON applications(disaster_date);
+CREATE INDEX IF NOT EXISTS idx_applications_applicant_id ON applications(applicant_id);
+CREATE INDEX IF NOT EXISTS idx_applications_district_id ON applications(district_id);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_applications_case_no ON applications(case_no);
+CREATE INDEX IF NOT EXISTS idx_applications_submitted_at ON applications(submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_applications_assigned_reviewer ON applications(assigned_reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_applications_disaster_date ON applications(disaster_date);
+
+-- Applications 政府 API 相關索引（來自 add_gov_api_fields.sql）
+CREATE INDEX IF NOT EXISTS idx_applications_gov_transaction_id ON applications(gov_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_applications_vp_transaction_id ON applications(vp_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_applications_status_disbursed ON applications(status) WHERE status = 'disbursed';
 
 -- Damage Photos 索引
-CREATE INDEX idx_damage_photos_application_id ON damage_photos(application_id);
-CREATE INDEX idx_damage_photos_photo_type ON damage_photos(photo_type);
+CREATE INDEX IF NOT EXISTS idx_damage_photos_application_id ON damage_photos(application_id);
+CREATE INDEX IF NOT EXISTS idx_damage_photos_photo_type ON damage_photos(photo_type);
 
 -- Review Records 索引
-CREATE INDEX idx_review_records_application_id ON review_records(application_id);
-CREATE INDEX idx_review_records_reviewer_id ON review_records(reviewer_id);
-CREATE INDEX idx_review_records_created_at ON review_records(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_review_records_application_id ON review_records(application_id);
+CREATE INDEX IF NOT EXISTS idx_review_records_reviewer_id ON review_records(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_review_records_created_at ON review_records(created_at DESC);
 
 -- Digital Certificates 索引
-CREATE INDEX idx_digital_certificates_application_id ON digital_certificates(application_id);
-CREATE INDEX idx_digital_certificates_certificate_no ON digital_certificates(certificate_no);
-CREATE INDEX idx_digital_certificates_is_verified ON digital_certificates(is_verified);
-CREATE INDEX idx_digital_certificates_is_disbursed ON digital_certificates(is_disbursed);
+CREATE INDEX IF NOT EXISTS idx_digital_certificates_application_id ON digital_certificates(application_id);
+CREATE INDEX IF NOT EXISTS idx_digital_certificates_certificate_no ON digital_certificates(certificate_no);
+CREATE INDEX IF NOT EXISTS idx_digital_certificates_is_verified ON digital_certificates(is_verified);
+CREATE INDEX IF NOT EXISTS idx_digital_certificates_is_disbursed ON digital_certificates(is_disbursed);
 
 -- Subsidy Items 索引
-CREATE INDEX idx_subsidy_items_application_id ON subsidy_items(application_id);
+CREATE INDEX IF NOT EXISTS idx_subsidy_items_application_id ON subsidy_items(application_id);
 
--- Notifications 索引（新增）
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_application_id ON notifications(application_id);
-CREATE INDEX idx_notifications_is_read ON notifications(is_read);
-CREATE INDEX idx_notifications_notification_type ON notifications(notification_type);
-CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
+-- Notifications 索引
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_application_id ON notifications(application_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_notification_type ON notifications(notification_type);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
 
--- Bank Verification Records 索引（新增）
-CREATE INDEX idx_bank_verification_application_id ON bank_verification_records(application_id);
-CREATE INDEX idx_bank_verification_certificate_id ON bank_verification_records(certificate_id);
-CREATE INDEX idx_bank_verification_type ON bank_verification_records(verification_type);
-CREATE INDEX idx_bank_verification_is_valid ON bank_verification_records(is_valid);
-CREATE INDEX idx_bank_verification_created_at ON bank_verification_records(created_at DESC);
+-- Bank Verification Records 索引
+CREATE INDEX IF NOT EXISTS idx_bank_verification_application_id ON bank_verification_records(application_id);
+CREATE INDEX IF NOT EXISTS idx_bank_verification_certificate_id ON bank_verification_records(certificate_id);
+CREATE INDEX IF NOT EXISTS idx_bank_verification_type ON bank_verification_records(verification_type);
+CREATE INDEX IF NOT EXISTS idx_bank_verification_is_valid ON bank_verification_records(is_valid);
+CREATE INDEX IF NOT EXISTS idx_bank_verification_created_at ON bank_verification_records(created_at DESC);
 
 -- ==========================================
--- Row Level Security (RLS) 政策
+-- PART 3: 資料表註解（來自 add_gov_api_fields.sql）
+-- ==========================================
+
+COMMENT ON COLUMN applications.gov_qr_code_data IS '政府發行端 API 返回的 QR Code 資料（Base64）';
+COMMENT ON COLUMN applications.gov_transaction_id IS '政府發行端 API 的 transaction ID';
+COMMENT ON COLUMN applications.gov_deep_link IS 'Deep link 用於開啟數位憑證 APP';
+COMMENT ON COLUMN applications.gov_vc_uid IS 'VC 憑證模板 ID（例如：00000000_subsidy_666）';
+COMMENT ON COLUMN applications.disbursed_at IS '補助實際發放的時間（VP 驗證成功後）';
+COMMENT ON COLUMN applications.vp_transaction_id IS 'VP 驗證端的 transaction ID（7-11 機台產生）';
+
+-- ==========================================
+-- PART 4: Row Level Security (RLS) 政策
 -- ==========================================
 
 -- 啟用 RLS
@@ -347,6 +383,7 @@ ALTER TABLE digital_certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subsidy_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bank_verification_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
 
 -- Districts: 所有人都可以查看啟用的區域
 CREATE POLICY "Anyone can view active districts" ON districts
@@ -495,9 +532,10 @@ CREATE POLICY "Reviewers can view bank verification records" ON bank_verificatio
     );
 
 -- ==========================================
--- 觸發器：自動更新 updated_at
+-- PART 5: 觸發器與函數
 -- ==========================================
 
+-- 函數：自動更新 updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -506,6 +544,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 建立更新觸發器
 CREATE TRIGGER update_districts_updated_at BEFORE UPDATE ON districts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -518,10 +557,7 @@ CREATE TRIGGER update_applications_updated_at BEFORE UPDATE ON applications
 CREATE TRIGGER update_system_settings_updated_at BEFORE UPDATE ON system_settings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ==========================================
 -- 函數：生成案件編號
--- ==========================================
-
 CREATE OR REPLACE FUNCTION generate_case_no()
 RETURNS TEXT AS $$
 DECLARE
@@ -543,10 +579,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ==========================================
 -- 函數：自動指派審核員（根據區域）
--- ==========================================
-
 CREATE OR REPLACE FUNCTION auto_assign_reviewer()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -574,7 +607,29 @@ BEFORE INSERT ON applications
 FOR EACH ROW EXECUTE FUNCTION auto_assign_reviewer();
 
 -- ==========================================
--- Storage Buckets 設定說明
+-- PART 6: 初始化資料
+-- ==========================================
+
+-- 初始化區域（範例）
+INSERT INTO districts (district_code, district_name, city, district, village) VALUES
+('TN-CW-001', '中西區-民權里', '台南市', '中西區', '民權里'),
+('TN-CW-002', '中西區-民生里', '台南市', '中西區', '民生里'),
+('TN-EA-001', '東區-東門里', '台南市', '東區', '東門里'),
+('TN-SO-001', '南區-南門里', '台南市', '南區', '南門里'),
+('TN-NO-001', '北區-北門里', '台南市', '北區', '北門里')
+ON CONFLICT (district_code) DO NOTHING;
+
+-- 初始化系統設定
+INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public) VALUES
+('max_subsidy_amount', '100000', 'number', '單筆申請最高補助金額', TRUE),
+('certificate_validity_days', '90', 'number', '憑證有效天數', TRUE),
+('notification_enabled', 'true', 'boolean', '是否啟用通知系統', FALSE),
+('bank_api_enabled', 'true', 'boolean', '是否啟用銀行 API 驗證', FALSE),
+('gov_api_enabled', 'true', 'boolean', '是否啟用政府憑證 API', FALSE)
+ON CONFLICT (setting_key) DO NOTHING;
+
+-- ==========================================
+-- PART 7: Storage Buckets 設定說明
 -- ==========================================
 
 /*
@@ -605,26 +660,16 @@ Storage 政策範例：
 */
 
 -- ==========================================
--- 初始化資料：預設區域（範例）
+-- 執行完畢
 -- ==========================================
-
-INSERT INTO districts (district_code, district_name, city, district, village) VALUES
-('TN-CW-001', '中西區-民權里', '台南市', '中西區', '民權里'),
-('TN-CW-002', '中西區-民生里', '台南市', '中西區', '民生里'),
-('TN-EA-001', '東區-東門里', '台南市', '東區', '東門里'),
-('TN-SO-001', '南區-南門里', '台南市', '南區', '南門里'),
-('TN-NO-001', '北區-北門里', '台南市', '北區', '北門里')
-ON CONFLICT (district_code) DO NOTHING;
-
+-- 此統一 schema 檔案已整合所有結構
+-- 包含：
+-- - 10 個資料表（districts, users, applications, damage_photos, review_records, 
+--   digital_certificates, subsidy_items, notifications, bank_verification_records, system_settings）
+-- - 所有政府 API 欄位
+-- - 34 個索引
+-- - RLS 政策
+-- - 4 個觸發器
+-- - 3 個函數
+-- - 初始化資料
 -- ==========================================
--- 初始化資料：系統設定（範例）
--- ==========================================
-
-INSERT INTO system_settings (setting_key, setting_value, setting_type, description, is_public) VALUES
-('max_subsidy_amount', '100000', 'number', '單筆申請最高補助金額', TRUE),
-('certificate_validity_days', '90', 'number', '憑證有效天數', TRUE),
-('notification_enabled', 'true', 'boolean', '是否啟用通知系統', FALSE),
-('bank_api_enabled', 'true', 'boolean', '是否啟用銀行 API 驗證', FALSE),
-('gov_api_enabled', 'true', 'boolean', '是否啟用政府憑證 API', FALSE)
-ON CONFLICT (setting_key) DO NOTHING;
-

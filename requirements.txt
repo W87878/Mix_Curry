@@ -26,3 +26,10 @@ python-dotenv==1.0.0
 
 jinja2
 dataset
+bs4
+lxml
+
+google-api-python-client
+google-auth 
+google-auth-oauthlib
+oauth2client

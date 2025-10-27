@@ -4,9 +4,11 @@
 提供資料庫管理、測試資料生成等功能
 """
 import sys
+import os
 import argparse
 from datetime import datetime, date, timedelta
 from decimal import Decimal
+from pathlib import Path
 from app.models.database import db_service
 from app.settings import get_settings
 
@@ -103,6 +105,181 @@ def clear_table(table_name, force=False):
         print_success(f"已刪除 {count} 筆資料")
     except Exception as e:
         print_error(f"刪除失敗: {str(e)}")
+
+# ==========================================
+# 資料表結構管理
+# ==========================================
+
+def drop_all_tables(force=False):
+    """
+    刪除所有資料表（DROP TABLE）
+    ⚠️ 危險操作！會完全移除資料表結構
+    """
+    print_header("💣 刪除所有資料表（DROP TABLE）")
+    
+    if not force:
+        print_error("⚠️  此操作將完全刪除所有資料表結構和資料！")
+        print_error("⚠️  這是不可逆的操作！")
+        print_warning(f"資料庫: {settings.SUPABASE_URL}")
+        print_warning("\n請輸入 'DROP ALL TABLES' 來確認操作（大小寫敏感）")
+        
+        confirmation = input(f"{Colors.WARNING}確認文字: {Colors.ENDC}")
+        if confirmation != "DROP ALL TABLES":
+            print_info("操作已取消")
+            return
+    
+    # 資料表刪除順序（考慮外鍵依賴）
+    tables = [
+        "subsidy_items",
+        "bank_verification_records",
+        "notifications",
+        "digital_certificates",
+        "review_records",
+        "damage_photos",
+        "applications",
+        "users",
+        "districts",
+        "system_settings",
+    ]
+    
+    print_info("開始刪除資料表...")
+    
+    success_count = 0
+    failed_count = 0
+    
+    for table in tables:
+        try:
+            # 使用 Supabase RPC 或直接 SQL 執行 DROP TABLE
+            # 注意：Supabase 的 Python client 不直接支援 DROP TABLE
+            # 需要透過 RPC 或使用管理 API
+            print_warning(f"準備刪除資料表: {table}")
+            
+            # 這裡我們使用 PostgreSQL 的 SQL 來刪除表
+            # 因為 Supabase Python client 不支援 DDL 操作
+            # 建議使用 psql 或 Supabase Dashboard 來執行
+            print_error(f"⚠️  {table}: 需要手動執行 SQL: DROP TABLE IF EXISTS {table} CASCADE;")
+            failed_count += 1
+            
+        except Exception as e:
+            print_error(f"{table}: 刪除失敗 - {str(e)}")
+            failed_count += 1
+    
+    print_warning(f"\n⚠️  Supabase Python Client 不支援直接執行 DROP TABLE 操作")
+    print_info("請使用以下方式刪除資料表：")
+    print_info("1. 在 Supabase Dashboard 的 SQL Editor 中執行")
+    print_info("2. 使用 psql 連接資料庫並執行 SQL")
+    print_info("3. 使用 migration/drop_tables.sql 腳本")
+    
+    # 生成 DROP TABLE SQL 腳本
+    sql_file = Path(__file__).parent / "migration" / "drop_all_tables.sql"
+    generate_drop_tables_sql(sql_file, tables)
+    print_success(f"\n✅ 已生成 DROP TABLE SQL 腳本: {sql_file}")
+
+def generate_drop_tables_sql(output_path: Path, tables: list):
+    """生成 DROP TABLE SQL 腳本"""
+    output_path.parent.mkdir(exist_ok=True)
+    
+    sql_content = """-- ==========================================
+-- 災民補助申請系統 - 刪除所有資料表
+-- ⚠️ 危險操作！請謹慎使用！
+-- 生成時間: {timestamp}
+-- ==========================================
+
+-- 停用觸發器
+DROP TRIGGER IF EXISTS update_districts_updated_at ON districts;
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+DROP TRIGGER IF EXISTS update_applications_updated_at ON applications;
+DROP TRIGGER IF EXISTS update_system_settings_updated_at ON system_settings;
+DROP TRIGGER IF EXISTS trigger_auto_assign_reviewer ON applications;
+
+-- 刪除函數
+DROP FUNCTION IF EXISTS update_updated_at_column();
+DROP FUNCTION IF EXISTS generate_case_no();
+DROP FUNCTION IF EXISTS auto_assign_reviewer();
+
+-- 刪除資料表（按照依賴順序）
+""".format(timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    
+    for table in tables:
+        sql_content += f"DROP TABLE IF EXISTS {table} CASCADE;\n"
+    
+    sql_content += """
+-- ==========================================
+-- 完成
+-- ==========================================
+"""
+    
+    output_path.write_text(sql_content, encoding='utf-8')
+
+def create_all_tables(force=False):
+    """
+    根據 database_schema.sql 創建所有資料表
+    """
+    print_header("🏗️  創建所有資料表")
+    
+    schema_file = Path(__file__).parent / "migration" / "database_schema.sql"
+    
+    if not schema_file.exists():
+        print_error(f"找不到資料庫結構檔案: {schema_file}")
+        return
+    
+    if not force:
+        print_warning("此操作將根據 database_schema.sql 創建所有資料表")
+        print_warning(f"Schema 檔案: {schema_file}")
+        print_warning(f"資料庫: {settings.SUPABASE_URL}")
+        
+        if not confirm_action("確定要繼續嗎？"):
+            print_info("操作已取消")
+            return
+    
+    print_info(f"讀取 SQL 檔案: {schema_file}")
+    
+    try:
+        sql_content = schema_file.read_text(encoding='utf-8')
+        
+        # 分析 SQL 內容
+        lines = sql_content.split('\n')
+        total_lines = len(lines)
+        print_info(f"SQL 檔案共 {total_lines} 行")
+        
+        # 統計資料表數量
+        create_table_count = sql_content.count('CREATE TABLE')
+        create_index_count = sql_content.count('CREATE INDEX')
+        create_function_count = sql_content.count('CREATE OR REPLACE FUNCTION')
+        create_trigger_count = sql_content.count('CREATE TRIGGER')
+        
+        print_info(f"將創建: {create_table_count} 個資料表")
+        print_info(f"將創建: {create_index_count} 個索引")
+        print_info(f"將創建: {create_function_count} 個函數")
+        print_info(f"將創建: {create_trigger_count} 個觸發器")
+        
+        print_warning("\n⚠️  Supabase Python Client 不支援直接執行 DDL 操作")
+        print_info("請使用以下方式創建資料表：")
+        print_info("1. 在 Supabase Dashboard 的 SQL Editor 中執行")
+        print_info("2. 使用 psql 連接資料庫並執行 SQL")
+        print_info(f"3. 直接執行: psql <connection_string> -f {schema_file}")
+        
+        # 提供便捷的複製指令
+        print_info("\n📋 複製以下指令到 Supabase SQL Editor：")
+        print(f"\n{Colors.OKCYAN}-- 在 Supabase Dashboard > SQL Editor 貼上並執行{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}{'-' * 60}{Colors.ENDC}")
+        
+        # 顯示前 20 行作為預覽
+        preview_lines = lines[:20]
+        for line in preview_lines:
+            if line.strip() and not line.strip().startswith('--'):
+                print(f"{Colors.OKCYAN}{line}{Colors.ENDC}")
+        
+        print(f"{Colors.OKCYAN}...（省略 {total_lines - 20} 行）{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}{'-' * 60}{Colors.ENDC}\n")
+        
+        print_success(f"✅ SQL 檔案已準備好: {schema_file}")
+        print_info("請手動在 Supabase Dashboard 執行此檔案")
+        
+    except Exception as e:
+        print_error(f"讀取 SQL 檔案失敗: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 # ==========================================
 # 測試資料生成
@@ -265,17 +442,19 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用範例:
-  python command.py clear              # 清除所有資料表
-  python command.py clear-table users  # 清除指定資料表
-  python command.py create-test-data   # 建立測試資料
-  python command.py stats              # 顯示統計資訊
-  python command.py test               # 測試資料庫連線
+  python command.py clear                 # 清除所有資料表的資料（保留結構）
+  python command.py clear-table users     # 清除指定資料表的資料
+  python command.py drop-all-tables       # 刪除所有資料表（DROP TABLE）
+  python command.py create-all-tables     # 創建所有資料表
+  python command.py create-test-data      # 建立測試資料
+  python command.py stats                 # 顯示統計資訊
+  python command.py test                  # 測試資料庫連線
         """
     )
     
     parser.add_argument(
         'action',
-        choices=['clear', 'clear-table', 'create-test-data', 'stats', 'test'],
+        choices=['clear', 'clear-table', 'drop-all-tables', 'create-all-tables', 'create-test-data', 'stats', 'test'],
         help='要執行的操作'
     )
     
@@ -303,6 +482,12 @@ def main():
             print_info("例如: python command.py clear-table users")
             sys.exit(1)
         clear_table(args.table, force=args.force)
+    
+    elif args.action == 'drop-all-tables':
+        drop_all_tables(force=args.force)
+    
+    elif args.action == 'create-all-tables':
+        create_all_tables(force=args.force)
     
     elif args.action == 'create-test-data':
         create_test_data()

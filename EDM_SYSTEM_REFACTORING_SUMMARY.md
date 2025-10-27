@@ -56,7 +56,7 @@ WHERE a.status IN ('approved', 'rejected')
 
 新增資料表：
 ```sql
-CREATE TABLE notification_log (
+CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255),
     notification_type VARCHAR(50),  -- 'approval' 或 'rejection'
@@ -146,7 +146,7 @@ GMAIL_PROFILE_DIR=/root/gmail_test/profiles/disaster
 | 資料來源 | MySQL + edm_industry_tag 表 | Supabase applications + users 表 |
 | 通知類型 | 房地產採訪邀約 | 災害補助核准/駁回 |
 | 收件人來源 | 行業標籤過濾 | 申請人 Email |
-| 防重複機制 | emaillog + edm_blacklist | notification_log |
+| 防重複機制 | emaillog + edm_blacklist | notifications |
 | 模板內容 | 房地產議題分析 | 災害補助通知 |
 | 發送機制 | 固定間隔（500秒） | 可配置間隔（預設5秒） |
 

@@ -19,26 +19,29 @@ def quick_test():
     # 初始化服務
     service = DisasterNotificationService()
     
-    # 測試數據 - 發送到你的 Gmail
+    # 測試數據 - 使用 UUID 格式（需先執行 create_test_user.py）
     test_data = {
-        'recipient_email': '88wang23@gmail.com',  # 你的 Gmail
+        'recipient_email': 'wangyouzhi248@gmail.com',
         'applicant_name': '王小明',
         'case_no': 'DISASTER-2025-TEST-001',
         'approved_amount': 30000,
-        'application_id': 1
+        'application_id': '00000000-0000-0000-0000-000000000002',  # 申請 ID
+        'user_id': '00000000-0000-0000-0000-000000000001'  # 用戶 ID
     }
     
     print(f"\n📧 收件人: {test_data['recipient_email']}")
     print(f"👤 申請人: {test_data['applicant_name']}")
     print(f"📋 案件編號: {test_data['case_no']}")
-    print(f"💰 核准金額: NT$ {test_data['approved_amount']:,}\n")
+    print(f"💰 核准金額: NT$ {test_data['approved_amount']:,}")
+    print(f"🆔 測試 UUID: {test_data['application_id']}\n")
     
     # 發送核准通知
     print("📤 正在發送核准通知...")
     success = service.send_approval_notification(**test_data)
     
     if success:
-        print("\n✅ 成功！請檢查信箱: 88wang23@gmail.com")
+        print("\n✅ 成功！請檢查信箱: wangyouzhi248@gmail.com")
+        print("📊 已記錄到 Supabase notifications 表")
     else:
         print("\n❌ 發送失敗，請查看錯誤訊息")
     

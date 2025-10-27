@@ -253,6 +253,7 @@ async def verify_vp(request: VerifyVPRequest):
             transaction_id=request.transaction_id
         )
         
+        
         if not verify_result.get("success"):
             return {
                 "success": False,
@@ -262,16 +263,191 @@ async def verify_vp(request: VerifyVPRequest):
         
         # 驗證通過
         if verify_result.get("verify_result"):
-            # TODO: 更新資料庫狀態為「已發放」
-            # TODO: 實際發放補助金
-            credential_data = verify_result.get("credential_data", {})
+            data = verify_result.get("credential_data", {})
+            credential_type = data.get("credential_type", "未知類型")
+            claims = data.get("claims", [])
             
-            return {
-                "success": True,
-                "verified": True,
-                "credential_data": credential_data,
-                "message": "✅ 驗證成功！補助已發放"
-            }
+            # 1️⃣ 處理身分證憑證 (00000000_mixcurry_idcard)
+            if credential_type == "00000000_mixcurry_idcard":
+                # 解析憑證資料
+                email = ''
+                name = ''
+                phone = ''
+                id_number = ''
+                registered_address = ''
+                
+                for dic in claims:
+                    ename = dic.get("ename", "")
+                    value = dic.get("value", "")
+                    
+                    if ename == "email":
+                        email = value
+                    elif ename == "name":
+                        name = value
+                    elif ename == "phone":
+                        phone = value
+                    elif ename == "id_number":
+                        id_number = value
+                    elif ename == "registered_address":
+                        registered_address = value
+                
+                # 驗證必要欄位
+                if not email:
+                    return {
+                        "success": False,
+                        "verified": False,
+                        "message": "❌ Email 遺失"
+                    }
+                
+                # 檢查使用者是否已存在（用 email 查詢）
+                try:
+                    existing_user = db_service.client.table("users")\
+                        .select("*")\
+                        .eq("email", email)\
+                        .execute()
+                    if existing_user.data and len(existing_user.data) > 0:
+                        user_data = existing_user.data[0]
+                    else:
+                        user_data = {
+                            "email": email,
+                            "full_name": name,
+                            "phone": phone,
+                            "id_number": id_number,
+                            "role": "applicant",
+                            "is_verified": True,
+                            "twfido_verified": True,
+                            "verified_at": datetime.now().isoformat(),
+                            "registered_address": registered_address
+                        }
+                    
+                    
+                    if existing_user.data and len(existing_user.data) > 0:
+                        # 更新現有使用者
+                        user_id = existing_user.data[0]["id"]
+                        db_service.client.table("users").update(user_data)\
+                            .eq("id", user_id).execute()
+                        
+                        print(f"✅ 使用者已更新: {name} ({email})")
+                    else:
+                        # 新增使用者
+                        result = db_service.client.table("users").insert(user_data).execute()
+                        user_id = result.data[0]["id"] if result.data else None
+                        
+                        print(f"✅ 新使用者已建立: {name} ({id_number})")
+                    
+                    return {
+                        "success": True,
+                        "verified": True,
+                        "user_id": user_id,
+                        "email": email,
+                        "name": name,
+                        "message": "✅ 身分驗證成功！使用者資料已更新"
+                    }
+                    
+                except Exception as db_error:
+                    print(f"❌ 資料庫操作失敗: {db_error}")
+                    return {
+                        "success": False,
+                        "verified": True,
+                        "message": f"身分驗證成功，但資料庫更新失敗: {str(db_error)}"
+                    }
+            
+            # 2️⃣ 處理災害補助憑證 (00000000_subsidy_667 或 00000000_subsidy_666)
+            elif credential_type in ["00000000_subsidy_667", "00000000_subsidy_666"]:
+                # 解析憑證資料
+                name = ''
+                email = ''
+                phone = ''
+                registered_address = ''
+                
+                for dic in claims:
+                    ename = dic.get("ename", "")
+                    value = dic.get("value", "")
+                    
+                    if ename == "name":
+                        name = value
+                    elif ename == "id_number":
+                        id_number = value
+                    elif ename == "phone":
+                        phone = value
+                    elif ename == "registered_address":
+                        registered_address = value
+                    elif ename == "email":
+                        email = value
+                
+                # 驗證必要欄位
+                if not id_number:
+                    return {
+                        "success": False,
+                        "verified": False,
+                        "message": "❌ 身分證號碼遺失"
+                    }
+                
+                # 根據身分證號碼查詢申請案件
+                try:
+                    # 查詢該身分證的申請案件（取最新一筆已核准的）
+                    applications = db_service.client.table("applications")\
+                        .select("*")\
+                        .eq("email", email)\
+                        .eq("status", "approved")\
+                        .order("approved_at", desc=True)\
+                        .limit(1)\
+                        .execute()
+                    
+                    if not applications.data or len(applications.data) == 0:
+                        return {
+                            "success": False,
+                            "verified": True,
+                            "message": f"❌ 找不到核准的申請案件 (Email: {email})"
+                        }
+                    
+                    application = applications.data[0]
+                    application_id = application["id"]
+                    case_no = application["case_no"]
+                    
+                    # 驗證憑證資料與申請資料是否相符
+                    if application.get("applicant_name") != name:
+                        print(f"⚠️  姓名不符: 憑證={name}, 申請={application.get('applicant_name')}")
+                    
+                    # 更新申請案件狀態為「已發放」
+                    db_service.client.table("applications").update({
+                        "status": "disbursed",
+                        "disbursed_at": datetime.now().isoformat(),
+                        "vp_transaction_id": request.transaction_id
+                    }).eq("id", application_id).execute()
+                    
+                    print(f"✅ 補助已發放: {case_no} ({name})")
+                    
+                    # TODO: 發送補助發放通知郵件
+                    # from app.services.edm.send_disaster_notification import DisasterNotificationService
+                    # notification_service = DisasterNotificationService()
+                    # notification_service.send_disbursement_notification(...)
+                    
+                    return {
+                        "success": True,
+                        "verified": True,
+                        "application_id": application_id,
+                        "case_no": case_no,
+                        "applicant_name": name,
+                        "id_number": id_number,
+                        "message": f"✅ 驗證成功！補助已發放 (案件編號: {case_no})"
+                    }
+                    
+                except Exception as db_error:
+                    print(f"❌ 資料庫操作失敗: {db_error}")
+                    return {
+                        "success": False,
+                        "verified": True,
+                        "message": f"憑證驗證成功，但補助發放失敗: {str(db_error)}"
+                    }
+            
+            # 3️⃣ 未知憑證類型
+            else:
+                return {
+                    "success": False,
+                    "verified": False,
+                    "message": f"❌ 不支援的憑證類型: {credential_type}"
+                }
         else:
             return {
                 "success": True,
