@@ -26,7 +26,7 @@ def create_reviewer():
     
     # 2. 創建里長帳號
     reviewer_data = {
-        "email": "mayor@tainan.gov.tw",
+        "email": "wangyouzhi248@gmail.com",
         "phone": "0912345678",
         "full_name": "王里長",
         "id_number": "B123456789",

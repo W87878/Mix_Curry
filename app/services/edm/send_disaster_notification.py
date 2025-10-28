@@ -341,6 +341,79 @@ class DisasterNotificationService:
                 traceback.print_exc()
 
 
+async def send_custom_email(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    text_content: Optional[str] = None
+) -> bool:
+    """
+    發送自訂內容的 Email（通用函數）
+    
+    Args:
+        to_email: 收件人 Email
+        subject: 郵件主旨
+        html_content: HTML 格式的郵件內容
+        text_content: 純文字格式的郵件內容（可選）
+        
+    Returns:
+        是否發送成功
+    """
+    try:
+        logger.info(f"準備發送自訂郵件給 {to_email}")
+        
+        # 保存當前工作目錄
+        original_dir = os.getcwd()
+        
+        # 切換到 Gmail 設定目錄
+        if os.path.exists(WORKING_DIR):
+            os.chdir(WORKING_DIR)
+            logger.info(f"切換工作目錄到: {WORKING_DIR}")
+        else:
+            logger.warning(f"Gmail 設定目錄不存在: {WORKING_DIR}")
+        
+        # 準備郵件內容
+        msgRoot = MIMEMultipart('related')
+        msgRoot['Subject'] = subject
+        msgRoot['From'] = SENDER_EMAIL
+        msgRoot['To'] = to_email
+        
+        # 附加 HTML 內容
+        msgHtml = MIMEText(html_content, 'html', 'utf-8')
+        msgRoot.attach(msgHtml)
+        
+        # 如果有純文字內容，也附加上去
+        if text_content:
+            msgText = MIMEText(text_content, 'plain', 'utf-8')
+            msgRoot.attach(msgText)
+        
+        msgRoot.add_header('reply-to', SENDER_EMAIL)
+        
+        # 發送郵件
+        gmail = Gmail()
+        raw = {"raw": base64.urlsafe_b64encode(msgRoot.as_string().encode()).decode()}
+        gmail.send_raw(raw)
+        
+        logger.info(f"自訂郵件發送成功: {to_email}")
+        
+        # 恢復原始工作目錄
+        os.chdir(original_dir)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"發送自訂郵件失敗: {e}")
+        traceback.print_exc()
+        
+        # 確保恢復原始工作目錄
+        try:
+            os.chdir(original_dir)
+        except:
+            pass
+            
+        return False
+
+
 def main():
     """主程式 - 執行批次通知發送"""
     logger.info("=" * 50)

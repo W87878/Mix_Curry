@@ -1,5 +1,5 @@
-from simplegmail.gmail import Gmail
-from simplegmail import query
-from simplegmail import label
+from .gmail import Gmail
+from . import query
+from . import label
 
 __all__ = ['Gmail', 'query', 'label']

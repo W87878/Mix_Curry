@@ -1,69 +1,84 @@
 """
 Pydantic 資料模型
+定義 API 的請求和回應格式
 """
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 from decimal import Decimal
+
+
+# ==========================================
+# 通用回應模型
+# ==========================================
+
+class APIResponse(BaseModel):
+    """統一的 API 回應格式"""
+    success: bool
+    message: str
+    data: Optional[Any] = None
+
 
 # ==========================================
 # 使用者相關模型
 # ==========================================
 
-class UserRole:
-    APPLICANT = "applicant"
-    REVIEWER = "reviewer"
-    ADMIN = "admin"
-
 class UserBase(BaseModel):
+    """使用者基礎模型"""
     email: EmailStr
-    phone: Optional[str] = None
     full_name: str
-    id_number: str  # 身分證字號
-    role: str = UserRole.APPLICANT
+    phone: str
+    id_number: str
+    role: str = Field(default="applicant", description="角色: applicant, reviewer, admin")
+
 
 class UserCreate(UserBase):
-    pass
+    """建立使用者請求"""
+    password: Optional[str] = Field(None, description="密碼（選填，支援數位憑證登入）")
+    district_id: Optional[str] = Field(None, description="區域 ID（里長專用）")
+
 
 class UserResponse(UserBase):
+    """使用者回應"""
     id: str
+    is_active: bool
+    is_verified: bool
+    district_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
+
 
 # ==========================================
 # 申請案件相關模型
 # ==========================================
 
-class ApplicationStatus:
-    PENDING = "pending"
-    UNDER_REVIEW = "under_review"
-    SITE_INSPECTION = "site_inspection"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    COMPLETED = "completed"
-
 class DisasterType:
+    """災害類型常數"""
     FLOOD = "flood"  # 水災
     TYPHOON = "typhoon"  # 颱風
     EARTHQUAKE = "earthquake"  # 地震
     FIRE = "fire"  # 火災
     OTHER = "other"  # 其他
 
+
 class SubsidyType:
+    """補助類型常數"""
     HOUSING = "housing"  # 房屋補助
     EQUIPMENT = "equipment"  # 設備補助
     LIVING = "living"  # 生活補助
     BUSINESS = "business"  # 營業補助
 
+
 class ApplicationBase(BaseModel):
+    """申請案件基礎模型"""
     # 申請人資料
     applicant_name: str = Field(..., description="申請人姓名")
     id_number: str = Field(..., description="身分證字號")
     phone: str = Field(..., description="聯絡電話")
-    address: str = Field(..., description="聯絡地址")
+    address: Optional[str] = Field(None, description="聯絡地址（選填）")
     
     # 災損資料
     disaster_date: date = Field(..., description="災害發生日期")
@@ -76,15 +91,21 @@ class ApplicationBase(BaseModel):
     subsidy_type: str = Field(..., description="補助類型")
     requested_amount: Optional[Decimal] = Field(None, description="申請金額")
 
+
 class ApplicationCreate(ApplicationBase):
+    """建立申請案件請求"""
     applicant_id: str
 
+
 class ApplicationUpdate(BaseModel):
+    """更新申請案件請求"""
     status: Optional[str] = None
     review_notes: Optional[str] = None
     approved_amount: Optional[Decimal] = None
 
+
 class ApplicationResponse(ApplicationBase):
+    """申請案件回應"""
     id: str
     case_no: str
     applicant_id: str
@@ -100,214 +121,241 @@ class ApplicationResponse(ApplicationBase):
     class Config:
         from_attributes = True
 
-# ==========================================
-# 照片相關模型
-# ==========================================
 
-class PhotoType:
-    BEFORE_DAMAGE = "before_damage"
-    AFTER_DAMAGE = "after_damage"
-    SITE_INSPECTION = "site_inspection"
+class ApplicationDetailResponse(BaseModel):
+    """申請案件詳細資訊回應"""
+    application: Dict
+    photos: List[Dict] = []
+    review_records: List[Dict] = []
+    subsidy_items: List[Dict] = []
+    certificate: Optional[Dict] = None
 
-class DamagePhotoBase(BaseModel):
-    photo_type: str
-    description: Optional[str] = None
-
-class DamagePhotoCreate(DamagePhotoBase):
-    application_id: str
-    storage_path: str
-    file_name: str
-    file_size: Optional[int] = None
-    mime_type: Optional[str] = None
-    uploaded_by: Optional[str] = None
-
-class DamagePhotoResponse(DamagePhotoBase):
-    id: str
-    application_id: str
-    storage_path: str
-    file_name: str
-    file_size: Optional[int] = None
-    mime_type: Optional[str] = None
-    signed_url: Optional[str] = None  # 前端顯示用的簽名 URL
-    uploaded_by: Optional[str] = None
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
 
 # ==========================================
 # 審核相關模型
 # ==========================================
 
-class ReviewAction:
-    SUBMITTED = "submitted"
-    UNDER_REVIEW = "under_review"
-    SITE_INSPECTION = "site_inspection"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-
-class ReviewRecordBase(BaseModel):
-    action: str
-    comments: Optional[str] = None
-    decision_reason: Optional[str] = None
-
-class ReviewRecordCreate(ReviewRecordBase):
+class ReviewBase(BaseModel):
+    """審核基礎模型"""
     application_id: str
     reviewer_id: str
-    reviewer_name: str
-    previous_status: Optional[str] = None
-    new_status: str
-    inspection_date: Optional[datetime] = None
-    inspection_notes: Optional[str] = None
+    review_status: str = Field(..., description="審核狀態: approved, rejected, under_review")
+    review_notes: Optional[str] = Field(None, description="審核備註")
+    approved_amount: Optional[Decimal] = Field(None, description="核准金額")
+    rejection_reason: Optional[str] = Field(None, description="駁回原因")
 
-class ReviewRecordResponse(ReviewRecordBase):
+
+class ReviewCreate(ReviewBase):
+    """建立審核記錄請求"""
+    pass
+
+
+class ReviewResponse(ReviewBase):
+    """審核記錄回應"""
     id: str
-    application_id: str
-    reviewer_id: str
-    reviewer_name: str
-    previous_status: Optional[str] = None
-    new_status: str
-    inspection_date: Optional[datetime] = None
-    inspection_notes: Optional[str] = None
+    reviewed_at: datetime
     created_at: datetime
     
     class Config:
         from_attributes = True
 
+
 # ==========================================
-# 數位憑證相關模型
+# 審核相關模型（擴展）
 # ==========================================
 
-class DisbursementMethod:
-    BANK_TRANSFER = "bank_transfer"
-    CHECK = "check"
-    CASH = "cash"
+class ReviewRecordCreate(ReviewBase):
+    """建立審核記錄請求（別名）"""
+    pass
+
+
+class ReviewRecordResponse(ReviewResponse):
+    """審核記錄回應（別名）"""
+    pass
+
+
+# ==========================================
+# 憑證相關模型
+# ==========================================
 
 class CertificateBase(BaseModel):
-    certificate_no: str
-    issued_amount: Decimal
+    """憑證基礎模型"""
+    application_id: str
+    certificate_type: str = Field(..., description="憑證類型: qr_code, digital_id")
+    qr_code_data: Optional[str] = Field(None, description="QR Code 資料")
+    verification_code: Optional[str] = Field(None, description="驗證碼")
+
 
 class CertificateCreate(CertificateBase):
-    application_id: str
-    qr_code_data: str
-    qr_code_image_path: str
-    issued_by: str
-    expires_at: Optional[datetime] = None
+    """建立憑證請求"""
+    pass
+
 
 class CertificateResponse(CertificateBase):
+    """憑證回應"""
     id: str
-    application_id: str
-    qr_code_data: str
-    qr_code_image_path: str
-    qr_code_url: Optional[str] = None  # QR Code 圖片 URL
-    issued_by: str
+    is_used: bool
     issued_at: datetime
-    is_verified: bool
-    verified_at: Optional[datetime] = None
-    verified_by: Optional[str] = None
-    is_disbursed: bool
-    disbursed_at: Optional[datetime] = None
-    disbursement_method: Optional[str] = None
+    used_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
 
+
+# ==========================================
+# 憑證相關模型（擴展）
+# ==========================================
+
 class CertificateVerifyRequest(BaseModel):
-    certificate_no: str
-    verified_by: str
+    """憑證驗證請求"""
+    certificate_id: str
+    verification_code: Optional[str] = None
+    qr_code_data: Optional[str] = None
+
 
 class CertificateDisburseRequest(BaseModel):
+    """憑證發放補助請求"""
     certificate_id: str
-    disbursement_method: str
+    disbursement_method: str = Field(..., description="發放方式: bank_transfer, cash, check")
+    bank_account: Optional[str] = Field(None, description="銀行帳號")
+    bank_code: Optional[str] = Field(None, description="銀行代碼")
+    notes: Optional[str] = None
+
 
 # ==========================================
-# 補助項目相關模型
+# 照片相關模型
 # ==========================================
 
-class ItemCategory:
-    HOUSING = "housing"
-    FURNITURE = "furniture"
-    APPLIANCES = "appliances"
-    LIVING_EXPENSES = "living_expenses"
-
-class SubsidyItemBase(BaseModel):
-    item_category: str
-    item_name: str
-    item_description: Optional[str] = None
-    quantity: int = 1
-    unit_price: Optional[Decimal] = None
-    total_price: Decimal
-
-class SubsidyItemCreate(SubsidyItemBase):
+class PhotoBase(BaseModel):
+    """照片基礎模型"""
     application_id: str
+    photo_type: str = Field(..., description="照片類型: damage_before, damage_after, inspection")
+    file_path: str
+    description: Optional[str] = None
 
-class SubsidyItemUpdate(BaseModel):
-    approved: bool
-    approved_amount: Decimal
 
-class SubsidyItemResponse(SubsidyItemBase):
+class PhotoCreate(PhotoBase):
+    """建立照片記錄請求"""
+    pass
+
+
+class PhotoResponse(PhotoBase):
+    """照片記錄回應"""
     id: str
-    application_id: str
-    approved: bool
-    approved_amount: Optional[Decimal] = None
+    uploaded_at: datetime
     created_at: datetime
     
     class Config:
         from_attributes = True
 
-# ==========================================
-# API 回應模型
-# ==========================================
-
-class APIResponse(BaseModel):
-    """標準 API 回應格式"""
-    success: bool
-    message: str
-    data: Optional[dict] = None
-
-class PaginatedResponse(BaseModel):
-    """分頁回應格式"""
-    success: bool
-    message: str
-    data: List[dict]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
 
 # ==========================================
-# 檔案上傳相關模型
+# 照片相關模型（擴展）
 # ==========================================
+
+class DamagePhotoCreate(PhotoBase):
+    """建立災損照片記錄請求（別名）"""
+    pass
+
+
+class DamagePhotoResponse(PhotoResponse):
+    """災損照片記錄回應（別名）"""
+    pass
+
 
 class FileUploadResponse(BaseModel):
     """檔案上傳回應"""
-    success: bool
-    message: str
-    file_id: Optional[str] = None
-    storage_path: Optional[str] = None
+    file_path: str
     file_url: Optional[str] = None
+    file_size: Optional[int] = None
+    uploaded_at: datetime
+
 
 # ==========================================
-# 統計資料模型
+# 通知相關模型
 # ==========================================
 
-class DashboardStats(BaseModel):
-    """儀表板統計資料"""
-    total_applications: int
-    pending_applications: int
-    under_review_applications: int
-    approved_applications: int
-    rejected_applications: int
-    total_approved_amount: Decimal
-    total_disbursed_amount: Decimal
+class NotificationBase(BaseModel):
+    """通知基礎模型"""
+    user_id: str
+    application_id: Optional[str] = None
+    notification_type: str = Field(..., description="通知類型: approval, rejection, reminder")
+    title: str
+    content: str
+    email: Optional[str] = None
 
-class ApplicationDetailResponse(BaseModel):
-    """完整申請案件詳情（包含相關資料）"""
-    application: ApplicationResponse
-    photos: List[DamagePhotoResponse] = []
-    review_records: List[ReviewRecordResponse] = []
-    subsidy_items: List[SubsidyItemResponse] = []
-    certificate: Optional[CertificateResponse] = None
+
+class NotificationCreate(NotificationBase):
+    """建立通知請求"""
+    pass
+
+
+class NotificationResponse(NotificationBase):
+    """通知回應"""
+    id: str
+    is_read: bool
+    sent_via_email: bool
+    email_sent_at: Optional[datetime] = None
+    read_at: Optional[datetime] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ==========================================
+# 區域相關模型
+# ==========================================
+
+class DistrictBase(BaseModel):
+    """區域基礎模型"""
+    name: str = Field(..., description="區域名稱")
+    city: str = Field(..., description="城市")
+    code: Optional[str] = Field(None, description="區域代碼")
+
+
+class DistrictCreate(DistrictBase):
+    """建立區域請求"""
+    pass
+
+
+class DistrictResponse(DistrictBase):
+    """區域回應"""
+    id: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ==========================================
+# 地圖相關模型
+# ==========================================
+
+class RouteOptimizationRequest(BaseModel):
+    """路線規劃請求"""
+    start_location: str = Field(..., description="起點地址")
+    destinations: List[str] = Field(..., description="目的地地址列表")
+
+
+class RouteOptimizationResponse(BaseModel):
+    """路線規劃回應"""
+    routes: List[Dict]
+    total_distance: str
+    total_duration: str
+
+
+class GeocodingRequest(BaseModel):
+    """地理編碼請求"""
+    address: str = Field(..., description="地址")
+
+
+class GeocodingResponse(BaseModel):
+    """地理編碼回應"""
+    lat: float
+    lng: float
+    formatted_address: str
 

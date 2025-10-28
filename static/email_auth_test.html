@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email 驗證登入測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .step {
+            margin-bottom: 30px;
+        }
+
+        .step-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .result pre {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .timer {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Email 驗證登入</h1>
+        <p class="subtitle">測試 Email 驗證碼登入/註冊功能</p>
+
+        <div id="message" class="message"></div>
+
+        <!-- 步驟 1: 輸入 Email -->
+        <div id="step1" class="step">
+            <div class="step-title">步驟 1: 輸入您的 Email</div>
+            <div class="input-group">
+                <label for="email">Email 地址</label>
+                <input type="email" id="email" placeholder="your@email.com" required>
+            </div>
+            <button onclick="requestVerificationCode()">發送驗證碼</button>
+        </div>
+
+        <!-- 步驟 2: 輸入驗證碼 -->
+        <div id="step2" class="step hidden">
+            <div class="step-title">步驟 2: 輸入驗證碼</div>
+            <div class="input-group">
+                <label for="code">6 位數驗證碼</label>
+                <input type="text" id="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+            </div>
+            <div class="timer" id="timer"></div>
+            <button onclick="verifyCode()">驗證並登入</button>
+            <button onclick="resendCode()" style="margin-top: 10px; background: #6c757d;">重新發送驗證碼</button>
+        </div>
+
+        <!-- 步驟 3: 登入成功 -->
+        <div id="step3" class="step hidden">
+            <div class="step-title">✅ 登入成功！</div>
+            <div class="result">
+                <h3>使用者資訊</h3>
+                <pre id="userInfo"></pre>
+            </div>
+            <div class="result">
+                <h3>Access Token</h3>
+                <pre id="accessToken"></pre>
+            </div>
+            <button onclick="resetTest()" style="background: #6c757d;">重新測試</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1/auth';
+        let currentEmail = '';
+        let timerInterval = null;
+
+        function showMessage(message, type = 'info') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = message;
+            msgEl.className = `message ${type}`;
+            msgEl.style.display = 'block';
+
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    msgEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function showStep(stepNumber) {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById(`step${stepNumber}`).classList.remove('hidden');
+        }
+
+        function startTimer(minutes = 10) {
+            const endTime = Date.now() + (minutes * 60 * 1000);
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            timerInterval = setInterval(() => {
+                const remaining = endTime - Date.now();
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = '⏰ 驗證碼已過期';
+                    return;
+                }
+
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('timer').textContent = 
+                    `⏱️ 驗證碼有效時間: ${mins}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        async function requestVerificationCode() {
+            const email = document.getElementById('email').value;
+            
+            if (!email) {
+                showMessage('請輸入 Email 地址', 'error');
+                return;
+            }
+
+            // 簡單的 Email 格式驗證
+            if (!email.includes('@')) {
+                showMessage('請輸入有效的 Email 地址', 'error');
+                return;
+            }
+
+            try {
+                showMessage('正在發送驗證碼...', 'info');
+
+                const response = await fetch(`${API_BASE}/email/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        is_verified: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '發送驗證碼失敗');
+                }
+
+                currentEmail = email;
+                showMessage('✅ 驗證碼已發送到您的 Email！', 'success');
+                
+                // 開發環境會回傳驗證碼
+                if (data.verification_code) {
+                    showMessage(`✅ 驗證碼已發送！（開發模式：${data.verification_code}）`, 'success');
+                    document.getElementById('code').value = data.verification_code;
+                }
+
+                showStep(2);
+                startTimer(10);
+
+            } catch (error) {
+                showMessage(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function verifyCode() {
+            const code = document.getElementById('code').value;
+
+            if (!code || code.length !== 6) {
+                showMessage('請輸入 6 位數驗證碼', 'error');
+                return;
+            }
+
+            try {
+                showMessage('正在驗證...', 'info');
+
+                const response = await fetch(`${API_BASE}/email/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentEmail,
+                        is_verified: true,
+                        verification_code: code
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '驗證失敗');
+                }
+
+                // 儲存 token
+                if (data.access_token) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                }
+
+                // 顯示結果
+                document.getElementById('userInfo').textContent = 
+                    JSON.stringify(data.user, null, 2);
+                document.getElementById('accessToken').textContent = 
+                    data.access_token;
+
+                showMessage('✅ 驗證成功，登入完成！', 'success');
+                
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+
+                showStep(3);
+
+            } catch (error) {
+                showMessage(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function resendCode() {
+            try {
+                showMessage('正在重新發送驗證碼...', 'info');
+
+                const response = await fetch(`${API_BASE}/email/resend`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentEmail
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '重新發送失敗');
+                }
+
+                showMessage('✅ 驗證碼已重新發送！', 'success');
+                
+                // 開發環境會回傳驗證碼
+                if (data.verification_code) {
+                    showMessage(`✅ 驗證碼已重新發送！（開發模式：${data.verification_code}）`, 'success');
+                    document.getElementById('code').value = data.verification_code;
+                }
+
+                startTimer(10);
+
+            } catch (error) {
+                showMessage(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function resetTest() {
+            currentEmail = '';
+            document.getElementById('email').value = '';
+            document.getElementById('code').value = '';
+            document.getElementById('message').style.display = 'none';
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            showStep(1);
+        }
+
+        // Enter 鍵提交
+        document.getElementById('email').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') requestVerificationCode();
+        });
+
+        document.getElementById('code').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyCode();
+        });
+    </script>
+</body>
+</html>

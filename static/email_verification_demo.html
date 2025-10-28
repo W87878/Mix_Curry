@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email 驗證登入測試</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f7ff;
+        }
+        
+        .countdown {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .countdown-time {
+            font-size: 36px;
+            font-weight: bold;
+            color: #f44336;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .countdown-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1976d2;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #c62828;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .code-display {
+            background: #f5f5f5;
+            border: 2px dashed #999;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .code-display-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .code-display-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Email 驗證登入</h1>
+            <p>災害補助系統</p>
+        </div>
+        
+        <div class="content">
+            <!-- 步驟 1：輸入 Email -->
+            <div id="step1" class="step active">
+                <h2 style="margin-bottom: 20px; color: #333;">輸入您的 Email</h2>
+                
+                <div class="input-group">
+                    <label>Email 地址</label>
+                    <input type="email" id="emailInput" placeholder="請輸入您的 Email">
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleSendCode()">
+                    發送驗證碼
+                </button>
+                
+                <div class="info-box">
+                    💡 我們會發送一封包含驗證碼的郵件到您的信箱
+                </div>
+            </div>
+
+            <!-- 步驟 2：輸入驗證碼 -->
+            <div id="step2" class="step">
+                <h2 style="margin-bottom: 20px; color: #333;">輸入驗證碼</h2>
+                
+                <div class="success-box">
+                    ✅ 驗證碼已發送到您的 Email！
+                </div>
+                
+                <!-- 顯示後端回傳的驗證碼（開發環境） -->
+                <div id="codeDisplay" class="code-display">
+                    <div class="code-display-label">📧 後端回傳的驗證碼（測試用）</div>
+                    <div class="code-display-value" id="displayedCode">------</div>
+                </div>
+                
+                <!-- 倒數計時 -->
+                <div class="countdown">
+                    <div class="countdown-time" id="countdown">3:00</div>
+                    <div class="countdown-label">剩餘時間</div>
+                </div>
+                
+                <div class="input-group">
+                    <label>請輸入驗證碼</label>
+                    <input 
+                        type="text" 
+                        id="codeInput" 
+                        placeholder="請輸入 6 位數驗證碼" 
+                        maxlength="6"
+                        style="text-align: center; font-size: 24px; letter-spacing: 4px; font-family: 'Courier New', monospace;"
+                    >
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleVerify()">
+                    驗證並登入
+                </button>
+                
+                <button class="btn btn-secondary" onclick="handleResend()">
+                    重新發送驗證碼
+                </button>
+                
+                <div class="info-box">
+                    💡 請在 3 分鐘內完成驗證
+                </div>
+            </div>
+
+            <!-- 步驟 3：登入成功 -->
+            <div id="step3" class="step">
+                <div style="text-align: center; padding: 40px 0;">
+                    <div style="font-size: 64px;">✅</div>
+                    <h2 style="color: #4caf50; margin: 20px 0;">登入成功！</h2>
+                    <p style="color: #666; margin-bottom: 30px;">正在跳轉到主頁面...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let countdownTimer = null;
+
+        // 發送驗證碼
+        async function handleSendCode() {
+            const email = document.getElementById('emailInput').value.trim();
+            
+            if (!email || !email.includes('@')) {
+                alert('請輸入有效的 Email 地址');
+                return;
+            }
+
+            try {
+                console.log('🚀 發送驗證碼請求...');
+                
+                const response = await fetch('/api/v1/auth/email/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        is_verified: false
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📨 後端回應:', data);
+
+                if (data.success && data.verification_code) {
+                    // 儲存驗證碼和 Email
+                    localStorage.setItem('verification_code', data.verification_code);
+                    localStorage.setItem('verification_email', email);
+                    
+                    // 顯示驗證碼（開發環境）
+                    document.getElementById('displayedCode').textContent = data.verification_code;
+                    
+                    // 切換到步驟 2
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
+                    
+                    // 開始倒數計時
+                    startCountdown(180);
+                    
+                    console.log('✅ 驗證碼已發送:', data.verification_code);
+                } else {
+                    throw new Error(data.message || '發送驗證碼失敗');
+                }
+            } catch (error) {
+                console.error('❌ 發送驗證碼失敗:', error);
+                alert('發送驗證碼失敗：' + error.message);
+            }
+        }
+
+        // 倒數計時
+        function startCountdown(seconds) {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            
+            let remaining = seconds;
+            const display = document.getElementById('countdown');
+            
+            function updateDisplay() {
+                const minutes = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                display.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+                
+                // 時間快到時變紅色
+                if (remaining <= 30) {
+                    display.style.color = '#f44336';
+                }
+            }
+            
+            updateDisplay();
+            
+            countdownTimer = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                
+                if (remaining <= 0) {
+                    clearInterval(countdownTimer);
+                    display.textContent = '已過期';
+                    alert('驗證碼已過期，請重新發送');
+                }
+            }, 1000);
+        }
+
+        // 驗證並登入
+        async function handleVerify() {
+            const userCode = document.getElementById('codeInput').value.trim();
+            const correctCode = localStorage.getItem('verification_code');
+            const email = localStorage.getItem('verification_email');
+
+            if (!userCode) {
+                alert('請輸入驗證碼');
+                return;
+            }
+
+            console.log('🔍 前端驗證碼比對:');
+            console.log('  用戶輸入:', userCode);
+            console.log('  正確驗證碼:', correctCode);
+
+            // 前端比對驗證碼
+            const isCorrect = (userCode === correctCode);
+            console.log('  比對結果:', isCorrect ? '✅ 正確' : '❌ 錯誤');
+
+            try {
+                console.log('🚀 調用登入 API, verify=' + isCorrect);
+                
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        login_type: 'password',
+                        verify: isCorrect  // 告訴後端前端比對的結果
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📨 登入回應:', data);
+
+                if (response.ok && data.access_token) {
+                    // 登入成功
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // 清除驗證碼
+                    localStorage.removeItem('verification_code');
+                    localStorage.removeItem('verification_email');
+                    
+                    // 停止倒數
+                    if (countdownTimer) {
+                        clearInterval(countdownTimer);
+                    }
+                    
+                    // 顯示成功畫面
+                    document.getElementById('step2').classList.remove('active');
+                    document.getElementById('step3').classList.add('active');
+                    
+                    console.log('✅ 登入成功！');
+                    console.log('用戶資訊:', data.user);
+                    
+                    // 3 秒後跳轉
+                    setTimeout(() => {
+                        window.location.href = '/static/applicant.html';
+                    }, 2000);
+                } else {
+                    // 驗證失敗
+                    alert('❌ 驗證碼錯誤，請重新輸入');
+                    document.getElementById('codeInput').value = '';
+                    document.getElementById('codeInput').focus();
+                }
+            } catch (error) {
+                console.error('❌ 登入失敗:', error);
+                alert('登入失敗：' + error.message);
+            }
+        }
+
+        // 重新發送驗證碼
+        async function handleResend() {
+            const email = localStorage.getItem('verification_email');
+
+            if (!email) {
+                alert('找不到 Email，請重新開始');
+                return;
+            }
+
+            try {
+                console.log('🔄 重新發送驗證碼...');
+                
+                const response = await fetch('/api/v1/auth/email/resend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                console.log('📨 重發回應:', data);
+
+                if (data.success && data.verification_code) {
+                    // 更新驗證碼
+                    localStorage.setItem('verification_code', data.verification_code);
+                    document.getElementById('displayedCode').textContent = data.verification_code;
+                    
+                    // 重新開始倒數
+                    startCountdown(180);
+                    
+                    // 清空輸入框
+                    document.getElementById('codeInput').value = '';
+                    
+                    alert('✅ 驗證碼已重新發送！');
+                    console.log('新驗證碼:', data.verification_code);
+                } else {
+                    throw new Error(data.message || '重新發送失敗');
+                }
+            } catch (error) {
+                console.error('❌ 重新發送失敗:', error);
+                alert('重新發送失敗：' + error.message);
+            }
+        }
+
+        // 頁面載入時檢查是否有未完成的驗證
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('verification_email');
+            const savedCode = localStorage.getItem('verification_code');
+            
+            if (savedEmail && savedCode) {
+                console.log('🔄 檢測到未完成的驗證流程');
+                const resume = confirm('檢測到未完成的驗證流程，是否繼續？');
+                if (resume) {
+                    document.getElementById('emailInput').value = savedEmail;
+                    document.getElementById('displayedCode').textContent = savedCode;
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
+                    startCountdown(180);
+                } else {
+                    localStorage.removeItem('verification_email');
+                    localStorage.removeItem('verification_code');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

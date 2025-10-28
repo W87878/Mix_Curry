@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 # 添加專案根目錄到 Python 路徑
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.services.edm.send_disaster_notification import DisasterNotificationService
@@ -21,7 +21,7 @@ def quick_test():
     
     # 測試數據 - 使用 UUID 格式（需先執行 create_test_user.py）
     test_data = {
-        'recipient_email': 'wangyouzhi248@gmail.com',
+        'recipient_email': 's6968227@gmail.com',
         'applicant_name': '王小明',
         'case_no': 'DISASTER-2025-TEST-001',
         'approved_amount': 30000,
@@ -40,7 +40,7 @@ def quick_test():
     success = service.send_approval_notification(**test_data)
     
     if success:
-        print("\n✅ 成功！請檢查信箱: wangyouzhi248@gmail.com")
+        print("\n✅ 成功！請檢查信箱: s6968227@gmail.com")
         print("📊 已記錄到 Supabase notifications 表")
     else:
         print("\n❌ 發送失敗，請查看錯誤訊息")

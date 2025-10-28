@@ -5,9 +5,11 @@ Google Maps API 路由
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List
+import logging
 
 from app.services.google_maps import get_google_maps_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/maps", tags=["地圖服務"])
 
 
@@ -42,6 +44,27 @@ class NearbyPlacesRequest(BaseModel):
     place_type: Optional[str] = "convenience_store"
     radius: Optional[int] = 1000
     language: Optional[str] = "zh-TW"
+
+
+class RouteRequest(BaseModel):
+    """路線規劃請求"""
+    origin: str
+    destination: str
+    waypoints: Optional[List[str]] = None
+    mode: Optional[str] = "driving"
+    optimize: Optional[bool] = True
+
+
+class MultiDestinationRouteRequest(BaseModel):
+    """多目的地路線規劃請求"""
+    start_location: str
+    destinations: List[str]
+    mode: Optional[str] = "driving"
+
+
+class ApplicationLocationsRequest(BaseModel):
+    """案件地點列表請求（里長用）"""
+    application_ids: List[str]  # 案件 ID 列表
 
 
 # ==========================================
@@ -273,6 +296,251 @@ async def get_place_details(
             language=language
         )
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/route")
+async def calculate_route(request: RouteRequest):
+    """
+    🗺️ 計算路線（含途經點）
+    
+    用於規劃訪問多個災損地點的路線
+    
+    Example:
+    ```json
+    {
+        "origin": "台南市政府",
+        "destination": "台南市中西區民權路一段100號",
+        "waypoints": [
+            "台南市安平區永華路二段6號",
+            "台南市東區裕農路100號"
+        ],
+        "mode": "driving",
+        "optimize": true
+    }
+    ```
+    
+    Response:
+    ```json
+    {
+        "success": true,
+        "routes": [
+            {
+                "summary": "國道1號",
+                "distance": {"text": "15.2 公里", "value": 15200},
+                "duration": {"text": "25 分鐘", "value": 1500},
+                "legs": [...],
+                "waypoint_order": [0, 1]
+            }
+        ],
+        "count": 3
+    }
+    ```
+    """
+    try:
+        maps_service = get_google_maps_service()
+        result = await maps_service.calculate_route(
+            origin=request.origin,
+            destination=request.destination,
+            waypoints=request.waypoints,
+            mode=request.mode,
+            optimize_waypoints=request.optimize
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/optimal-routes")
+async def get_optimal_routes(request: MultiDestinationRouteRequest):
+    """
+    🎯 取得多目的地最佳路線（Top 3）
+    
+    **里長專用功能**：規劃訪問多個災損地點的最佳路線
+    
+    系統會自動優化訪問順序，並提供 Top 3 最佳路線方案
+    
+    Example:
+    ```json
+    {
+        "start_location": "台南市東區裕農里辦公處",
+        "destinations": [
+            "台南市東區裕農路100號",
+            "台南市東區裕農路200號",
+            "台南市東區裕農路300號",
+            "台南市東區裕農路400號"
+        ],
+        "mode": "driving"
+    }
+    ```
+    
+    Response:
+    ```json
+    {
+        "success": true,
+        "routes": [
+            {
+                "rank": 1,
+                "total_distance": {"text": "8.5 公里", "value": 8500},
+                "total_duration": {"text": "18 分鐘", "value": 1080},
+                "waypoint_order": [0, 2, 1, 3],
+                "ordered_addresses": [
+                    "台南市東區裕農路100號",
+                    "台南市東區裕農路300號",
+                    "台南市東區裕農路200號",
+                    "台南市東區裕農路400號"
+                ],
+                "legs": [...]
+            },
+            {
+                "rank": 2,
+                ...
+            },
+            {
+                "rank": 3,
+                ...
+            }
+        ],
+        "count": 3,
+        "message": "規劃完成，提供 3 條最佳路線"
+    }
+    ```
+    """
+    try:
+        maps_service = get_google_maps_service()
+        result = await maps_service.get_optimized_multi_destination_routes(
+            start_location=request.start_location,
+            destinations=request.destinations,
+            mode=request.mode
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/applications-map-data")
+async def get_applications_map_data(request: ApplicationLocationsRequest):
+    """
+    📍 取得案件地圖資料（里長用）
+    
+    取得所有選定案件的地理位置資訊，用於在地圖上標示
+    
+    Example:
+    ```json
+    {
+        "application_ids": [
+            "uuid-1",
+            "uuid-2",
+            "uuid-3"
+        ]
+    }
+    ```
+    
+    Response:
+    ```json
+    {
+        "success": true,
+        "applications": [
+            {
+                "id": "uuid-1",
+                "case_no": "CASE-20250101-001",
+                "applicant_name": "王小明",
+                "address": "台南市東區裕農路100號",
+                "latitude": 22.9917,
+                "longitude": 120.2009,
+                "status": "pending",
+                "requested_amount": 30000,
+                "disaster_type": "flood"
+            },
+            ...
+        ],
+        "count": 3
+    }
+    ```
+    """
+    try:
+        from app.models.database import db_service
+        
+        applications = []
+        maps_service = get_google_maps_service()
+        
+        for app_id in request.application_ids:
+            # 從資料庫取得案件資訊
+            try:
+                app_data = db_service.get_application_by_id(app_id)
+                if not app_data:
+                    logger.warning(f"Application not found: {app_id}")
+                    continue
+                
+                # 優先使用 damage_location，其次使用 address
+                address_to_geocode = app_data.get("damage_location") or app_data.get("address")
+                
+                if not address_to_geocode:
+                    logger.warning(f"No address found for application {app_id}")
+                    continue
+                
+                logger.info(f"Processing application {app_data.get('case_no')}: {address_to_geocode}")
+                
+                # 如果沒有經緯度，調用 Google Maps API 進行地理編碼
+                latitude = app_data.get("latitude")
+                longitude = app_data.get("longitude")
+                formatted_address = app_data.get("formatted_address")
+                
+                if not latitude or not longitude:
+                    logger.info(f"Geocoding address: {address_to_geocode}")
+                    geocode_result = await maps_service.geocode_address(
+                        address=address_to_geocode,
+                        language="zh-TW"
+                    )
+                    
+                    if geocode_result.get("success"):
+                        latitude = geocode_result.get("latitude")
+                        longitude = geocode_result.get("longitude")
+                        formatted_address = geocode_result.get("formatted_address")
+                        
+                        logger.info(f"✓ Geocoded: {formatted_address} -> ({latitude}, {longitude})")
+                        
+                        # 可選：將經緯度存回資料庫（避免重複查詢）
+                        try:
+                            db_service.client.table("applications").update({
+                                "latitude": latitude,
+                                "longitude": longitude,
+                                "formatted_address": formatted_address
+                            }).eq("id", app_id).execute()
+                        except Exception as update_error:
+                            logger.warning(f"Failed to update geocode data: {update_error}")
+                    else:
+                        logger.error(f"✗ Geocoding failed for {address_to_geocode}")
+                        continue
+                
+                applications.append({
+                    "id": str(app_data.get("id")),
+                    "case_no": app_data.get("case_no"),
+                    "applicant_name": app_data.get("applicant_name"),
+                    "address": app_data.get("address"),
+                    "damage_location": app_data.get("damage_location"),
+                    "formatted_address": formatted_address,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "status": app_data.get("status"),
+                    "requested_amount": app_data.get("requested_amount"),
+                    "disaster_type": app_data.get("disaster_type"),
+                    "disaster_date": app_data.get("disaster_date")
+                })
+                
+            except Exception as e:
+                logger.error(f"Error processing application {app_id}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+        
+        return {
+            "success": True,
+            "applications": applications,
+            "count": len(applications),
+            "message": f"取得 {len(applications)} 個案件資料"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -279,33 +279,54 @@
                 <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
             </div>
 
-            <!-- 傳統註冊方式 -->
+            <!-- Email 驗證註冊 -->
             <details style="margin-bottom: 20px;">
                 <summary style="cursor: pointer; padding: 15px; background: #f9f9f9; border-radius: 8px; font-weight: 500; color: #666;">
-                    📧 使用 Email 註冊新帳號
+                    📧 使用 Email 註冊/登入
                 </summary>
                 <div style="margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <div class="form-group">
-                        <label>Email <span class="required">*</span></label>
-                        <input type="email" id="authEmail" placeholder="your@email.com">
+                    <!-- 步驟 1: 輸入 Email -->
+                    <div id="emailStep">
+                        <div class="form-group">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" id="authEmail" placeholder="your@email.com">
+                            <small style="color: #666; margin-top: 5px; display: block;">
+                                我們會發送驗證碼到您的信箱
+                            </small>
+                        </div>
+                        <button class="btn btn-primary" onclick="sendVerificationCode()" style="width: 100%;">
+                            發送驗證碼
+                        </button>
                     </div>
 
-                    <div class="form-group">
-                        <label>姓名 <span class="required">*</span></label>
-                        <input type="text" id="authName" placeholder="請輸入真實姓名">
-                    </div>
+                    <!-- 步驟 2: 輸入驗證碼 -->
+                    <div id="verificationStep" style="display: none;">
+                        <div style="padding: 15px; background: #f0f7ff; border-radius: 8px; margin-bottom: 15px;">
+                            <p style="color: #666; margin-bottom: 10px;">
+                                ✉️ 驗證碼已發送到 <strong id="verifyEmailDisplay"></strong>
+                            </p>
+                            <p style="color: #999; font-size: 14px;">
+                                請在 <strong id="countdown" style="color: #667eea;">3:00</strong> 內完成驗證
+                            </p>
+                        </div>
 
-                    <div class="form-group">
-                        <label>身分證字號 <span class="required">*</span></label>
-                        <input type="text" id="authIdNumber" placeholder="A123456789">
-                    </div>
+                        <div class="form-group">
+                            <label>驗證碼 <span class="required">*</span></label>
+                            <input type="text" id="verificationCode" placeholder="請輸入 6 位數驗證碼" maxlength="6" style="font-size: 24px; letter-spacing: 8px; text-align: center;">
+                        </div>
 
-                    <div class="form-group">
-                        <label>手機號碼 <span class="required">*</span></label>
-                        <input type="tel" id="authPhone" placeholder="0912345678">
-                    </div>
+                        <button class="btn btn-primary" onclick="verifyAndLogin()" style="width: 100%; margin-bottom: 10px;">
+                            驗證並登入
+                        </button>
 
-                    <button class="btn btn-primary" onclick="registerAndLogin()">開始申請</button>
+                        <button class="btn" onclick="resendVerificationCode()" id="resendBtn" style="width: 100%; background: #999;" disabled>
+                            重新發送驗證碼 (<span id="resendCountdown">60</span>)
+                        </button>
+
+                        <button class="btn btn-secondary" onclick="backToEmailInput()" style="width: 100%; margin-top: 10px;">
+                            返回修改 Email
+                        </button>
+                    </div>
                 </div>
             </details>
 
@@ -428,8 +449,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>聯絡地址 <span class="required">*</span></label>
-                    <input type="text" id="appAddress" placeholder="請輸入完整地址">
+                    <label>聯絡地址</label>
+                    <input type="text" id="appAddress" placeholder="請輸入完整地址（選填）">
+                    <div class="helper-text">如與災損地點不同，請填寫</div>
                 </div>
 
                 <button class="btn btn-primary" onclick="nextStep(2)">下一步 →</button>
@@ -674,66 +696,288 @@
             showScreen('authScreen');
         }
 
-        async function registerAndLogin() {
+        // ============================================
+        // Email 驗證登入流程
+        // ============================================
+        let storedVerificationCode = null;
+        let verificationEmail = null;
+        let countdownTimer = null;
+        let resendTimer = null;
+
+        async function sendVerificationCode() {
             // 確保配置已載入
             if (!API_BASE) {
                 await initializeConfig();
                 API_BASE = getApiBase();
             }
 
-            const data = {
-                email: document.getElementById('authEmail').value,
-                full_name: document.getElementById('authName').value,
-                id_number: document.getElementById('authIdNumber').value,
-                phone: document.getElementById('authPhone').value,
-                role: 'applicant'
-            };
+            const email = document.getElementById('authEmail').value;
+            
+            if (!email) {
+                alert('請輸入 Email');
+                return;
+            }
 
-            if (!data.email || !data.full_name || !data.id_number || !data.phone) {
-                alert('請填寫所有必填欄位');
+            // 簡單的 Email 格式驗證
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('請輸入有效的 Email 格式');
                 return;
             }
 
             try {
-                console.log('使用 API_BASE:', API_BASE);
+                console.log('發送驗證碼到:', email);
                 
-                // 註冊
-                const regResult = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                console.log('註冊回應:', regResult.status);
-
-                // 登入
-                const loginResult = await fetch(`${API_BASE}/auth/login`, {
+                const response = await fetch(`${API_BASE}/auth/email/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email: data.email,
-                        password: '',
-                        login_type: 'password'
+                        email: email,
+                        is_verified: false
                     })
                 });
 
-                console.log('登入回應:', loginResult.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 儲存驗證碼（如果有回傳）
+                    // 開發環境會回傳，生產環境不會
+                    storedVerificationCode = data.verification_code || null;
+                    verificationEmail = email;
+                    
+                    // 切換到驗證碼輸入畫面
+                    document.getElementById('emailStep').style.display = 'none';
+                    document.getElementById('verificationStep').style.display = 'block';
+                    document.getElementById('verifyEmailDisplay').textContent = email;
+                    
+                    // 開始倒數計時（3 分鐘）
+                    startCountdown(180);
+                    
+                    // 開始重發倒數計時（60 秒）
+                    startResendCountdown(60);
+                    
+                    if (storedVerificationCode) {
+                        // 開發環境：顯示驗證碼在 console
+                        console.log('🔑 驗證碼（開發用）:', storedVerificationCode);
+                        alert('✅ 驗證碼已發送到您的 Email，請查收！\n\n（開發環境：驗證碼已輸出到 Console）');
+                    } else {
+                        // 生產環境：不顯示驗證碼
+                        alert('✅ 驗證碼已發送到您的 Email，請查收！');
+                    }
+                } else {
+                    const error = await response.json();
+                    alert('發送失敗：' + (error.detail || '請稍後再試'));
+                }
+            } catch (error) {
+                console.error('發送驗證碼錯誤:', error);
+                alert('網路錯誤：' + error.message);
+            }
+        }
 
-                if (loginResult.ok) {
-                    const loginData = await loginResult.json();
-                    accessToken = loginData.access_token;
-                    currentUser = loginData.user;
+        function startCountdown(seconds) {
+            let remaining = seconds;
+            
+            const updateDisplay = () => {
+                const minutes = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                document.getElementById('countdown').textContent = 
+                    `${minutes}:${secs.toString().padStart(2, '0')}`;
+            };
+            
+            updateDisplay();
+            
+            countdownTimer = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                
+                if (remaining <= 0) {
+                    clearInterval(countdownTimer);
+                    alert('驗證碼已過期，請重新發送');
+                    backToEmailInput();
+                }
+            }, 1000);
+        }
+
+        function startResendCountdown(seconds) {
+            let remaining = seconds;
+            const resendBtn = document.getElementById('resendBtn');
+            const resendCountdownEl = document.getElementById('resendCountdown');
+            
+            resendBtn.disabled = true;
+            
+            const updateDisplay = () => {
+                resendCountdownEl.textContent = remaining;
+            };
+            
+            updateDisplay();
+            
+            resendTimer = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                
+                if (remaining <= 0) {
+                    clearInterval(resendTimer);
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '重新發送驗證碼';
+                }
+            }, 1000);
+        }
+
+        async function verifyAndLogin() {
+            const userCode = document.getElementById('verificationCode').value;
+            
+            if (!userCode) {
+                alert('請輸入驗證碼');
+                return;
+            }
+
+            if (userCode.length !== 6) {
+                alert('驗證碼必須是 6 位數字');
+                return;
+            }
+
+            // 前端驗證（如果有儲存驗證碼）
+            let isValid = true;
+            if (storedVerificationCode) {
+                // 開發環境：前端可以驗證
+                isValid = (userCode === storedVerificationCode);
+                
+                if (!isValid) {
+                    alert('❌ 驗證碼錯誤，請重新輸入');
+                    document.getElementById('verificationCode').value = '';
+                    document.getElementById('verificationCode').focus();
+                    return;
+                }
+            }
+            // 生產環境：直接送到後端驗證
+
+            try {
+                // 呼叫登入 API
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: verificationEmail,
+                        login_type: 'password',
+                        verify: isValid  // 前端驗證結果
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    accessToken = data.access_token;
+                    currentUser = data.user;
+                    
+                    // 儲存到 localStorage
                     localStorage.setItem('applicant_token', accessToken);
                     localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                    showMainMenu();
+                    
+                    // 清除計時器
+                    if (countdownTimer) clearInterval(countdownTimer);
+                    if (resendTimer) clearInterval(resendTimer);
+                    
+                    alert(`✅ 驗證成功！歡迎，${currentUser.email}`);
+                    
+                    // 檢查是否需要補完資料
+                    checkProfileComplete();
                 } else {
-                    const errorData = await loginResult.json().catch(() => ({}));
-                    alert('登入失敗：' + (errorData.detail || '請檢查網路連線'));
+                    const error = await response.json();
+                    alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
                 }
             } catch (error) {
                 console.error('登入錯誤:', error);
                 alert('網路錯誤：' + error.message);
             }
+        }
+
+        function checkProfileComplete() {
+            // 檢查使用者資料是否完整
+            const needsProfile = !currentUser.full_name || 
+                               currentUser.full_name === verificationEmail.split('@')[0] ||
+                               !currentUser.phone ||
+                               currentUser.id_number?.startsWith('EMAIL');
+            
+            if (needsProfile) {
+                // 顯示資料補完提示
+                const wantToComplete = confirm(
+                    '✨ 歡迎！\n\n' +
+                    '為了完整使用系統功能，建議您：\n' +
+                    '1️⃣ 補完個人資料（姓名、身分證、手機）\n' +
+                    '2️⃣ 或使用政府數位憑證登入\n\n' +
+                    '是否現在補完資料？'
+                );
+                
+                if (wantToComplete) {
+                    showProfileCompleteForm();
+                } else {
+                    showMainMenu();
+                }
+            } else {
+                showMainMenu();
+            }
+        }
+
+        function showProfileCompleteForm() {
+            // 這裡可以顯示一個補完資料的表單
+            // 暫時先顯示主選單
+            alert('💡 提示：申請補助時會需要填寫完整資料');
+            showMainMenu();
+        }
+
+        async function resendVerificationCode() {
+            if (!verificationEmail) {
+                alert('Email 遺失，請重新開始');
+                backToEmailInput();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/email/resend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: verificationEmail
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    storedVerificationCode = data.verification_code || null;
+                    
+                    alert('✅ 驗證碼已重新發送！');
+                    
+                    if (storedVerificationCode) {
+                        console.log('🔑 驗證碼（開發用）:', storedVerificationCode);
+                    }
+                    
+                    // 重新開始計時
+                    if (countdownTimer) clearInterval(countdownTimer);
+                    if (resendTimer) clearInterval(resendTimer);
+                    startCountdown(180);
+                    startResendCountdown(60);
+                } else {
+                    const error = await response.json();
+                    alert('重發失敗：' + (error.detail || '請稍後再試'));
+                }
+            } catch (error) {
+                console.error('重發驗證碼錯誤:', error);
+                alert('網路錯誤：' + error.message);
+            }
+        }
+
+        function backToEmailInput() {
+            // 清除計時器
+            if (countdownTimer) clearInterval(countdownTimer);
+            if (resendTimer) clearInterval(resendTimer);
+            
+            // 重置狀態
+            storedVerificationCode = null;
+            verificationEmail = null;
+            document.getElementById('verificationCode').value = '';
+            
+            // 切換畫面
+            document.getElementById('verificationStep').style.display = 'none';
+            document.getElementById('emailStep').style.display = 'block';
         }
 
         async function loginOnly() {

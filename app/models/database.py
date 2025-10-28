@@ -206,6 +206,30 @@ class DatabaseService:
             .execute()
         return result.data
     
+    def update_user(self, user_id: str, update_data: dict):
+        """
+        更新使用者資料
+        
+        Args:
+            user_id: 使用者 ID
+            update_data: 要更新的欄位字典
+            
+        Returns:
+            更新後的使用者資料
+        """
+        serialized_data = serialize_data(update_data)
+        result = self.client.table('users') \
+            .update(serialized_data) \
+            .eq('id', user_id) \
+            .execute()
+        return result.data[0] if result.data else None
+    
+    def get_user(self, user_id: str):
+        """
+        根據 ID 取得使用者（別名方法，為了向後相容）
+        """
+        return self.get_user_by_id(user_id)
+    
     # ==========================================
     # 照片相關操作
     # ==========================================
