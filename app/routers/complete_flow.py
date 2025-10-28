@@ -264,7 +264,7 @@ async def verify_vp(request: VerifyVPRequest):
         # 驗證通過
         if verify_result.get("verify_result"):
             data = verify_result.get("credential_data", {})
-            credential_type = data.get("credential_type", "未知類型")
+            credential_type = data.get("credentialType", "未知類型")
             claims = data.get("claims", [])
             
             # 1️⃣ 處理身分證憑證 (00000000_mixcurry_idcard)
@@ -316,8 +316,8 @@ async def verify_vp(request: VerifyVPRequest):
                             "role": "applicant",
                             "is_verified": True,
                             "twfido_verified": True,
-                            "verified_at": datetime.now().isoformat(),
-                            "registered_address": registered_address
+                            # "verified_at": datetime.now().isoformat(),
+                            # "registered_address": registered_address
                         }
                     
                     
