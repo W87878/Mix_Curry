@@ -19,6 +19,7 @@ class StorageService:
         self.damage_photos_bucket = settings.DAMAGE_PHOTOS_BUCKET
         self.qr_codes_bucket = settings.QR_CODES_BUCKET
         self.inspection_photos_bucket = settings.INSPECTION_PHOTOS_BUCKET
+        self.documents_bucket = "application-documents"  # 新增：證明文件 bucket
     
     # ==========================================
     # 災損照片處理
@@ -258,6 +259,117 @@ class StorageService:
             expires_in=expires_in
         )
         return result['signedURL'] if result else None
+    
+    # ==========================================
+    # 證明文件處理
+    # ==========================================
+    
+    def upload_document(
+        self, 
+        application_id: str, 
+        file: BinaryIO, 
+        filename: str,
+        document_type: str = "other"
+    ) -> dict:
+        """
+        上傳證明文件（戶籍謄本、財產證明等）
+        
+        Args:
+            application_id: 申請案件 ID
+            file: 檔案二進制資料
+            filename: 檔案名稱
+            document_type: 文件類型
+        
+        Returns:
+            包含 storage_path 和 signed_url 的字典
+        """
+        # 生成唯一檔案路徑
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_ext = filename.split('.')[-1].lower() if '.' in filename else 'pdf'
+        storage_path = f"{application_id}/{document_type}_{timestamp}.{file_ext}"
+        
+        # MIME type 對應
+        mime_types = {
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+        }
+        content_type = mime_types.get(file_ext, 'application/octet-stream')
+        
+        # 上傳到 Supabase Storage
+        result = self.client.storage.from_(self.documents_bucket).upload(
+            path=storage_path,
+            file=file,
+            file_options={"content-type": content_type}
+        )
+        
+        # 生成簽名 URL（7 天有效期）
+        url = self.client.storage.from_(self.documents_bucket).create_signed_url(
+            path=storage_path,
+            expires_in=3600 * 24 * 7  # 7 days
+        )
+        
+        return {
+            "storage_path": storage_path,
+            "signed_url": url['signedURL'] if url else None,
+            "bucket": self.documents_bucket
+        }
+    
+    def get_document_url(self, storage_path: str, expires_in: int = 3600) -> str:
+        """
+        取得證明文件的簽名 URL
+        
+        Args:
+            storage_path: Storage 路徑
+            expires_in: URL 有效期限（秒），預設 1 小時
+        
+        Returns:
+            簽名的 URL
+        """
+        result = self.client.storage.from_(self.documents_bucket).create_signed_url(
+            path=storage_path,
+            expires_in=expires_in
+        )
+        return result['signedURL'] if result else None
+    
+    def download_document(self, storage_path: str) -> bytes:
+        """
+        下載證明文件
+        
+        Args:
+            storage_path: Storage 路徑
+        
+        Returns:
+            文件的二進制內容
+        """
+        try:
+            result = self.client.storage.from_(self.documents_bucket).download(storage_path)
+            return result
+        except Exception as e:
+            print(f"下載文件失敗: {e}")
+            return None
+    
+    def delete_document(self, storage_path: str) -> bool:
+        """
+        刪除證明文件
+        
+        Args:
+            storage_path: Storage 路徑
+        
+        Returns:
+            是否成功刪除
+        """
+        try:
+            self.client.storage.from_(self.documents_bucket).remove([storage_path])
+            return True
+        except Exception as e:
+            print(f"刪除文件失敗: {e}")
+            return False
     
     # ==========================================
     # 通用檔案操作

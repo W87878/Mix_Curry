@@ -358,6 +358,51 @@ class DatabaseService:
             .eq('id', item_id) \
             .execute()
         return result.data[0] if result.data else None
+    
+    # ==========================================
+    # 證明文件相關操作
+    # ==========================================
+    
+    def create_document(self, document_data: dict):
+        """建立證明文件記錄"""
+        from datetime import datetime
+        
+        # 添加時間戳記
+        if 'uploaded_at' not in document_data:
+            document_data['uploaded_at'] = datetime.now().isoformat()
+        
+        serialized_data = serialize_data(document_data)
+        result = self.client.table('application_documents').insert(serialized_data).execute()
+        return result.data[0] if result.data else None
+    
+    def get_document_by_id(self, document_id: str):
+        """根據 ID 取得證明文件"""
+        result = self.client.table('application_documents') \
+            .select('*') \
+            .eq('id', document_id) \
+            .execute()
+        return result.data[0] if result.data else None
+    
+    def get_documents_by_application(self, application_id: str, document_type: Optional[str] = None):
+        """取得申請案件的所有證明文件"""
+        query = self.client.table('application_documents') \
+            .select('*') \
+            .eq('application_id', application_id) \
+            .order('uploaded_at', desc=True)
+        
+        if document_type:
+            query = query.eq('document_type', document_type)
+        
+        result = query.execute()
+        return result.data if result.data else []
+    
+    def delete_document(self, document_id: str):
+        """刪除證明文件記錄"""
+        result = self.client.table('application_documents') \
+            .delete() \
+            .eq('id', document_id) \
+            .execute()
+        return result.data[0] if result.data else None
 
 # 全域資料庫服務實例
 db_service = DatabaseService()

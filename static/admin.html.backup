@@ -2493,6 +2493,590 @@
             };
             return map[type] || type;
         }
+
+        // ============================================
+        // Google Maps 功能
+        // ============================================
+        let map = null;
+        let markers = [];
+        let selectedApplications = [];
+        let allMapApplications = [];
+        let directionsService = null;
+        let directionsRenderers = [];
+
+        // 初始化地圖
+        function initializeMap() {
+            // 預設中心點（台南市政府）
+            const defaultCenter = { lat: 22.9917, lng: 120.2009 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: defaultCenter,
+                zoom: 13,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            
+            console.log('地圖初始化完成');
+        }
+
+        // 載入案件列表（用於地圖選擇）
+        async function loadMapApplications() {
+            try {
+                // 檢查使用者是否有 district_id
+                if (!currentUser.district_id) {
+                    console.warn('使用者沒有 district_id，無法載入案件');
+                    document.getElementById('mapApplicationsList').innerHTML = `
+                        <div style="padding: 20px; text-align: center;">
+                            <p style="color: #ff9800; margin-bottom: 10px;">⚠️ 您的帳號尚未設定管轄區域</p>
+                            <p style="color: #999; font-size: 14px;">請聯繫管理員設定您的管轄區域</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/applications/district/${currentUser.district_id}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allMapApplications = data.data?.applications || data.data || [];
+                    displayMapApplicationsList();
+                } else {
+                    alert('載入案件列表失敗');
+                }
+            } catch (error) {
+                console.error('Error loading map applications:', error);
+                alert('載入失敗：' + error.message);
+            }
+        }
+
+        // 顯示案件列表（勾選框）
+        function displayMapApplicationsList() {
+            const container = document.getElementById('mapApplicationsList');
+            
+            if (allMapApplications.length === 0) {
+                container.innerHTML = `
+                    <p style="color: #999; text-align: center; padding: 20px;">
+                        目前沒有可用的案件
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = allMapApplications.map(app => `
+                <div class="application-item-checkbox" onclick="toggleApplicationSelection('${app.id}')">
+                    <input type="checkbox" 
+                           id="app_${app.id}" 
+                           value="${app.id}"
+                           ${selectedApplications.includes(app.id) ? 'checked' : ''}
+                           onclick="event.stopPropagation()">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-bottom: 5px;">
+                            ${app.case_no} - ${app.applicant_name}
+                        </div>
+                        <div style="font-size: 13px; color: #666;">
+                            📍 ${app.damage_location || app.address || '地址未提供'}
+                        </div>
+                        <div style="font-size: 12px; color: #999; margin-top: 3px;">
+                            ${getDisasterTypeText(app.disaster_type)} | 
+                            申請金額: NT$ ${app.requested_amount?.toLocaleString()}
+                        </div>
+                    </div>
+                    <span class="badge ${app.status}">${getStatusText(app.status)}</span>
+                </div>
+            `).join('');
+
+            updateSelectedCount();
+        }
+
+        // 切換案件選擇狀態
+        function toggleApplicationSelection(appId) {
+            const checkbox = document.getElementById(`app_${appId}`);
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                if (!selectedApplications.includes(appId)) {
+                    selectedApplications.push(appId);
+                }
+            } else {
+                selectedApplications = selectedApplications.filter(id => id !== appId);
+            }
+            
+            updateSelectedCount();
+        }
+
+        // 更新選擇數量
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = selectedApplications.length;
+        }
+
+        // 在地圖上顯示選中的案件
+        async function showSelectedOnMap() {
+            if (selectedApplications.length === 0) {
+                alert('請先選擇要查看的案件');
+                return;
+            }
+
+            // 初始化地圖（如果還沒初始化）
+            if (!map) {
+                initializeMap();
+            }
+
+            // 清除舊的標記
+            clearMarkers();
+
+            try {
+                // 取得案件的地理位置資訊
+                const response = await fetch(`${API_BASE}/maps/applications-map-data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        application_ids: selectedApplications
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const applications = data.applications;
+
+                    if (applications.length === 0) {
+                        alert('沒有可顯示的案件位置');
+                        return;
+                    }
+
+                    // 建立地圖邊界
+                    const bounds = new google.maps.LatLngBounds();
+
+                    // 為每個案件建立標記
+                    applications.forEach((app, index) => {
+                        if (app.latitude && app.longitude) {
+                            const position = {
+                                lat: parseFloat(app.latitude),
+                                lng: parseFloat(app.longitude)
+                            };
+
+                            // 建立標記
+                            const marker = new google.maps.Marker({
+                                position: position,
+                                map: map,
+                                title: app.case_no,
+                                label: {
+                                    text: (index + 1).toString(),
+                                    color: 'white'
+                                },
+                                animation: google.maps.Animation.DROP
+                            });
+
+                            // 建立資訊視窗
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: `
+                                    <div style="padding: 10px; min-width: 200px;">
+                                        <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">
+                                            ${app.case_no}
+                                        </h3>
+                                        <p style="margin: 5px 0;"><strong>申請人:</strong> ${app.applicant_name}</p>
+                                        <p style="margin: 5px 0;"><strong>災損地點:</strong> ${app.damage_location || app.address || '未提供'}</p>
+                                        <p style="margin: 5px 0;"><strong>災害類型:</strong> ${getDisasterTypeText(app.disaster_type)}</p>
+                                        <p style="margin: 5px 0;"><strong>申請金額:</strong> NT$ ${app.requested_amount?.toLocaleString()}</p>
+                                        <p style="margin: 5px 0;">
+                                            <span class="badge ${app.status}">${getStatusText(app.status)}</span>
+                                        </p>
+                                    </div>
+                                `
+                            });
+
+                            // 點擊標記時顯示資訊
+                            marker.addListener('click', () => {
+                                // 關閉所有其他資訊視窗
+                                markers.forEach(m => {
+                                    if (m.infoWindow) {
+                                        m.infoWindow.close();
+                                    }
+                                });
+                                
+                                infoWindow.open(map, marker);
+                            });
+
+                            marker.infoWindow = infoWindow;
+                            markers.push(marker);
+                            bounds.extend(position);
+                        }
+                    });
+
+                    // 調整地圖視野以包含所有標記
+                    map.fitBounds(bounds);
+
+                    alert(`✅ 已在地圖上標示 ${applications.length} 個案件位置`);
+                } else {
+                    alert('取得位置資訊失敗');
+                }
+            } catch (error) {
+                console.error('Error showing on map:', error);
+                alert('顯示失敗：' + error.message);
+            }
+        }
+
+        // 清除地圖標記
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        // 清除路線渲染
+        function clearDirectionsRenderers() {
+            directionsRenderers.forEach(renderer => renderer.setMap(null));
+            directionsRenderers = [];
+        }
+
+        // 規劃最佳路線
+        async function planRoutes() {
+            console.log('🚀 開始規劃路線...');
+            console.log('📊 當前狀態:', {
+                selectedApplications: selectedApplications,
+                selectedCount: selectedApplications.length,
+                allMapApplications: allMapApplications,
+                allMapCount: allMapApplications.length
+            });
+
+            if (selectedApplications.length < 2) {
+                alert('請至少選擇 2 個案件才能規劃路線');
+                return;
+            }
+
+            if (selectedApplications.length > 10) {
+                alert('一次最多只能規劃 10 個地點的路線');
+                return;
+            }
+
+            try {
+                // 顯示載入中
+                document.getElementById('routesList').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🗺️</div>
+                        <p style="color: #666;">正在計算最佳路線...</p>
+                        <p style="color: #999; font-size: 14px;">這可能需要幾秒鐘</p>
+                    </div>
+                `;
+                document.getElementById('routesContainer').classList.remove('hidden');
+
+                // 直接從已載入的案件列表中取得選中的案件
+                const applications = allMapApplications.filter(app => 
+                    selectedApplications.includes(app.id)
+                );
+                
+                console.log('✅ 選中的案件:', {
+                    total: applications.length,
+                    selectedIds: selectedApplications,
+                    matchedApps: applications.map(a => ({
+                        id: a.id,
+                        case_no: a.case_no,
+                        address: a.address,
+                        damage_location: a.damage_location
+                    }))
+                });
+                
+                // 驗證案件資料
+                if (!applications || applications.length === 0) {
+                    throw new Error('沒有找到選中的案件資料');
+                }
+                
+                // 提取地址，過濾掉空值
+                const destinations = applications
+                    .map(app => {
+                        const addr = app.damage_location || app.address || app.formatted_address;
+                        console.log(`📌 案件 ${app.case_no}:`, {
+                            damage_location: app.damage_location,
+                            address: app.address,
+                            formatted_address: app.formatted_address,
+                            selected: addr
+                        });
+                        return addr;
+                    })
+                    .filter(addr => addr && addr.trim().length > 0);
+
+                // 驗證目的地
+                if (destinations.length === 0) {
+                    throw new Error(`❌ 所有 ${applications.length} 個案件都沒有地址資訊！\n\n` +
+                        `請檢查案件資料：\n` +
+                        applications.map(a => `- ${a.case_no}: damage_location=${a.damage_location}, address=${a.address}`).join('\n')
+                    );
+                }
+
+                console.log('📍 路線規劃資料:', {
+                    applications: applications.length,
+                    destinations: destinations,
+                    selectedApplications,
+                    currentUser: currentUser
+                });
+
+                // 使用里長所在區域辦公處作為起點（或使用第一個案件地址）
+                let startLocation = destinations[0];  // 預設使用第一個案件地址
+                
+                if (currentUser && currentUser.district_name) {
+                    startLocation = `${currentUser.district_name}辦公處`;
+                    console.log('✓ 使用區域辦公處作為起點:', startLocation);
+                } else {
+                    console.log('⚠️ 未設定區域，使用第一個案件地址作為起點:', startLocation);
+                }
+
+                // 準備請求資料
+                const requestData = {
+                    start_location: startLocation,
+                    destinations: destinations,
+                    mode: 'driving'
+                };
+                
+                console.log('🚗 發送路線規劃請求:', requestData);
+
+                // 呼叫路線規劃 API
+                const routeResponse = await fetch(`${API_BASE}/maps/optimal-routes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!routeResponse.ok) {
+                    const errorData = await routeResponse.json().catch(() => ({}));
+                    console.error('路線規劃錯誤:', {
+                        status: routeResponse.status,
+                        statusText: routeResponse.statusText,
+                        error: errorData
+                    });
+                    
+                    // 顯示詳細錯誤訊息
+                    let errorMessage = errorData.detail || '路線規劃失敗';
+                    if (Array.isArray(errorData.detail)) {
+                        errorMessage = errorData.detail.map(e => `${e.loc?.join('.')}: ${e.msg}`).join('\\n');
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+
+                const routeData = await routeResponse.json();
+                console.log('✅ 路線規劃成功:', routeData);
+                displayRoutes(routeData.routes, applications);
+
+            } catch (error) {
+                console.error('Error planning routes:', error);
+                document.getElementById('routesList').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                        <p style="color: #ef4444; font-weight: bold; margin-bottom: 10px;">路線規劃失敗</p>
+                        <p style="color: #666; margin-top: 8px; white-space: pre-wrap;">${error.message}</p>
+                        <button onclick="document.getElementById('routesContainer').classList.add('hidden')" 
+                                style="margin-top: 20px; padding: 8px 16px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            關閉
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // 顯示路線規劃結果
+        function displayRoutes(routes, applications) {
+            if (!routes || routes.length === 0) {
+                document.getElementById('routesList').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <p style="color: #999;">沒有找到可用的路線</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const routesHtml = routes.slice(0, 3).map(route => {
+                const waypointInfo = route.ordered_addresses.map((addr, idx) => {
+                    const app = applications.find(a => 
+                        (a.formatted_address === addr || a.address === addr)
+                    );
+                    return `
+                        <li class="waypoint-item">
+                            <strong>第 ${idx + 1} 站</strong> - ${app?.applicant_name || '未知'}
+                            <div style="font-size: 13px; color: #666; margin-top: 3px;">
+                                ${addr}
+                            </div>
+                            <div style="font-size: 12px; color: #999; margin-top: 3px;">
+                                ${app?.case_no || ''} | ${getDisasterTypeText(app?.disaster_type)}
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="route-card rank-${route.rank}">
+                        <div class="route-header">
+                            <div class="route-rank rank-${route.rank}">
+                                ${route.rank === 1 ? '🥇' : route.rank === 2 ? '🥈' : '🥉'}
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0; color: #333;">
+                                    ${route.rank === 1 ? '最佳路線' : route.rank === 2 ? '次佳路線' : '第三路線'}
+                                </h3>
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                                    共 ${route.ordered_addresses.length} 個訪問地點
+                                </p>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="showRouteOnMap(${route.rank - 1})">
+                                在地圖上顯示
+                            </button>
+                        </div>
+
+                        <div class="route-stats">
+                            <div class="route-stat">
+                                <div class="route-stat-label">總距離</div>
+                                <div class="route-stat-value">${route.total_distance.text}</div>
+                            </div>
+                            <div class="route-stat">
+                                <div class="route-stat-label">預估時間</div>
+                                <div class="route-stat-value">${route.total_duration.text}</div>
+                            </div>
+                            <div class="route-stat">
+                                <div class="route-stat-label">訪問順序</div>
+                                <div class="route-stat-value">${route.waypoint_order.map(i => i + 1).join(' → ')}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style="margin: 15px 0 10px 0; color: #666; font-size: 14px;">📍 訪問順序：</h4>
+                            <ul class="waypoint-list">
+                                ${waypointInfo}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('routesList').innerHTML = routesHtml;
+        }
+
+        // 在地圖上顯示特定路線
+        async function showRouteOnMap(routeIndex) {
+            if (!map) {
+                initializeMap();
+            }
+
+            // 清除舊的路線
+            clearDirectionsRenderers();
+
+            try {
+                // 取得路線資料
+                const response = await fetch(`${API_BASE}/maps/applications-map-data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        application_ids: selectedApplications
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('取得案件資料失敗');
+                }
+
+                const data = await response.json();
+                const applications = data.applications;
+                const destinations = applications.map(app => app.formatted_address || app.address);
+
+                // 使用里長所在區域辦公處作為起點
+                const startLocation = currentUser.district_name ? 
+                    `台南市${currentUser.district_name}辦公處` : 
+                    destinations[0];
+
+                // 重新計算路線以取得完整的路線資料
+                const routeResponse = await fetch(`${API_BASE}/maps/optimal-routes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        start_location: startLocation,
+                        destinations: destinations,
+                        mode: 'driving'
+                    })
+                });
+
+                if (!routeResponse.ok) {
+                    throw new Error('路線規劃失敗');
+                }
+
+                const routeData = await routeResponse.json();
+                const selectedRoute = routeData.routes[routeIndex];
+
+                if (!selectedRoute) {
+                    throw new Error('找不到指定的路線');
+                }
+
+                // 建立路線渲染器
+                const directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: false,  // 顯示起點終點標記
+                    polylineOptions: {
+                        strokeColor: routeIndex === 0 ? '#10b981' : routeIndex === 1 ? '#3b82f6' : '#f59e0b',
+                        strokeWeight: 6,
+                        strokeOpacity: 0.8
+                    }
+                });
+
+                // 建立路線請求
+                const waypoints = selectedRoute.ordered_addresses.slice(0, -1).map(addr => ({
+                    location: addr,
+                    stopover: true
+                }));
+
+                const request = {
+                    origin: startLocation,
+                    destination: selectedRoute.ordered_addresses[selectedRoute.ordered_addresses.length - 1],
+                    waypoints: waypoints,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    optimizeWaypoints: false  // 已經最佳化過了
+                };
+
+                // 繪製路線
+                directionsService.route(request, (result, status) => {
+                    if (status === google.maps.DirectionsStatus.OK) {
+                        directionsRenderer.setDirections(result);
+                        directionsRenderers.push(directionsRenderer);
+                        
+                        // 提示成功
+                        const routeName = routeIndex === 0 ? '最佳路線' : routeIndex === 1 ? '次佳路線' : '第三路線';
+                        alert(`✅ ${routeName}已顯示在地圖上\n\n` +
+                              `總距離: ${selectedRoute.total_distance.text}\n` +
+                              `預估時間: ${selectedRoute.total_duration.text}`);
+                    } else {
+                        console.error('路線繪製失敗:', status);
+                        alert('路線繪製失敗：' + status);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error showing route on map:', error);
+                alert('顯示路線失敗：' + error.message);
+            }
+        }
+
+        // 清除地圖選擇
+        function clearMapSelection() {
+            selectedApplications = [];
+            const checkboxes = document.querySelectorAll('#mapApplicationsList input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+            clearMarkers();
+            clearDirectionsRenderers();
+            document.getElementById('routesContainer').classList.add('hidden');
+        }
     </script>
 </body>
 </html>
+
