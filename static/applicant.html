@@ -136,10 +136,21 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+        .btn-emailLogin {
+            background: #c1bad4;
+            color: black;
+        }
 
         .btn-primary:hover {
+            background: linear-gradient(135deg, #667eead5 0%, #764ba2d7 100%);
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-emailLogin:hover {
+            background: #ded7f2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(202, 189, 219, 0.4);
         }
 
         .btn-secondary {
@@ -230,6 +241,31 @@
                 padding: 20px;
             }
         }
+            /* Modal 彈窗樣式 */
+            .modal {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .modal-content {
+                background: #fff;
+                border-radius: 12px;
+                padding: 30px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                max-width: 500px;
+                width: 100%;
+                position: relative;
+            }
+            .close {
+                position: absolute;
+                top: 10px; right: 20px;
+                font-size: 28px;
+                cursor: pointer;
+            }
     </style>
 </head>
 <body>
@@ -239,26 +275,40 @@
             <p>簡單、快速、安心</p>
         </div>
 
-        <!-- 登入/註冊畫面 -->
-        <div id="authScreen" class="card">
-            <h2 style="margin-bottom: 20px; color: #333;">歡迎使用線上申請系統</h2>
-            
-            <div class="info-box">
-                💡 選擇最方便的登入方式開始申請
+        <!-- 登入主畫面 -->
+        <div id="loginOnlyScreen" class="card">
+            <h1 style="text-align: center; margin-bottom: 20px; color: #3f00a4;">WELCOME</h1>
+            <h3 style="text-align: center; margin-bottom: 10px; color: #333;">請選擇登入方式</h2>
+
+            <!-- 數位憑證登入（主要） -->
+            <div style="margin-bottom: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">📱 數位憑證登入（推薦）</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用政府數位憑證，快速且安全</p>
+                <small style="color: #666; margin-bottom: 15px; display: block;">
+                    <a href="https://moda.gov.tw/major-policies/wallet/1695" target="_blank" style="color: #667eea;">還沒有數位身分證嗎？點我立即申請</a>
+                </small>
+                <button class="btn btn-primary" onclick="loginWithDigitalID()" style="width: 100%;">
+                    🔐 使用數位憑證登入
+                </button>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0; color: #999; position: relative;">
+                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或使用其他方式</span>
+                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
             </div>
 
             <!-- Google 登入（推薦） -->
             <div style="margin-bottom: 25px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #4285f4;">
                 <h3 style="color: #4285f4; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
-                    Google 快速登入（推薦）
+                    Google 登入
                 </h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用 Gmail 帳號，一鍵快速登入</p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用 Gmail 帳號快速登入</p>
                 
                 <button class="btn btn-primary" onclick="loginWithGoogle()" style="width: 100%; background: #4285f4; display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="background: white; border-radius: 4px; padding: 2px;">
@@ -269,13 +319,10 @@
                     </svg>
                     使用 Google 帳號登入
                 </button>
-                <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
-                    ✓ 無需記住密碼 ✓ 安全可靠 ✓ 一鍵登入
-                </div>
             </div>
 
             <div style="text-align: center; margin: 25px 0; color: #999; position: relative;">
-                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或使用其他方式</span>
+                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或</span>
                 <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
             </div>
 
@@ -330,83 +377,11 @@
                 </div>
             </details>
 
-            <button class="btn btn-secondary" onclick="showLoginOnly()" style="width: 100%;">我已有帳號，直接登入</button>
         </div>
-
-        <!-- 僅登入畫面 -->
-        <div id="loginOnlyScreen" class="card hidden">
-            <h2 style="margin-bottom: 20px; color: #333;">選擇登入方式</h2>
-
-            <!-- Google 登入（推薦） -->
-            <div style="margin-bottom: 25px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #4285f4;">
-                <h3 style="color: #4285f4; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Google 登入（推薦）
-                </h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用 Gmail 帳號快速登入</p>
-                
-                <button class="btn btn-primary" onclick="loginWithGoogle()" style="width: 100%; background: #4285f4; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="background: white; border-radius: 4px; padding: 2px;">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    使用 Google 帳號登入
-                </button>
-            </div>
-
-            <div style="text-align: center; margin: 25px 0; color: #999; position: relative;">
-                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或</span>
-                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
-            </div>
-
-            <!-- 數位憑證登入 -->
-            <div style="margin-bottom: 20px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
-                <h3 style="color: #667eea; margin-bottom: 15px;">📱 數位憑證登入</h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用政府數位憑證，快速且安全</p>
-                
-                <div class="form-group">
-                    <label>數位憑證 QR Code 資料 <span class="required">*</span></label>
-                    <textarea id="digitalQrCode" placeholder="貼上數位憑證 QR Code 掃描結果" style="min-height: 80px; resize: vertical;"></textarea>
-                    <small style="color: #666; margin-top: 5px; display: block;">
-                        <a href="/docs" target="_blank" style="color: #667eea;">不知道如何取得？點此查看測試用 QR Code</a>
-                    </small>
-                </div>
-                
-                <button class="btn btn-primary" onclick="loginWithDigitalID()" style="width: 100%;">
-                    🔐 使用數位憑證登入
-                </button>
-            </div>
-
-            <!-- Email 登入（備用） -->
-            <div style="padding: 20px; background: #f9f9f9; border-radius: 8px;">
-                <h3 style="color: #666; margin-bottom: 15px;">📧 Email 登入</h3>
-                <p style="color: #999; font-size: 14px; margin-bottom: 15px;">使用註冊的 Email 登入</p>
-                
-                <div class="form-group">
-                    <label>Email <span class="required">*</span></label>
-                    <input type="email" id="loginEmail" placeholder="your@email.com">
-                </div>
-
-                <button class="btn" onclick="loginOnly()" style="width: 100%; background: #999;">
-                    📧 使用 Email 登入
-                </button>
-            </div>
-
-            <button class="btn btn-secondary" onclick="backToAuth()" style="margin-top: 20px; width: 100%;">返回</button>
-        </div>
-
         <!-- 主選單 -->
         <div id="mainMenu" class="card hidden">
-            <div class="login-info logged-in">
-                <strong id="userNameDisplay"></strong> 已登入
-                <button onclick="logout()" style="float: right; padding: 5px 10px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer;">登出</button>
+            <div style="text-align: right;">
+                <button onclick="logout()" style="padding: 5px 10px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer;">登出</button>
             </div>
 
             <h2 style="margin-bottom: 20px; color: #333;">請選擇功能</h2>
@@ -706,14 +681,10 @@
         }
 
         function showScreen(screenId) {
-            ['authScreen', 'loginOnlyScreen', 'mainMenu', 'applyForm', 'successScreen', 'myApplicationsScreen'].forEach(id => {
+            ['loginOnlyScreen', 'mainMenu', 'applyForm', 'successScreen', 'myApplicationsScreen'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        function showLoginOnly() {
-            showScreen('loginOnlyScreen');
         }
 
         function backToAuth() {
@@ -1004,17 +975,21 @@
             document.getElementById('emailStep').style.display = 'block';
         }
 
-        async function loginOnly() {
+        async function loginOnly(digitalData = null) {
             // 確保配置已載入
             if (!API_BASE) {
                 await initializeConfig();
                 API_BASE = getApiBase();
             }
 
-            const email = document.getElementById('loginEmail').value;
+            const email = digitalData ? digitalData.email : document.getElementById('loginEmail').value;
             
             if (!email) {
-                alert('請輸入 Email');
+                if (!digitalData) { 
+                    alert('請輸入 Email');
+                } else {
+                    alert('數位憑證資料缺少 Email');
+                }
                 return;
             }
 
@@ -1041,94 +1016,170 @@
                     localStorage.setItem('applicant_user', JSON.stringify(currentUser));
                     showMainMenu();
                 } else {
-                    const errorData = await result.json().catch(() => ({}));
-                    alert('登入失敗：' + (errorData.detail || '請確認 Email 是否正確'));
-                }
+                    // 前端驗證（如果有儲存驗證碼）
+                    let isValid = true;
+                    // 生產環境：直接送到後端驗證
+
+                    try {
+                        // 呼叫登入 API
+                        const response = await fetch(`${API_BASE}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: verificationEmail,
+                                login_type: 'password',
+                                verify: isValid  // 前端驗證結果
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            accessToken = data.access_token;
+                            currentUser = data.user;
+                            
+                            // 儲存到 localStorage
+                            localStorage.setItem('applicant_token', accessToken);
+                            localStorage.setItem('applicant_user', JSON.stringify(currentUser));
+                            
+                            // 檢查是否需要補完資料
+                            checkProfileComplete();
+                        } else {
+                            const error = await response.json();
+                            alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
+                        }
+                    } catch (error) {
+                        console.error('登入錯誤:', error);
+                        alert('網路錯誤：' + error.message);
+                    }
+                        }
             } catch (error) {
                 console.error('登入錯誤:', error);
                 alert('網路錯誤：' + error.message);
             }
         }
 
-        async function loginWithDigitalID() {
-            // 確保配置已載入
-            if (!API_BASE) {
-                await initializeConfig();
-                API_BASE = getApiBase();
-            }
-
-            const qrCodeData = document.getElementById('digitalQrCode').value.trim();
+        // 顯示 QR Code 給災民掃描
+        function showQRCodeModal(data) {
             
-            if (!qrCodeData) {
-                alert('請輸入數位憑證 QR Code 資料');
-                return;
-            }
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            
+            const qrCodeDisplay = data.qrcode_image ? 
+                `<img src="${data.qrcode_image}" style="max-width: 300px; border: 3px solid #4CAF50; border-radius: 10px; padding: 10px;" onload="console.log('QR Code 圖片載入成功')" onerror="console.error('QR Code 圖片載入失敗')">` :
+                `<div style="padding: 20px; background: #f0f0f0; border-radius: 10px;">❌ QR Code 未生成<br>Transaction ID: ${data.transaction_id}</div>`;
+            
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <span class="close" onclick="window.stopVpPolling(); this.parentElement.parentElement.remove()">&times;</span>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <h2 style="margin-bottom: 15px;">數位憑證 QR Code</h2>
+                        ${qrCodeDisplay}
+                        ${data.deep_link && data.deep_link.startsWith('twfido://') ? `
+                            <a href="${data.deep_link}" target="_blank" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 5px;">
+                                📱 開啟數位憑證 APP
+                            </a>
+                        ` : ''}
+                        ${data.deep_link && !data.deep_link.startsWith('twfido://') ? `
+                            <p style="margin-top: 10px; font-size: 12px; color: #999;">Deep Link: ${data.deep_link.substring(0, 50)}...</p>
+                        ` : ''}
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <strong>📱 驗證操作步驟：</strong>
+                        <ol style="margin: 10px 0 0 20px; text-align: left;">
+                            <li>打開「TW FidO 數位憑證皮夾」APP</li>
+                            <li>掃描此 QR Code</li>
+                            <li>送出資料</li>
+                        </ol>
+                    </div>
+                        <button onclick="window.stopVpPolling(); this.parentElement.parentElement.remove()" style="width: 100%; padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; font-size: 16px;">
+                            關閉
+                        </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
 
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('show');
+            currentApplication = null;
+        }
+
+        async function loginWithDigitalID() {
+            const vpRef = '00000000_mixcurry_idcard'; // 這裡應該是從某處獲取 VP 參考編號
+            // 使用新的完整流程 API（整合政府發行端）
+
+            // 新增：可手動停止輪詢
+            let pollingActive = true;
+            window.stopVpPolling = function() { pollingActive = false; };
             try {
-                console.log('使用 API_BASE:', API_BASE);
-                
-                // 首先嘗試使用現有帳號登入
-                const result = await fetch(`${API_BASE}/auth/digital-id/login`, {
+                const result = await fetch(`/api/v1/complete-flow/generate-vp-qrcode`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        qr_code_data: qrCodeData,
-                        role: 'applicant'  // 災民身份
-                    })
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ref: vpRef })
                 });
 
-                if (result.ok) {
-                    const data = await result.json();
-                    accessToken = data.access_token;
-                    currentUser = data.user;
-                    localStorage.setItem('applicant_token', accessToken);
-                    localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                    alert(`歡迎回來，${currentUser.full_name}！`);
-                    showMainMenu();
-                } else {
-                    const error = await result.json();
-                    
-                    // 如果是首次使用，需要補充資料
-                    if (error.detail && error.detail.includes('首次使用')) {
-                        const phone = prompt('首次使用，請輸入您的手機號碼（用於接收通知）：', '09');
-                        
-                        if (phone) {
-                            // 再次提交，這次包含手機號碼
-                            const retryResult = await fetch(`${API_BASE}/auth/digital-id/login`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    qr_code_data: qrCodeData,
-                                    role: 'applicant',
-                                    phone: phone
-                                })
-                            });
+                const data = await result.json();
+                console.log('審核回應數據:', data);  // 調試用
+                console.log('data.qrcode_image 存在?', !!data.qrcode_image);
+                console.log('data.qrcode_image 類型:', typeof data.qrcode_image);
+                console.log('data 所有鍵:', Object.keys(data));
 
-                            if (retryResult.ok) {
-                                const data = await retryResult.json();
-                                accessToken = data.access_token;
-                                currentUser = data.user;
-                                localStorage.setItem('applicant_token', accessToken);
-                                localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                                alert(`註冊並登入成功！歡迎，${currentUser.full_name}！`);
-                                showMainMenu();
-                            } else {
-                                const retryError = await retryResult.json();
-                                alert(`登入失敗：${retryError.detail}`);
+                if (data.success) {
+                    // 顯示 QR Code 給災民（傳入可停止 polling 的按鈕）
+                    showQRCodeModal(data, true);
+                    let time = 0;
+                    while (time < 300 && pollingActive) {  // 最多等待 5 分鐘，且可手動停止
+                        await new Promise(resolve => setTimeout(resolve, 2000)); // 每 2 秒檢查一次
+                        if (!pollingActive) break;
+                        const pollResult = await fetch(`/api/v1/complete-flow/verify-vp`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ transaction_id: data.transaction_id })
+                        });
+                        const pollData = await pollResult.json();
+
+                        if (pollData.verified) {
+                            // 驗證成功，取得 QR Code 資料
+                            console.log('驗證成功，使用者資料：', pollData);
+                            // 關閉 QR Code Modal
+                            window.stopVpPolling();
+                            document.querySelector('.modal').remove();
+                            // 確保配置已載入
+                            if (!API_BASE) {
+                                await initializeConfig();
+                                API_BASE = getApiBase();
                             }
+
+                            try {
+                                console.log('使用 API_BASE:', API_BASE);
+                                loginOnly(pollData);
+                            } catch (error) {
+                                console.error('Digital ID login error:', error);
+                            }
+                            break;
                         }
-                    } else {
-                        alert(`登入失敗：${error.detail}`);
+                        time += 2;
+                        if (time >= 300) {
+                            alert('驗證逾時，請重新嘗試登入');
+                        }
                     }
+
+                } else {
+                    alert(`操作失敗：${data.message || '請稍後再試'}`);
                 }
             } catch (error) {
-                console.error('Digital ID login error:', error);
-                alert('數位憑證登入失敗，請稍後再試');
+                console.error('審核錯誤:', error);
+                alert(`系統錯誤：${error.message}`);
             }
         }
 
         function showMainMenu() {
-            document.getElementById('userNameDisplay').textContent = currentUser.full_name;
             showScreen('mainMenu');
         }
 
@@ -1137,7 +1188,7 @@
             currentUser = null;
             localStorage.removeItem('applicant_token');
             localStorage.removeItem('applicant_user');
-            showScreen('authScreen');
+            showScreen('loginOnlyScreen');
         }
 
         function showApplyForm() {
