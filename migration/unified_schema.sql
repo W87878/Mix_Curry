@@ -628,6 +628,122 @@ INSERT INTO system_settings (setting_key, setting_value, setting_type, descripti
 ('gov_api_enabled', 'true', 'boolean', '是否啟用政府憑證 API', FALSE)
 ON CONFLICT (setting_key) DO NOTHING;
 
+
+-- 創建 application_documents 表格
+CREATE TABLE IF NOT EXISTS application_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    document_type VARCHAR(50) NOT NULL,
+    -- 文件類型:
+    -- 'household_registration': 戶籍謄本
+    -- 'income_proof': 收入證明
+    -- 'property_proof': 財產證明
+    -- 'damage_assessment': 災損鑑定
+    -- 'other': 其他證明文件
+    
+    storage_path TEXT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_size INTEGER NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    description TEXT,
+    
+    uploaded_by UUID REFERENCES users(id),
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 建立索引以加速查詢
+CREATE INDEX IF NOT EXISTS idx_application_documents_application_id 
+ON application_documents(application_id);
+
+CREATE INDEX IF NOT EXISTS idx_application_documents_document_type 
+ON application_documents(document_type);
+
+CREATE INDEX IF NOT EXISTS idx_application_documents_uploaded_at 
+ON application_documents(uploaded_at DESC);
+
+-- 創建自動更新 updated_at 的觸發器
+CREATE OR REPLACE FUNCTION update_application_documents_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_application_documents_updated_at
+    BEFORE UPDATE ON application_documents
+    FOR EACH ROW
+    EXECUTE FUNCTION update_application_documents_updated_at();
+
+-- 添加註釋
+COMMENT ON TABLE application_documents IS '申請案件證明文件';
+COMMENT ON COLUMN application_documents.document_type IS '文件類型：household_registration, income_proof, property_proof, damage_assessment, other';
+COMMENT ON COLUMN application_documents.storage_path IS 'Supabase Storage 路徑';
+COMMENT ON COLUMN application_documents.file_name IS '原始檔案名稱';
+COMMENT ON COLUMN application_documents.file_size IS '檔案大小（bytes）';
+COMMENT ON COLUMN application_documents.mime_type IS 'MIME 類型';
+
+-- 創建 Supabase Storage bucket (需要在 Supabase Dashboard 執行)
+-- Bucket 名稱: application-documents
+-- 設定: 
+-- - Public: false (私有，需要認證)
+-- - File size limit: 20MB
+-- - Allowed MIME types: application/pdf, image/*, application/msword, application/vnd.*, etc.
+
+-- RLS (Row Level Security) 政策
+ALTER TABLE application_documents ENABLE ROW LEVEL SECURITY;
+
+-- 允許災民查看自己申請案件的文件
+CREATE POLICY "災民可以查看自己的文件"
+ON application_documents FOR SELECT
+USING (
+    application_id IN (
+        SELECT id FROM applications 
+        WHERE applicant_id = auth.uid()
+    )
+);
+
+-- 允許災民上傳文件到自己的申請案件
+CREATE POLICY "災民可以上傳文件到自己的申請"
+ON application_documents FOR INSERT
+WITH CHECK (
+    application_id IN (
+        SELECT id FROM applications 
+        WHERE applicant_id = auth.uid()
+    )
+);
+
+-- 允許災民刪除自己上傳的文件
+CREATE POLICY "災民可以刪除自己上傳的文件"
+ON application_documents FOR DELETE
+USING (uploaded_by = auth.uid());
+
+-- 允許里長和管理員查看所有文件
+CREATE POLICY "里長和管理員可以查看所有文件"
+ON application_documents FOR SELECT
+USING (
+    EXISTS (
+        SELECT 1 FROM users 
+        WHERE id = auth.uid() 
+        AND role IN ('reviewer', 'admin')
+    )
+);
+
+-- 允許里長和管理員刪除文件
+CREATE POLICY "里長和管理員可以刪除文件"
+ON application_documents FOR DELETE
+USING (
+    EXISTS (
+        SELECT 1 FROM users 
+        WHERE id = auth.uid() 
+        AND role IN ('reviewer', 'admin')
+    )
+);
+
+
 -- ==========================================
 -- PART 7: Storage Buckets 設定說明
 -- ==========================================

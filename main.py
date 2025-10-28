@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.settings import get_settings
-from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications, simplified_flow, complete_flow, maps
+from app.routers import applications, users, reviews, certificates, photos, auth, districts, notifications, simplified_flow, complete_flow, maps, documents
 from contextlib import asynccontextmanager
 import os
 
@@ -76,6 +76,7 @@ app.include_router(applications.router, prefix="/api/v1")
 app.include_router(reviews.router, prefix="/api/v1")
 app.include_router(certificates.router, prefix="/api/v1")
 app.include_router(photos.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")  # 證明文件管理
 app.include_router(districts.router)  # 區域管理
 app.include_router(notifications.router)  # 通知系統
 

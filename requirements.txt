@@ -14,6 +14,11 @@ python-multipart==0.0.6  # 檔案上傳
 python-jose[cryptography]==3.3.0  # JWT
 passlib[bcrypt]==1.7.4  # 密碼加密
 
+# 文件處理
+python-docx>=1.1.0  # DOCX 文件讀取
+reportlab>=4.0.0  # PDF 生成
+Pillow>=10.3.0  # 圖片處理（已存在但確保版本）
+
 # QR Code 生成
 qrcode[pil]==7.4.2
 pillow>=10.3.0  # 支援 Python 3.13
