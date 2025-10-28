@@ -325,7 +325,7 @@ class GovWalletService:
                 return {
                     "success": True,
                     "verify_result": result.get("verifyResult", False),
-                    "credential_data": result.get("data"),
+                    "credential_data": result.get("data")[0],
                     "message": "驗證成功（真實 API）"
                 }
                 
