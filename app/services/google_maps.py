@@ -424,6 +424,218 @@ class GoogleMapsService:
                 "message": f"地點詳情查詢錯誤: {str(e)}"
             }
     
+    async def calculate_route(
+        self,
+        origin: str,
+        destination: str,
+        waypoints: Optional[List[str]] = None,
+        mode: str = "driving",
+        optimize_waypoints: bool = True
+    ) -> Dict:
+        """
+        計算路線（含途經點）
+        
+        Args:
+            origin: 起點地址
+            destination: 終點地址
+            waypoints: 途經點地址列表
+            mode: 交通方式 (driving, walking, bicycling, transit)
+            optimize_waypoints: 是否優化途經點順序
+            
+        Returns:
+            {
+                "success": bool,
+                "routes": [
+                    {
+                        "summary": str,  # 路線摘要
+                        "distance": {"text": str, "value": int},
+                        "duration": {"text": str, "value": int},
+                        "legs": [  # 每一段路程
+                            {
+                                "start_address": str,
+                                "end_address": str,
+                                "distance": dict,
+                                "duration": dict,
+                                "steps": list  # 詳細步驟
+                            }
+                        ],
+                        "waypoint_order": list  # 優化後的途經點順序
+                    }
+                ],
+                "message": str
+            }
+        """
+        if not self.api_key:
+            return {
+                "success": False,
+                "message": "未設定 Google Maps API Key"
+            }
+        
+        try:
+            url = f"{self.base_url}/directions/json"
+            params = {
+                "origin": origin,
+                "destination": destination,
+                "mode": mode,
+                "key": self.api_key,
+                "language": "zh-TW",
+                "alternatives": "true"  # 提供替代路線
+            }
+            
+            # 如果有途經點，加入參數
+            if waypoints:
+                waypoints_str = "|".join(waypoints)
+                if optimize_waypoints:
+                    waypoints_str = f"optimize:true|{waypoints_str}"
+                params["waypoints"] = waypoints_str
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url, params=params)
+                data = response.json()
+            
+            if data["status"] == "OK":
+                routes = []
+                for route in data["routes"][:3]:  # 最多取前 3 條路線
+                    # 計算總距離和時間
+                    total_distance = 0
+                    total_duration = 0
+                    for leg in route["legs"]:
+                        total_distance += leg["distance"]["value"]
+                        total_duration += leg["duration"]["value"]
+                    
+                    routes.append({
+                        "summary": route.get("summary", ""),
+                        "distance": {
+                            "text": f"{total_distance / 1000:.1f} 公里",
+                            "value": total_distance
+                        },
+                        "duration": {
+                            "text": f"{total_duration // 60} 分鐘",
+                            "value": total_duration
+                        },
+                        "legs": route["legs"],
+                        "waypoint_order": route.get("waypoint_order", []),
+                        "overview_polyline": route.get("overview_polyline", {}).get("points", "")
+                    })
+                
+                return {
+                    "success": True,
+                    "routes": routes,
+                    "count": len(routes),
+                    "message": f"找到 {len(routes)} 條路線"
+                }
+            else:
+                return {
+                    "success": False,
+                    "routes": [],
+                    "message": f"路線計算失敗: {data.get('status', 'UNKNOWN_ERROR')}"
+                }
+                
+        except Exception as e:
+            logger.error(f"路線計算錯誤: {e}")
+            return {
+                "success": False,
+                "message": f"路線計算錯誤: {str(e)}"
+            }
+    
+    async def get_optimized_multi_destination_routes(
+        self,
+        start_location: str,
+        destinations: List[str],
+        mode: str = "driving"
+    ) -> Dict:
+        """
+        取得多目的地最佳化路線（Top 3）
+        
+        Args:
+            start_location: 起始位置（通常是里長辦公室）
+            destinations: 目的地列表（案件地址）
+            mode: 交通方式
+            
+        Returns:
+            {
+                "success": bool,
+                "routes": [
+                    {
+                        "rank": int,  # 排名（1, 2, 3）
+                        "total_distance": {"text": str, "value": int},
+                        "total_duration": {"text": str, "value": int},
+                        "waypoint_order": list,  # 優化後的訪問順序
+                        "ordered_addresses": list,  # 按順序排列的地址
+                        "legs": list  # 每一段詳細資訊
+                    }
+                ],
+                "message": str
+            }
+        """
+        if not destinations:
+            return {
+                "success": False,
+                "message": "未提供目的地"
+            }
+        
+        # 如果只有一個目的地，直接計算路線
+        if len(destinations) == 1:
+            result = await self.calculate_distance_and_time(
+                start_location, 
+                destinations[0], 
+                mode
+            )
+            if result["success"]:
+                return {
+                    "success": True,
+                    "routes": [{
+                        "rank": 1,
+                        "total_distance": result["distance"],
+                        "total_duration": result["duration"],
+                        "waypoint_order": [0],
+                        "ordered_addresses": [destinations[0]],
+                        "legs": [result]
+                    }],
+                    "message": "路線規劃完成"
+                }
+            return result
+        
+        # 多個目的地：使用 Directions API 優化路線
+        # 最後一個地址作為終點，其他作為途經點
+        waypoints = destinations[:-1]
+        destination = destinations[-1]
+        
+        result = await self.calculate_route(
+            origin=start_location,
+            destination=destination,
+            waypoints=waypoints,
+            mode=mode,
+            optimize_waypoints=True
+        )
+        
+        if not result["success"]:
+            return result
+        
+        # 格式化路線結果
+        formatted_routes = []
+        for idx, route in enumerate(result["routes"][:3], 1):
+            # 根據優化後的順序重新排列地址
+            waypoint_order = route.get("waypoint_order", list(range(len(waypoints))))
+            ordered_addresses = [waypoints[i] for i in waypoint_order] + [destination]
+            
+            formatted_routes.append({
+                "rank": idx,
+                "total_distance": route["distance"],
+                "total_duration": route["duration"],
+                "waypoint_order": waypoint_order,
+                "ordered_addresses": ordered_addresses,
+                "legs": route["legs"],
+                "overview_polyline": route.get("overview_polyline", "")
+            })
+        
+        return {
+            "success": True,
+            "routes": formatted_routes,
+            "count": len(formatted_routes),
+            "message": f"規劃完成，提供 {len(formatted_routes)} 條最佳路線"
+        }
+
     def parse_address_components(self, address_components: List[Dict]) -> Dict:
         """
         解析地址組成元件，提取城市、區域、街道等資訊

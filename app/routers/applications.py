@@ -231,6 +231,65 @@ async def get_applications_by_status(
             detail=f"發生錯誤: {str(e)}"
         )
 
+
+@router.get("/district/{district_id}", response_model=APIResponse)
+async def get_applications_by_district(
+    district_id: str,
+    status: Optional[str] = None,
+    limit: int = 100
+):
+    """
+    根據區域 ID 取得申請案件列表（里長專用）
+    
+    **暫時方案**: 由於災民提交申請時未設定 district_id，
+    目前返回所有案件。未來會根據地址自動匹配區域。
+    
+    - **district_id**: 區域 ID（暫時未使用）
+    - **status**: 可選的狀態篩選 (pending, under_review, approved, rejected)
+    - **limit**: 回傳數量限制，預設 100
+    """
+    try:
+        # 驗證區域是否存在
+        district = None
+        try:
+            district = db_service.get_district_by_id(district_id)
+        except:
+            pass
+        
+        # 暫時方案：查詢所有案件（不限區域）
+        # TODO: 未來根據 address 或 damage_location 自動匹配區域
+        query = db_service.client.table("applications")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)
+        
+        # 如果有狀態篩選
+        if status:
+            query = query.eq("status", status)
+        
+        result = query.execute()
+        applications = result.data if result.data else []
+        
+        return APIResponse(
+            success=True,
+            message=f"找到 {len(applications)} 筆申請案件",
+            data={
+                "applications": applications,
+                "total": len(applications),
+                "district": district,
+                "note": "⚠️ 暫時顯示所有案件，未來會根據區域篩選"
+            }
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"發生錯誤: {str(e)}"
+        )
+
+
 @router.patch("/{application_id}", response_model=APIResponse)
 async def update_application(
     application_id: str,
@@ -315,4 +374,3 @@ async def list_applications(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"發生錯誤: {str(e)}"
         )
-

@@ -29,10 +29,10 @@ from httplib2 import Http
 from oauth2client import client, file, tools
 from oauth2client.clientsecrets import InvalidClientSecretsError
 
-from simplegmail import label
-from simplegmail.attachment import Attachment
-from simplegmail.label import Label
-from simplegmail.message import Message
+from . import label
+from .attachment import Attachment
+from .label import Label
+from .message import Message
 
 
 class Gmail(object):
