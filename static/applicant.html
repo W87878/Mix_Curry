@@ -1,1409 +1,1344 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>災民補助申請 - 線上申請系統</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="static/styles/applicant.css" />
+  </head>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+  <body>
+    <!-- 登入畫面 -->
+    <div id="loginOnlyScreen">
+      <header class="page-header">
+        <h1>災害補助申請平台</h1>
+        <nav class="header-nav">
+          <a href="/">返回首頁</a>
+        </nav>
+      </header>
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+      <main class="main-content">
+        <h2 class="page-title">登入後繼續</h2>
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
+        <div class="login-container">
+          <div class="login-tabs">
+            <div class="login-tab" data-tab="general">
+              <span style="margin-right: 8px">📧</span>一般登入
+            </div>
+            <div class="login-tab active" data-tab="digital">
+              📱 數位身分證憑證登入 (推薦)
+            </div>
+          </div>
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
+          <div id="general-login-form" class="login-form" style="display: none">
+            <div class="form-group">
+              <label for="email">電子信箱</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="輸入信箱帳號"
+                required
+              />
+            </div>
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #e0e0e0;
-            z-index: 0;
-        }
-
-        .step {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e0e0e0;
-            color: #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            position: relative;
-            z-index: 1;
-        }
-
-        .step.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .step.completed {
-            background: #10b981;
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        label .required {
-            color: #ef4444;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-emailLogin {
-            background: #c1bad4;
-            color: black;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #667eead5 0%, #764ba2d7 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-emailLogin:hover {
-            background: #ded7f2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(202, 189, 219, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #10b981;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
-        }
-
-        .info-box {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #1e40af;
-        }
-
-        .helper-text {
-            font-size: 13px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .login-info {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .login-info.logged-in {
-            background: #ecfdf5;
-            border: 2px solid #10b981;
-        }
-
-        .my-applications {
-            margin-top: 20px;
-        }
-
-        .app-item {
-            padding: 15px;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        .badge.pending { background: #fef3c7; color: #92400e; }
-        .badge.approved { background: #d1fae5; color: #065f46; }
-        .badge.rejected { background: #fee2e2; color: #991b1b; }
-
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 2em;
-            }
-            .card {
-                padding: 20px;
-            }
-        }
-            /* Modal 彈窗樣式 */
-            .modal {
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 9999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .modal-content {
-                background: #fff;
-                border-radius: 12px;
-                padding: 30px;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-                max-width: 500px;
-                width: 100%;
-                position: relative;
-            }
-            .close {
-                position: absolute;
-                top: 10px; right: 20px;
-                font-size: 28px;
-                cursor: pointer;
-            }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🌊 災民補助申請</h1>
-            <p>簡單、快速、安心</p>
-        </div>
-
-        <!-- 登入主畫面 -->
-        <div id="loginOnlyScreen" class="card">
-            <h1 style="text-align: center; margin-bottom: 20px; color: #3f00a4;">WELCOME</h1>
-            <h3 style="text-align: center; margin-bottom: 10px; color: #333;">請選擇登入方式</h2>
-
-            <!-- 數位憑證登入（主要） -->
-            <div style="margin-bottom: 30px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
-                <h3 style="color: #667eea; margin-bottom: 15px;">📱 數位憑證登入（推薦）</h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用政府數位憑證，快速且安全</p>
-                <small style="color: #666; margin-bottom: 15px; display: block;">
-                    <a href="https://moda.gov.tw/major-policies/wallet/1695" target="_blank" style="color: #667eea;">還沒有數位身分證嗎？點我立即申請</a>
+            <div class="form-group">
+              <div style="display: flex; align-items: center; gap: 12px">
+                <label for="password" style="margin-bottom: 0">驗證碼</label>
+                <small
+                  style="
+                    color: #666;
+                    margin: 0;
+                    display: inline;
+                    font-size: 12px;
+                  "
+                >
+                  驗證碼將發送到您的信箱
                 </small>
-                <button class="btn btn-primary" onclick="loginWithDigitalID()" style="width: 100%;">
-                    🔐 使用數位憑證登入
+              </div>
+              <div class="input-with-button">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="輸入驗證碼"
+                  required
+                />
+                <button type="button" class="verification-send-btn">
+                  發送驗證碼
                 </button>
+              </div>
             </div>
 
-            <div style="text-align: center; margin: 25px 0; color: #999; position: relative;">
-                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或使用其他方式</span>
-                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
+            <div class="verification-container">
+              <div class="verification-code">10541</div>
+              <button type="button" class="refresh-captcha">
+                <img
+                  src="static/assets/refresh.png"
+                  alt="更新驗證碼"
+                  width="24"
+                  height="24"
+                />
+              </button>
+              <input
+                type="text"
+                class="verification-input"
+                placeholder="請輸入左方圖片中的文字"
+                required
+              />
             </div>
 
-            <!-- Google 登入（推薦） -->
-            <div style="margin-bottom: 25px; padding: 20px; background: #f0f7ff; border-radius: 8px; border: 2px solid #4285f4;">
-                <h3 style="color: #4285f4; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Google 登入
-                </h3>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">使用 Gmail 帳號快速登入</p>
-                
-                <button class="btn btn-primary" onclick="loginWithGoogle()" style="width: 100%; background: #4285f4; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="background: white; border-radius: 4px; padding: 2px;">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    使用 Google 帳號登入
-                </button>
+            <button type="submit" class="login-btn">登入</button>
+
+            <div class="divider">
+              <div class="divider-line"></div>
+              <span class="divider-text">或</span>
+              <div class="divider-line"></div>
             </div>
 
-            <div style="text-align: center; margin: 25px 0; color: #999; position: relative;">
-                <span style="background: white; padding: 0 15px; position: relative; z-index: 1;">或</span>
-                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e0e0e0; z-index: 0;"></div>
+            <button type="button" class="google-btn">使用Google繼續登入</button>
+          </div>
+
+          <div id="digital-login-form" class="login-form">
+            <div class="digital-header">
+              <div class="digital-title">數位憑證皮夾APP</div>
+              <div class="digital-subtitle">數位身分憑證登入方式</div>
             </div>
 
-            <!-- Email 驗證註冊 -->
-            <details style="margin-bottom: 20px;">
-                <summary style="cursor: pointer; padding: 15px; background: #f9f9f9; border-radius: 8px; font-weight: 500; color: #666;">
-                    📧 使用 Email 註冊/登入
-                </summary>
-                <div style="margin-top: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px;">
-                    <!-- 步驟 1: 輸入 Email -->
-                    <div id="emailStep">
-                        <div class="form-group">
-                            <label>Email <span class="required">*</span></label>
-                            <input type="email" id="authEmail" placeholder="your@email.com">
-                            <small style="color: #666; margin-top: 5px; display: block;">
-                                我們會發送驗證碼到您的信箱
-                            </small>
-                        </div>
-                        <button class="btn btn-primary" onclick="sendVerificationCode()" style="width: 100%;">
-                            發送驗證碼
-                        </button>
-                    </div>
-
-                    <!-- 步驟 2: 輸入驗證碼 -->
-                    <div id="verificationStep" style="display: none;">
-                        <div style="padding: 15px; background: #f0f7ff; border-radius: 8px; margin-bottom: 15px;">
-                            <p style="color: #666; margin-bottom: 10px;">
-                                ✉️ 驗證碼已發送到 <strong id="verifyEmailDisplay"></strong>
-                            </p>
-                            <p style="color: #999; font-size: 14px;">
-                                請在 <strong id="countdown" style="color: #667eea;">3:00</strong> 內完成驗證
-                            </p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>驗證碼 <span class="required">*</span></label>
-                            <input type="text" id="verificationCode" placeholder="請輸入 6 位數驗證碼" maxlength="6" style="font-size: 24px; letter-spacing: 8px; text-align: center;">
-                        </div>
-
-                        <button class="btn btn-primary" onclick="verifyAndLogin()" style="width: 100%; margin-bottom: 10px;">
-                            驗證並登入
-                        </button>
-
-                        <button class="btn" onclick="resendVerificationCode()" id="resendBtn" style="width: 100%; background: #999;" disabled>
-                            重新發送驗證碼 (<span id="resendCountdown">60</span>)
-                        </button>
-
-                        <button class="btn btn-secondary" onclick="backToEmailInput()" style="width: 100%; margin-top: 10px;">
-                            返回修改 Email
-                        </button>
-                    </div>
+            <div class="qr-code-container">
+              <div class="qr-code-inner">
+                <img
+                  src=""
+                  alt="QR Code"
+                  width="188"
+                  height="188"
+                  role="img"
+                  aria-label="數位憑證 QR 碼"
+                />
+                <div class="qr-code-timer">
+                  <span class="timer-text">請於 </span>
+                  <span class="countdown-time">5:00</span>
+                  <span class="timer-text"> 內完成掃描</span>
                 </div>
-            </details>
-
-        </div>
-        <!-- 主選單 -->
-        <div id="mainMenu" class="card hidden">
-            <div style="text-align: right;">
-                <button onclick="logout()" style="padding: 5px 10px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer;">登出</button>
+              </div>
             </div>
 
-            <h2 style="margin-bottom: 20px; color: #333;">請選擇功能</h2>
+            <p class="qr-hint">使用數位憑證皮夾APP掃碼登入</p>
 
-            <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="showApplyForm()">
-                📝 提交新的補助申請
-            </button>
-
-            <button class="btn btn-secondary" onclick="showMyApplications()">
-                📋 查看我的申請紀錄
-            </button>
-        </div>
-
-        <!-- 申請表單 -->
-        <div id="applyForm" class="card hidden">
-            <div class="steps">
-                <div class="step" id="step1">1</div>
-                <div class="step" id="step2">2</div>
-                <div class="step" id="step3">3</div>
-                <div class="step" id="step4">4</div>
-                <div class="step" id="step5">5</div>
+            <div class="divider">
+              <div class="divider-line"></div>
             </div>
 
-            <!-- 步驟1：基本資料 -->
-            <div id="form-step1">
-                <h2 style="margin-bottom: 20px; color: #333;">基本資料</h2>
+            <a
+              href="https://moda.gov.tw/major-policies/wallet/1695"
+              target="_blank"
+              class="link-text"
+              >關於數位身分證憑證說明</a
+            >
 
-                <div class="form-group">
-                    <label>姓名 <span class="required">*</span></label>
-                    <input type="text" id="appName">
-                </div>
-
-                <div class="form-group">
-                    <label>身分證字號 <span class="required">*</span></label>
-                    <input type="text" id="appIdNumber">
-                </div>
-
-                <div class="form-group">
-                    <label>手機號碼 <span class="required">*</span></label>
-                    <input type="tel" id="appPhone">
-                </div>
-
-                <div class="form-group">
-                    <label>聯絡地址</label>
-                    <input type="text" id="appAddress" placeholder="請輸入完整地址（選填）">
-                    <div class="helper-text">如與災損地點不同，請填寫</div>
-                </div>
-
-                <button class="btn btn-primary" onclick="nextStep(2)">下一步 →</button>
-                <button class="btn btn-secondary" onclick="backToMenu()">取消</button>
-            </div>
-
-            <!-- 步驟2：災害資訊 -->
-            <div id="form-step2" class="hidden">
-                <h2 style="margin-bottom: 20px; color: #333;">災害資訊</h2>
-
-                <div class="form-group">
-                    <label>災害發生日期 <span class="required">*</span></label>
-                    <input type="date" id="appDate">
-                </div>
-
-                <div class="form-group">
-                    <label>災害類型 <span class="required">*</span></label>
-                    <select id="appType">
-                        <option value="flood">水災</option>
-                        <option value="typhoon">颱風</option>
-                        <option value="earthquake">地震</option>
-                        <option value="other">其他</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>災損地點 <span class="required">*</span></label>
-                    <input type="text" id="appDamageLocation" placeholder="災損發生的具體地點">
-                </div>
-
-                <div class="form-group">
-                    <label>災損描述 <span class="required">*</span></label>
-                    <textarea id="appDescription" rows="4" placeholder="請詳細描述災損情況，例如：一樓淹水約50公分，家具電器受損..."></textarea>
-                    <div class="helper-text">請盡量詳細描述，有助於加快審核速度</div>
-                </div>
-
-                <button class="btn btn-primary" onclick="nextStep(3)">下一步 →</button>
-                <button class="btn btn-secondary" onclick="prevStep(1)">← 上一步</button>
-            </div>
-
-            <!-- 步驟3：補助金額 -->
-            <div id="form-step3" class="hidden">
-                <h2 style="margin-bottom: 20px; color: #333;">申請補助</h2>
-
-                <div class="info-box">
-                    💰 請根據實際損失填寫申請金額，審核人員會依據災損情況核定
-                </div>
-
-                <div class="form-group">
-                    <label>預估損失金額 <span class="required">*</span></label>
-                    <input type="number" id="appEstimatedLoss" placeholder="50000">
-                    <div class="helper-text">請填寫預估的總損失金額（新台幣）</div>
-                </div>
-
-                <div class="form-group">
-                    <label>申請補助金額 <span class="required">*</span></label>
-                    <input type="number" id="appAmount" placeholder="30000">
-                    <div class="helper-text">您希望申請的補助金額</div>
-                </div>
-
-                <div class="form-group">
-                    <label>補助類型</label>
-                    <select id="appSubsidyType">
-                        <option value="housing">房屋修繕</option>
-                        <option value="furniture">家具家電</option>
-                        <option value="living">生活補助</option>
-                        <option value="other">其他</option>
-                    </select>
-                </div>
-
-                <button class="btn btn-primary" onclick="nextStep(4)">下一步 →</button>
-                <button class="btn btn-secondary" onclick="prevStep(2)">← 上一步</button>
-            </div>
-
-            <!-- 步驟4：上傳證明文件 -->
-            <div id="form-step4" class="hidden">
-                <h2 style="margin-bottom: 20px; color: #333;">上傳證明文件</h2>
-
-                <div class="info-box">
-                    📄 請上傳相關證明文件，如戶籍謄本、財產證明、災損照片等（選填）
-                </div>
-
-                <div class="form-group">
-                    <label>證明文件</label>
-                    <input type="file" id="appDocuments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleDocumentSelect(event)">
-                    <div class="helper-text">支援格式：PDF, JPG, PNG, DOC, DOCX（最多5個檔案，每個最大10MB）</div>
-                </div>
-
-                <div id="documentPreview" style="margin-top: 15px;">
-                    <!-- 已選擇的文件列表 -->
-                </div>
-
-                <button class="btn btn-primary" onclick="nextStep(5)">下一步 →</button>
-                <button class="btn btn-secondary" onclick="prevStep(3)">← 上一步</button>
-            </div>
-
-            <!-- 步驟5：確認送出 -->
-            <div id="form-step5" class="hidden">
-                <h2 style="margin-bottom: 20px; color: #333;">確認資料</h2>
-
-                <div class="info-box">
-                    📋 請確認以下資料無誤後送出申請
-                </div>
-
-                <div id="confirmData" style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <!-- 將由 JS 填充 -->
-                </div>
-
-                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
-                    ⚠️ 提醒：請確保所填資料真實正確，虛報或不實申報將影響您的權益
-                </div>
-
-                <button class="btn btn-primary" onclick="submitApplication()">確認送出申請</button>
-                <button class="btn btn-secondary" onclick="prevStep(3)">← 上一步</button>
-            </div>
-        </div>
-
-        <!-- 成功畫面 -->
-        <div id="successScreen" class="card hidden">
-            <div class="success-icon">✓</div>
-            <h2 style="text-align: center; color: #333; margin-bottom: 15px;">申請已送出！</h2>
-            <p style="text-align: center; color: #666; margin-bottom: 20px;">
-                您的申請案件編號：<strong id="caseNumber"></strong>
+            <p class="register-text">
+              尚未加入會員? <a href="/register">馬上註冊</a>
             </p>
+          </div>
+        </div>
+      </main>
+    </div>
 
-            <div class="info-box">
-                📱 我們已將申請資訊發送至您的手機，請保持手機暢通。<br>
-                👨‍💼 里長將在 3 個工作天內審核您的申請。<br>
-                🔔 審核結果將以簡訊通知，請留意訊息。
+    <!-- 登入成功主選單 -->
+    <div class="success-screen" id="mainMenu">
+      <header class="page-header">
+        <h1>災害補助申請平台</h1>
+        <nav class="header-nav">
+          <a href="#" onclick="logout(); return false;">登出</a>
+        </nav>
+      </header>
+
+      <div class="success-content">
+        <div class="success-form">
+          <div class="success-title">成功登入</div>
+          <div class="success-icon-container">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 32L10 22L12.8 19.2L20 26.4L35.2 11.2L38 14L20 32Z"
+                fill="#0F172A"
+              />
+            </svg>
+          </div>
+          <div class="success-subtitle">您已登入</div>
+          <div class="success-email" id="successEmailDisplay">
+            user@example.com
+          </div>
+        </div>
+      </div>
+
+      <div class="success-buttons">
+        <button class="success-button secondary" onclick="showMyApplications()">
+          查詢申請歷史紀錄
+        </button>
+        <button class="success-button primary" onclick="showApplyForm()">
+          前往補助申請
+        </button>
+      </div>
+    </div>
+
+    <!-- 申請歷史記錄畫面 -->
+    <div class="history-screen" id="myApplicationsScreen">
+      <header class="page-header">
+        <h1>災害補助申請平台</h1>
+        <nav class="header-nav">
+          <a href="#" onclick="backToMainMenu(); return false;">返回</a>
+        </nav>
+      </header>
+
+      <main class="history-container" role="main">
+        <h2 class="history-title">申請記錄</h2>
+
+        <div class="records" id="applicationsList">
+          <!-- 動態載入的申請記錄 -->
+        </div>
+
+        <div class="history-actions">
+          <button class="success-button secondary" onclick="backToMainMenu()">
+            返回
+          </button>
+          <button class="success-button primary" onclick="showApplyForm()">
+            前往補助申請
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- 申請表單畫面 -->
+    <div id="applyForm" class="hidden">
+      <header class="page-header">
+        <h1>災害補助申請平台</h1>
+        <nav class="header-nav">
+          <a href="#" onclick="backToMainMenu(); return false;">返回</a>
+        </nav>
+      </header>
+
+      <div class="card" style="margin: 80px auto; max-width: 600px">
+        <div class="steps">
+          <div class="step" id="step1">1</div>
+          <div class="step" id="step2">2</div>
+          <div class="step" id="step3">3</div>
+          <div class="step" id="step4">4</div>
+          <div class="step" id="step5">5</div>
+        </div>
+
+        <!-- 步驟1：基本資料 -->
+        <div id="form-step1">
+          <h2 style="margin-bottom: 20px; color: #333">基本資料</h2>
+
+          <div class="form-group">
+            <label>姓名 <span class="required">*</span></label>
+            <input type="text" id="appName" />
+          </div>
+
+          <div class="form-group">
+            <label>身分證字號 <span class="required">*</span></label>
+            <input type="text" id="appIdNumber" />
+          </div>
+
+          <div class="form-group">
+            <label>手機號碼 <span class="required">*</span></label>
+            <input type="tel" id="appPhone" />
+          </div>
+
+          <div class="form-group">
+            <label>聯絡地址</label>
+            <input
+              type="text"
+              id="appAddress"
+              placeholder="請輸入完整地址（選填）"
+            />
+            <div class="helper-text">如與災損地點不同，請填寫</div>
+          </div>
+
+          <button class="btn btn-primary" onclick="nextStep(2)">
+            下一步 →
+          </button>
+          <button class="btn btn-secondary" onclick="backToMainMenu()">
+            取消
+          </button>
+        </div>
+
+        <!-- 步驟2：災害資訊 -->
+        <div id="form-step2" class="hidden">
+          <h2 style="margin-bottom: 20px; color: #333">災害資訊</h2>
+
+          <div class="form-group">
+            <label>災害發生日期 <span class="required">*</span></label>
+            <input type="date" id="appDate" />
+          </div>
+
+          <div class="form-group">
+            <label>災害類型 <span class="required">*</span></label>
+            <select id="appType">
+              <option value="flood">水災</option>
+              <option value="typhoon">颱風</option>
+              <option value="earthquake">地震</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>災損地點 <span class="required">*</span></label>
+            <input
+              type="text"
+              id="appDamageLocation"
+              placeholder="災損發生的具體地點"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>災損描述 <span class="required">*</span></label>
+            <textarea
+              id="appDescription"
+              rows="4"
+              placeholder="請詳細描述災損情況，例如：一樓淹水約50公分，家具電器受損..."
+            ></textarea>
+            <div class="helper-text">請盡量詳細描述，有助於加快審核速度</div>
+          </div>
+
+          <button class="btn btn-primary" onclick="nextStep(3)">
+            下一步 →
+          </button>
+          <button class="btn btn-secondary" onclick="prevStep(1)">
+            ← 上一步
+          </button>
+        </div>
+
+        <!-- 步驟3：補助金額 -->
+        <div id="form-step3" class="hidden">
+          <h2 style="margin-bottom: 20px; color: #333">申請補助</h2>
+
+          <div class="info-box">
+            💰 請根據實際損失填寫申請金額，審核人員會依據災損情況核定
+          </div>
+
+          <div class="form-group">
+            <label>預估損失金額 <span class="required">*</span></label>
+            <input type="number" id="appEstimatedLoss" placeholder="50000" />
+            <div class="helper-text">請填寫預估的總損失金額（新台幣）</div>
+          </div>
+
+          <div class="form-group">
+            <label>申請補助金額 <span class="required">*</span></label>
+            <input type="number" id="appAmount" placeholder="30000" />
+            <div class="helper-text">您希望申請的補助金額</div>
+          </div>
+
+          <div class="form-group">
+            <label>補助類型</label>
+            <select id="appSubsidyType">
+              <option value="housing">房屋修繕</option>
+              <option value="furniture">家具家電</option>
+              <option value="living">生活補助</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" onclick="nextStep(4)">
+            下一步 →
+          </button>
+          <button class="btn btn-secondary" onclick="prevStep(2)">
+            ← 上一步
+          </button>
+        </div>
+
+        <!-- 步驟4：上傳證明文件 -->
+        <div id="form-step4" class="hidden">
+          <h2 style="margin-bottom: 20px; color: #333">上傳證明文件</h2>
+
+          <div class="info-box">
+            📄 請上傳相關證明文件，如戶籍謄本、財產證明、災損照片等（選填）
+          </div>
+
+          <div class="form-group">
+            <label>證明文件</label>
+            <input
+              type="file"
+              id="appDocuments"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              onchange="handleDocumentSelect(event)"
+            />
+            <div class="helper-text">
+              支援格式：PDF, JPG, PNG, DOC, DOCX（最多5個檔案，每個最大10MB）
             </div>
+          </div>
 
-            <button class="btn btn-primary" onclick="backToMenu()">返回主選單</button>
+          <div id="documentPreview" style="margin-top: 15px">
+            <!-- 已選擇的文件列表 -->
+          </div>
+
+          <button class="btn btn-primary" onclick="nextStep(5)">
+            下一步 →
+          </button>
+          <button class="btn btn-secondary" onclick="prevStep(3)">
+            ← 上一步
+          </button>
         </div>
 
-        <!-- 我的申請 -->
-        <div id="myApplicationsScreen" class="card hidden">
-            <h2 style="margin-bottom: 20px; color: #333;">我的申請紀錄</h2>
-            
-            <div id="applicationsList"></div>
+        <!-- 步驟5：確認送出 -->
+        <div id="form-step5" class="hidden">
+          <h2 style="margin-bottom: 20px; color: #333">確認資料</h2>
 
-            <button class="btn btn-secondary" onclick="backToMenu()">返回主選單</button>
+          <div class="info-box">📋 請確認以下資料無誤後送出申請</div>
+
+          <div
+            id="confirmData"
+            style="
+              background: #f9fafb;
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            "
+          >
+            <!-- 將由 JS 填充 -->
+          </div>
+
+          <div
+            style="
+              background: #fef3c7;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              font-size: 14px;
+            "
+          >
+            ⚠️ 提醒：請確保所填資料真實正確，虛報或不實申報將影響您的權益
+          </div>
+
+          <button class="btn btn-primary" onclick="submitApplication()">
+            確認送出申請
+          </button>
+          <button class="btn btn-secondary" onclick="prevStep(4)">
+            ← 上一步
+          </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 申請提交成功畫面 -->
+    <div id="successScreen" class="hidden">
+      <header class="page-header">
+        <h1>災害補助申請平台</h1>
+        <nav class="header-nav">
+          <a href="#" onclick="backToMainMenu(); return false;">返回</a>
+        </nav>
+      </header>
+
+      <div class="card" style="margin: 80px auto; max-width: 600px">
+        <div class="success-icon">✓</div>
+        <h2 style="text-align: center; color: #333; margin-bottom: 15px">
+          申請已送出！
+        </h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px">
+          您的申請案件編號：<strong id="caseNumber"></strong>
+        </p>
+
+        <div class="info-box">
+          📱 我們已將申請資訊發送至您的手機，請保持手機暢通。<br />
+          👨‍💼 里長將在 3 個工作天內審核您的申請。<br />
+          🔔 審核結果將以簡訊通知，請留意訊息。
+        </div>
+
+        <button class="btn btn-primary" onclick="backToMainMenu()">
+          返回主選單
+        </button>
+      </div>
     </div>
 
     <!-- 載入配置管理模組 -->
     <script src="/static/js/config.js"></script>
     <script>
-        // 全域變數
-        let API_BASE = null;  // 將由配置模組設定
-        let accessToken = localStorage.getItem('applicant_token');
-        let currentUser = JSON.parse(localStorage.getItem('applicant_user') || 'null');
-        let currentStep = 1;
-        let selectedDocuments = [];  // 存儲選中的文件
+      // 全域變數
+      let API_BASE = null; // 將由配置模組設定
+      let accessToken = localStorage.getItem("applicant_token");
+      let currentUser = JSON.parse(
+        localStorage.getItem("applicant_user") || "null"
+      );
+      let currentStep = 1;
+      let selectedDocuments = []; // 存儲選中的文件
 
-        // 初始化應用程式
-        async function initializeApp() {
-            // 載入配置
-            await initializeConfig();
-            API_BASE = getApiBase();
-            
-            // 檢查登入狀態
-            if (accessToken && currentUser) {
-                showMainMenu();
+      // Digital ID flow control
+      let pollingIntervalId = null;
+      let countdownIntervalId = null;
+      let activePolling = false;
+
+      // 初始化應用程式
+      async function initializeApp() {
+        // 載入配置
+        await initializeConfig();
+        API_BASE = getApiBase();
+
+        // 檢查登入狀態
+        if (accessToken && currentUser) {
+          showMainMenu();
+        } else {
+          // 初始化登入界面
+          initializeLoginUI();
+        }
+      }
+
+      // 初始化登入界面
+      function initializeLoginUI() {
+        const DEFAULT_QR = "";
+        const tabs = document.querySelectorAll(".login-tab");
+        const forms = {
+          general: document.getElementById("general-login-form"),
+          digital: document.getElementById("digital-login-form"),
+        };
+
+        const qrImg = document.querySelector(".qr-code-container img");
+        const countdownEl = document.querySelector(".countdown-time");
+        let verification_code = "";
+
+        // 確保 QR 有預設圖片
+        if (
+          qrImg &&
+          (!qrImg.getAttribute("src") || qrImg.getAttribute("src") === "")
+        ) {
+          qrImg.src = DEFAULT_QR;
+        }
+        if (
+          countdownEl &&
+          (!countdownEl.textContent || countdownEl.textContent.trim() === "")
+        ) {
+          countdownEl.textContent = "5:00";
+        }
+
+        // Tab 切換功能
+        function setActiveTab(tabEl, startFlow = true) {
+          tabs.forEach((t) => t.classList.remove("active"));
+          tabEl.classList.add("active");
+
+          Object.values(forms).forEach((form) => (form.style.display = "none"));
+
+          const formId = tabEl.getAttribute("data-tab");
+          if (forms[formId]) forms[formId].style.display = "flex";
+        }
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            const formId = this.getAttribute("data-tab");
+            if (formId === "general") {
+              clearDigitalIntervals();
             }
-        }
+            setActiveTab(this, false);
+          });
+        });
 
-        // 頁面載入完成時初始化
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        // 初始化 active tab
+        const initialActive =
+          document.querySelector(".login-tab.active") || tabs[0];
+        if (initialActive) setActiveTab(initialActive, false);
 
-        // 檢查 URL 中的 Google OAuth token（從 callback 重定向回來）
-        function checkGoogleAuthToken() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('access_token');
-            const refreshToken = urlParams.get('refresh_token');
-
-            if (token) {
-                console.log('檢測到 Google OAuth token，處理登入...');
-                
-                // 儲存 token
-                accessToken = token;
-                localStorage.setItem('applicant_token', token);
-                if (refreshToken) {
-                    localStorage.setItem('applicant_refresh_token', refreshToken);
-                }
-
-                // 清理 URL（移除 token 參數）
-                window.history.replaceState({}, document.title, window.location.pathname);
-
-                // 取得使用者資訊並顯示主選單
-                getUserInfoAndShowMenu();
-            }
-        }
-
-        // 取得使用者資訊並顯示主選單
-        async function getUserInfoAndShowMenu() {
-            if (!API_BASE) {
-                await initializeConfig();
-                API_BASE = getApiBase();
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/users/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
-                });
-
-                if (response.ok) {
-                    const userData = await response.json();
-                    currentUser = userData.data || userData;
-                    localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                    showMainMenu();
-                } else {
-                    console.error('無法取得使用者資訊');
-                    alert('登入失敗，請重試');
-                    logout();
-                }
-            } catch (error) {
-                console.error('取得使用者資訊錯誤:', error);
-                alert('網路錯誤，請重試');
-                logout();
-            }
-        }
-
-        // Google 登入函數
-        function loginWithGoogle() {
-            console.log('啟動 Google OAuth 登入...');
-            // 重定向到後端的 Google OAuth 端點
-            window.location.href = '/api/v1/auth/google/login';
-        }
-
-        // 初始化應用程式
-        async function initializeApp() {
-            // 載入配置
-            await initializeConfig();
-            API_BASE = getApiBase();
-            
-            // 先檢查 Google OAuth token
-            checkGoogleAuthToken();
-            
-            // 如果沒有從 Google 登入，檢查現有登入狀態
-            if (!accessToken || !currentUser) {
-                accessToken = localStorage.getItem('applicant_token');
-                currentUser = JSON.parse(localStorage.getItem('applicant_user') || 'null');
-            }
-            
-            // 如果已登入，顯示主選單
-            if (accessToken && currentUser) {
-                showMainMenu();
-            }
-        }
-
-        function showScreen(screenId) {
-            ['loginOnlyScreen', 'mainMenu', 'applyForm', 'successScreen', 'myApplicationsScreen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        function backToAuth() {
-            showScreen('authScreen');
-        }
-
-        // ============================================
-        // Email 驗證登入流程
-        // ============================================
-        let storedVerificationCode = null;
-        let verificationEmail = null;
+        // Email 驗證碼發送按鈕
+        const verificationBtn = document.querySelector(
+          ".verification-send-btn"
+        );
+        let timeLeft = 180;
         let countdownTimer = null;
-        let resendTimer = null;
 
-        async function sendVerificationCode() {
-            // 確保配置已載入
-            if (!API_BASE) {
-                await initializeConfig();
-                API_BASE = getApiBase();
+        function startCountdown() {
+          if (!verificationBtn) return;
+          verificationBtn.disabled = true;
+          timeLeft = 180;
+
+          function updateButtonText() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            verificationBtn.textContent = `重新發送 (${minutes}:${seconds
+              .toString()
+              .padStart(2, "0")})`;
+
+            if (timeLeft <= 0) {
+              clearInterval(countdownTimer);
+              verificationBtn.disabled = false;
+              verificationBtn.textContent = "發送驗證碼";
+              return;
             }
+            timeLeft--;
+          }
 
-            const email = document.getElementById('authEmail').value;
-            
+          updateButtonText();
+          countdownTimer = setInterval(updateButtonText, 1000);
+        }
+
+        if (verificationBtn) {
+          verificationBtn.addEventListener("click", async function () {
+            const email = document.getElementById("email").value;
+
             if (!email) {
-                alert('請輸入 Email');
-                return;
+              alert("請輸入 Email");
+              return;
             }
 
-            // 簡單的 Email 格式驗證
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                alert('請輸入有效的 Email 格式');
-                return;
+              alert("請輸入有效的 Email 格式");
+              return;
             }
 
             try {
-                console.log('發送驗證碼到:', email);
-                
-                const response = await fetch(`${API_BASE}/auth/email/auth`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: email,
-                        is_verified: false
-                    })
-                });
+              const response = await fetch("/api/v1/auth/email/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: email,
+                  is_verified: false,
+                }),
+              });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // 儲存驗證碼（如果有回傳）
-                    // 開發環境會回傳，生產環境不會
-                    storedVerificationCode = data.verification_code || null;
-                    verificationEmail = email;
-                    
-                    // 切換到驗證碼輸入畫面
-                    document.getElementById('emailStep').style.display = 'none';
-                    document.getElementById('verificationStep').style.display = 'block';
-                    document.getElementById('verifyEmailDisplay').textContent = email;
-                    
-                    // 開始倒數計時（3 分鐘）
-                    startCountdown(180);
-                    
-                    // 開始重發倒數計時（60 秒）
-                    startResendCountdown(60);
-                    
-                    if (storedVerificationCode) {
-                        // 開發環境：顯示驗證碼在 console
-                        console.log('🔑 驗證碼（開發用）:', storedVerificationCode);
-                        alert('✅ 驗證碼已發送到您的 Email，請查收！\n\n（開發環境：驗證碼已輸出到 Console）');
-                    } else {
-                        // 生產環境：不顯示驗證碼
-                        alert('✅ 驗證碼已發送到您的 Email，請查收！');
-                    }
+              if (response.ok) {
+                const data = await response.json();
+                startCountdown();
+                if (data.verification_code) {
+                  verification_code = data.verification_code;
+                  console.log("驗證碼(開發用):", data.verification_code);
+                  alert(
+                    "✅ 驗證碼已發送到您的Email，請查收！\n\n(開發環境：驗證碼已輸出到Console)"
+                  );
                 } else {
-                    const error = await response.json();
-                    alert('發送失敗：' + (error.detail || '請稍後再試'));
+                  alert("✅ 驗證碼已發送到您的Email，請查收！");
                 }
+              } else {
+                const error = await response.json();
+                alert("發送失敗：" + (error.detail || "請稍後再試"));
+              }
             } catch (error) {
-                console.error('發送驗證碼錯誤:', error);
-                alert('網路錯誤：' + error.message);
+              console.error("發送驗證碼錯誤:", error);
+              alert("網路錯誤：" + error.message);
             }
+          });
         }
 
-        function startCountdown(seconds) {
-            let remaining = seconds;
-            
-            const updateDisplay = () => {
-                const minutes = Math.floor(remaining / 60);
-                const secs = remaining % 60;
-                document.getElementById('countdown').textContent = 
-                    `${minutes}:${secs.toString().padStart(2, '0')}`;
-            };
-            
-            updateDisplay();
-            
-            countdownTimer = setInterval(() => {
-                remaining--;
-                updateDisplay();
-                
-                if (remaining <= 0) {
-                    clearInterval(countdownTimer);
-                    alert('驗證碼已過期，請重新發送');
-                    backToEmailInput();
-                }
-            }, 1000);
-        }
+        // 登入按鈕
+        const loginBtn = document.querySelector(".login-btn");
+        if (loginBtn) {
+          loginBtn.addEventListener("click", async function () {
+            const email = document.getElementById("email").value;
+            const verificationCode = document.getElementById("password").value;
+            const captchaInputEl = document.querySelector(
+              ".verification-input"
+            );
+            const captchaInput = captchaInputEl ? captchaInputEl.value : "";
+            const captchaTextEl = document.querySelector(".verification-code");
+            const captchaText = captchaTextEl ? captchaTextEl.textContent : "";
 
-        function startResendCountdown(seconds) {
-            let remaining = seconds;
-            const resendBtn = document.getElementById('resendBtn');
-            const resendCountdownEl = document.getElementById('resendCountdown');
-            
-            resendBtn.disabled = true;
-            
-            const updateDisplay = () => {
-                resendCountdownEl.textContent = remaining;
-            };
-            
-            updateDisplay();
-            
-            resendTimer = setInterval(() => {
-                remaining--;
-                updateDisplay();
-                
-                if (remaining <= 0) {
-                    clearInterval(resendTimer);
-                    resendBtn.disabled = false;
-                    resendBtn.innerHTML = '重新發送驗證碼';
-                }
-            }, 1000);
-        }
-
-        async function verifyAndLogin() {
-            const userCode = document.getElementById('verificationCode').value;
-            
-            if (!userCode) {
-                alert('請輸入驗證碼');
-                return;
-            }
-
-            if (userCode.length !== 6) {
-                alert('驗證碼必須是 6 位數字');
-                return;
-            }
-
-            // 前端驗證（如果有儲存驗證碼）
-            let isValid = true;
-            if (storedVerificationCode) {
-                // 開發環境：前端可以驗證
-                isValid = (userCode === storedVerificationCode);
-                
-                if (!isValid) {
-                    alert('❌ 驗證碼錯誤，請重新輸入');
-                    document.getElementById('verificationCode').value = '';
-                    document.getElementById('verificationCode').focus();
-                    return;
-                }
-            }
-            // 生產環境：直接送到後端驗證
-
-            try {
-                // 呼叫登入 API
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: verificationEmail,
-                        login_type: 'password',
-                        verify: isValid  // 前端驗證結果
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    accessToken = data.access_token;
-                    currentUser = data.user;
-                    
-                    // 儲存到 localStorage
-                    localStorage.setItem('applicant_token', accessToken);
-                    localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                    
-                    // 清除計時器
-                    if (countdownTimer) clearInterval(countdownTimer);
-                    if (resendTimer) clearInterval(resendTimer);
-                    
-                    alert(`✅ 驗證成功！歡迎，${currentUser.email}`);
-                    
-                    // 檢查是否需要補完資料
-                    checkProfileComplete();
-                } else {
-                    const error = await response.json();
-                    alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
-                }
-            } catch (error) {
-                console.error('登入錯誤:', error);
-                alert('網路錯誤：' + error.message);
-            }
-        }
-
-        function checkProfileComplete() {
-            // 檢查使用者資料是否完整
-            const needsProfile = !currentUser.full_name || 
-                               currentUser.full_name === verificationEmail.split('@')[0] ||
-                               !currentUser.phone ||
-                               currentUser.id_number?.startsWith('EMAIL');
-            
-            if (needsProfile) {
-                // 顯示資料補完提示
-                const wantToComplete = confirm(
-                    '✨ 歡迎！\n\n' +
-                    '為了完整使用系統功能，建議您：\n' +
-                    '1️⃣ 補完個人資料（姓名、身分證、手機）\n' +
-                    '2️⃣ 或使用政府數位憑證登入\n\n' +
-                    '是否現在補完資料？'
-                );
-                
-                if (wantToComplete) {
-                    showProfileCompleteForm();
-                } else {
-                    showMainMenu();
-                }
-            } else {
-                showMainMenu();
-            }
-        }
-
-        function showProfileCompleteForm() {
-            // 這裡可以顯示一個補完資料的表單
-            // 暫時先顯示主選單
-            alert('💡 提示：申請補助時會需要填寫完整資料');
-            showMainMenu();
-        }
-
-        async function resendVerificationCode() {
-            if (!verificationEmail) {
-                alert('Email 遺失，請重新開始');
-                backToEmailInput();
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/auth/email/resend`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: verificationEmail
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    storedVerificationCode = data.verification_code || null;
-                    
-                    alert('✅ 驗證碼已重新發送！');
-                    
-                    if (storedVerificationCode) {
-                        console.log('🔑 驗證碼（開發用）:', storedVerificationCode);
-                    }
-                    
-                    // 重新開始計時
-                    if (countdownTimer) clearInterval(countdownTimer);
-                    if (resendTimer) clearInterval(resendTimer);
-                    startCountdown(180);
-                    startResendCountdown(60);
-                } else {
-                    const error = await response.json();
-                    alert('重發失敗：' + (error.detail || '請稍後再試'));
-                }
-            } catch (error) {
-                console.error('重發驗證碼錯誤:', error);
-                alert('網路錯誤：' + error.message);
-            }
-        }
-
-        function backToEmailInput() {
-            // 清除計時器
-            if (countdownTimer) clearInterval(countdownTimer);
-            if (resendTimer) clearInterval(resendTimer);
-            
-            // 重置狀態
-            storedVerificationCode = null;
-            verificationEmail = null;
-            document.getElementById('verificationCode').value = '';
-            
-            // 切換畫面
-            document.getElementById('verificationStep').style.display = 'none';
-            document.getElementById('emailStep').style.display = 'block';
-        }
-
-        async function loginOnly(digitalData = null) {
-            // 確保配置已載入
-            if (!API_BASE) {
-                await initializeConfig();
-                API_BASE = getApiBase();
-            }
-
-            const email = digitalData ? digitalData.email : document.getElementById('loginEmail').value;
-            
             if (!email) {
-                if (!digitalData) { 
-                    alert('請輸入 Email');
-                } else {
-                    alert('數位憑證資料缺少 Email');
-                }
-                return;
+              alert("請填寫email");
+              return;
+            } else if (!verificationCode) {
+              alert("請填寫驗證碼");
+              return;
+            } else if (!captchaInput) {
+              alert("請填寫圖形驗證碼");
+              return;
+            }
+
+            if (verificationCode.length !== 6) {
+              alert("驗證碼必須是 6 位數字");
+              return;
+            }
+
+            if (verificationCode !== verification_code) {
+              alert("驗證碼錯誤，請重新輸入");
+              return;
+            }
+
+            if (captchaInput !== captchaText) {
+              alert("圖形驗證碼錯誤，請重新輸入");
+              return;
             }
 
             try {
-                console.log('使用 API_BASE:', API_BASE);
-                
-                const result = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: email,
-                        password: '',
-                        login_type: 'password'
-                    })
-                });
+              const response = await fetch("/api/v1/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: email,
+                  login_type: "password",
+                  verification_code: verificationCode,
+                  verify: true,
+                }),
+              });
 
-                console.log('登入回應:', result.status);
+              if (response.ok) {
+                const data = await response.json();
+                accessToken = data.access_token;
+                currentUser = data.user;
+                localStorage.setItem("applicant_token", accessToken);
+                localStorage.setItem(
+                  "applicant_user",
+                  JSON.stringify(currentUser)
+                );
 
-                if (result.ok) {
-                    const data = await result.json();
-                    accessToken = data.access_token;
-                    currentUser = data.user;
-                    localStorage.setItem('applicant_token', accessToken);
-                    localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                    showMainMenu();
-                } else {
-                    // 前端驗證（如果有儲存驗證碼）
-                    let isValid = true;
-                    // 生產環境：直接送到後端驗證
-
-                    try {
-                        // 呼叫登入 API
-                        const response = await fetch(`${API_BASE}/auth/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: verificationEmail,
-                                login_type: 'password',
-                                verify: isValid  // 前端驗證結果
-                            })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            accessToken = data.access_token;
-                            currentUser = data.user;
-                            
-                            // 儲存到 localStorage
-                            localStorage.setItem('applicant_token', accessToken);
-                            localStorage.setItem('applicant_user', JSON.stringify(currentUser));
-                            
-                            // 檢查是否需要補完資料
-                            checkProfileComplete();
-                        } else {
-                            const error = await response.json();
-                            alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
-                        }
-                    } catch (error) {
-                        console.error('登入錯誤:', error);
-                        alert('網路錯誤：' + error.message);
-                    }
-                        }
+                // 登入成功，顯示主選單
+                showMainMenu();
+              } else {
+                const error = await response.json();
+                alert(
+                  "登入失敗：" +
+                    (error.detail?.message || error.detail || "請稍後再試")
+                );
+              }
             } catch (error) {
-                console.error('登入錯誤:', error);
-                alert('網路錯誤：' + error.message);
+              console.error("登入錯誤:", error);
+              alert("網路錯誤：" + error.message);
             }
+          });
         }
 
-        // 顯示 QR Code 給災民掃描
-        function showQRCodeModal(data) {
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'flex';
-            
-            const qrCodeDisplay = data.qrcode_image ? 
-                `<img src="${data.qrcode_image}" style="max-width: 300px; border: 3px solid #4CAF50; border-radius: 10px; padding: 10px;" onload="console.log('QR Code 圖片載入成功')" onerror="console.error('QR Code 圖片載入失敗')">` :
-                `<div style="padding: 20px; background: #f0f0f0; border-radius: 10px;">❌ QR Code 未生成<br>Transaction ID: ${data.transaction_id}</div>`;
-            
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
-                    <span class="close" onclick="window.stopVpPolling(); this.parentElement.parentElement.remove()">&times;</span>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <h2 style="margin-bottom: 15px;">數位憑證 QR Code</h2>
-                        ${qrCodeDisplay}
-                        ${data.deep_link && data.deep_link.startsWith('twfido://') ? `
-                            <a href="${data.deep_link}" target="_blank" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 5px;">
-                                📱 開啟數位憑證 APP
-                            </a>
-                        ` : ''}
-                        ${data.deep_link && !data.deep_link.startsWith('twfido://') ? `
-                            <p style="margin-top: 10px; font-size: 12px; color: #999;">Deep Link: ${data.deep_link.substring(0, 50)}...</p>
-                        ` : ''}
-                    </div>
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                        <strong>📱 驗證操作步驟：</strong>
-                        <ol style="margin: 10px 0 0 20px; text-align: left;">
-                            <li>打開「TW FidO 數位憑證皮夾」APP</li>
-                            <li>掃描此 QR Code</li>
-                            <li>送出資料</li>
-                        </ol>
-                    </div>
-                        <button onclick="window.stopVpPolling(); this.parentElement.parentElement.remove()" style="width: 100%; padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; font-size: 16px;">
-                            關閉
-                        </button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
+        // Google 登入按鈕
+        const googleBtn = document.querySelector(".google-btn");
+        if (googleBtn) {
+          googleBtn.addEventListener("click", function () {
+            window.location.href = "/api/v1/auth/google/login";
+          });
         }
 
-        function closeReviewModal() {
-            document.getElementById('reviewModal').classList.remove('show');
-            currentApplication = null;
+        // 刷新圖形驗證碼
+        const refreshCaptchaBtn = document.querySelector(".refresh-captcha");
+        function generateCaptcha() {
+          const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          let captcha = "";
+          for (let i = 0; i < 5; i++) {
+            captcha += chars[Math.floor(Math.random() * chars.length)];
+          }
+          const captchaEl = document.querySelector(".verification-code");
+          if (captchaEl) captchaEl.textContent = captcha;
         }
 
-        async function loginWithDigitalID() {
-            const vpRef = '00000000_mixcurry_idcard'; // 這裡應該是從某處獲取 VP 參考編號
-            // 使用新的完整流程 API（整合政府發行端）
+        if (refreshCaptchaBtn)
+          refreshCaptchaBtn.addEventListener("click", generateCaptcha);
+        generateCaptcha();
 
-            // 新增：可手動停止輪詢
-            let pollingActive = true;
-            window.stopVpPolling = function() { pollingActive = false; };
-            try {
-                const result = await fetch(`/api/v1/complete-flow/generate-vp-qrcode`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ ref: vpRef })
-                });
+        // 如果數位 tab 是 active，啟動數位登入流程
+        const activeTabOnLoad = document.querySelector(".login-tab.active");
+        if (
+          activeTabOnLoad &&
+          activeTabOnLoad.getAttribute("data-tab") === "digital"
+        ) {
+          loginWithDigitalID();
+        }
 
-                const data = await result.json();
-                console.log('審核回應數據:', data);  // 調試用
-                console.log('data.qrcode_image 存在?', !!data.qrcode_image);
-                console.log('data.qrcode_image 類型:', typeof data.qrcode_image);
-                console.log('data 所有鍵:', Object.keys(data));
+        // 數位 tab 點擊事件
+        const digitalTab = document.querySelector(
+          '.login-tab[data-tab="digital"]'
+        );
+        if (digitalTab) {
+          digitalTab.addEventListener("click", () => {
+            clearDigitalIntervals();
+            setTimeout(() => loginWithDigitalID(), 100);
+          });
+        }
+      }
 
-                if (data.success) {
-                    // 顯示 QR Code 給災民（傳入可停止 polling 的按鈕）
-                    showQRCodeModal(data, true);
-                    let time = 0;
-                    while (time < 300 && pollingActive) {  // 最多等待 5 分鐘，且可手動停止
-                        await new Promise(resolve => setTimeout(resolve, 2000)); // 每 2 秒檢查一次
-                        if (!pollingActive) break;
-                        const pollResult = await fetch(`/api/v1/complete-flow/verify-vp`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ transaction_id: data.transaction_id })
-                        });
-                        const pollData = await pollResult.json();
+      function clearDigitalIntervals() {
+        if (pollingIntervalId) {
+          clearInterval(pollingIntervalId);
+          pollingIntervalId = null;
+        }
+        if (countdownIntervalId) {
+          clearInterval(countdownIntervalId);
+          countdownIntervalId = null;
+        }
+        activePolling = false;
+        try {
+          window._mixcurry_digital_flow_started = false;
+        } catch (e) {
+          /* ignore */
+        }
+      }
 
-                        if (pollData.verified) {
-                            // 驗證成功，取得 QR Code 資料
-                            console.log('驗證成功，使用者資料：', pollData);
-                            // 關閉 QR Code Modal
-                            window.stopVpPolling();
-                            document.querySelector('.modal').remove();
-                            // 確保配置已載入
-                            if (!API_BASE) {
-                                await initializeConfig();
-                                API_BASE = getApiBase();
-                            }
+      window.stopVpPolling = function () {
+        clearDigitalIntervals();
+      };
 
-                            try {
-                                console.log('使用 API_BASE:', API_BASE);
-                                loginOnly(pollData);
-                            } catch (error) {
-                                console.error('Digital ID login error:', error);
-                            }
-                            break;
-                        }
-                        time += 2;
-                        if (time >= 300) {
-                            alert('驗證逾時，請重新嘗試登入');
-                        }
+      async function loginWithDigitalID() {
+        if (window._mixcurry_digital_flow_started) return;
+        window._mixcurry_digital_flow_started = true;
+
+        try {
+          console.debug("loginWithDigitalID invoked");
+        } catch (e) {}
+
+        clearDigitalIntervals();
+        if (activePolling) return;
+        activePolling = true;
+
+        const vpRef = "00000000_mixcurry_idcard";
+        let transactionId = null;
+        let remainingSeconds = 300;
+
+        const qrImg = document.querySelector(".qr-code-container img");
+        const countdownEl = document.querySelector(".countdown-time");
+        const DEFAULT_QR = "";
+
+        if (qrImg) qrImg.src = qrImg.getAttribute("src") || DEFAULT_QR;
+
+        function updateCountdownDisplay() {
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+          if (countdownEl)
+            countdownEl.textContent = `${minutes}:${seconds
+              .toString()
+              .padStart(2, "0")}`;
+        }
+
+        updateCountdownDisplay();
+        countdownIntervalId = setInterval(() => {
+          remainingSeconds--;
+          if (remainingSeconds <= 0) {
+            clearDigitalIntervals();
+            updateCountdownDisplay();
+            alert("驗證逾時，請重新嘗試登入");
+            return;
+          }
+          updateCountdownDisplay();
+        }, 1000);
+
+        try {
+          const result = await fetch(
+            `/api/v1/complete-flow/generate-vp-qrcode`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ref: vpRef }),
+            }
+          );
+
+          const data = await result.json();
+          console.log("數位身分驗證回應:", data);
+
+          if (!data || !data.success) {
+            console.warn("generate-vp-qrcode failed or returned no success");
+            return;
+          }
+
+          if (qrImg && data.qrcode_image) qrImg.src = data.qrcode_image;
+          transactionId = data.transaction_id;
+
+          if (transactionId) {
+            pollingIntervalId = setInterval(async () => {
+              try {
+                const pollResult = await fetch(
+                  `/api/v1/complete-flow/verify-vp`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ transaction_id: transactionId }),
+                  }
+                );
+                const pollData = await pollResult.json();
+
+                if (pollData && pollData.verified) {
+                  console.log("驗證成功，使用者資料：", pollData);
+                  clearDigitalIntervals();
+
+                  try {
+                    const loginResponse = await fetch("/api/v1/auth/login", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        email: pollData.email,
+                        password: "",
+                        login_type: "password",
+                      }),
+                    });
+
+                    if (loginResponse.ok) {
+                      const loginData = await loginResponse.json();
+                      accessToken = loginData.access_token;
+                      currentUser = loginData.user;
+                      localStorage.setItem("applicant_token", accessToken);
+                      localStorage.setItem(
+                        "applicant_user",
+                        JSON.stringify(currentUser)
+                      );
+
+                      // 登入成功，顯示主選單
+                      showMainMenu();
+                    } else {
+                      const error = await loginResponse.json();
+                      alert(
+                        "登入失敗：" +
+                          (error.detail?.message ||
+                            error.detail ||
+                            "請稍後再試")
+                      );
                     }
-
-                } else {
-                    alert(`操作失敗：${data.message || '請稍後再試'}`);
+                  } catch (error) {
+                    console.error("Digital ID login error:", error);
+                    alert("登入過程發生錯誤，請稍後再試");
+                  }
                 }
-            } catch (error) {
-                console.error('審核錯誤:', error);
-                alert(`系統錯誤：${error.message}`);
-            }
+              } catch (err) {
+                console.error("Polling error:", err);
+              }
+            }, 2000);
+          }
+        } catch (error) {
+          console.error("數位身分驗證錯誤:", error);
+        }
+      }
+
+      // 頁面載入完成時初始化
+      document.addEventListener("DOMContentLoaded", initializeApp);
+
+      // 檢查 URL 中的 Google OAuth token（從 callback 重定向回來）
+      function checkGoogleAuthToken() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("access_token");
+        const refreshToken = urlParams.get("refresh_token");
+
+        if (token) {
+          console.log("檢測到 Google OAuth token，處理登入...");
+
+          // 儲存 token
+          accessToken = token;
+          localStorage.setItem("applicant_token", token);
+          if (refreshToken) {
+            localStorage.setItem("applicant_refresh_token", refreshToken);
+          }
+
+          // 清理 URL（移除 token 參數）
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+          // 取得使用者資訊並顯示主選單
+          getUserInfoAndShowMenu();
+        }
+      }
+
+      // 取得使用者資訊並顯示主選單
+      async function getUserInfoAndShowMenu() {
+        if (!API_BASE) {
+          await initializeConfig();
+          API_BASE = getApiBase();
         }
 
-        function showMainMenu() {
-            showScreen('mainMenu');
-        }
+        try {
+          const response = await fetch(`${API_BASE}/users/me`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
 
-        function logout() {
-            accessToken = null;
-            currentUser = null;
-            localStorage.removeItem('applicant_token');
-            localStorage.removeItem('applicant_user');
-            showScreen('loginOnlyScreen');
-        }
-
-        function showApplyForm() {
-            showScreen('applyForm');
-            currentStep = 1;
-            updateSteps();
-            // 預填資料
-            document.getElementById('appName').value = currentUser.full_name;
-            document.getElementById('appIdNumber').value = currentUser.id_number;
-            document.getElementById('appPhone').value = currentUser.phone || '';
-        }
-
-        function backToMenu() {
+          if (response.ok) {
+            const userData = await response.json();
+            currentUser = userData.data || userData;
+            localStorage.setItem("applicant_user", JSON.stringify(currentUser));
             showMainMenu();
+          } else {
+            console.error("無法取得使用者資訊");
+            alert("登入失敗，請重試");
+            logout();
+          }
+        } catch (error) {
+          console.error("取得使用者資訊錯誤:", error);
+          alert("網路錯誤，請重試");
+          logout();
         }
+      }
 
-        function updateSteps() {
-            for (let i = 1; i <= 5; i++) {
-                const step = document.getElementById(`step${i}`);
-                step.className = 'step';
-                if (i < currentStep) step.classList.add('completed');
-                if (i === currentStep) step.classList.add('active');
-                
-                document.getElementById(`form-step${i}`).classList.toggle('hidden', i !== currentStep);
+      // Google 登入函數
+      function loginWithGoogle() {
+        console.log("啟動 Google OAuth 登入...");
+        // 重定向到後端的 Google OAuth 端點
+        window.location.href = "/api/v1/auth/google/login";
+      }
+
+      function showScreen(screenId) {
+        // 隱藏所有畫面
+        const screens = [
+          "loginOnlyScreen",
+          "mainMenu",
+          "myApplicationsScreen",
+          "applyForm",
+          "successScreen",
+        ];
+
+        screens.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (
+              el.classList.contains("success-screen") ||
+              el.classList.contains("history-screen")
+            ) {
+              el.classList.remove("active");
+            } else if (id === "loginOnlyScreen") {
+              el.style.display = "none";
+            } else {
+              el.classList.add("hidden");
             }
-        }
+          }
+        });
 
-        function nextStep(step) {
-            // 驗證當前步驟
-            if (currentStep === 4) {
-                showConfirmData();
-            }
-            currentStep = step;
-            updateSteps();
+        // 顯示目標畫面
+        const targetEl = document.getElementById(screenId);
+        if (targetEl) {
+          if (
+            targetEl.classList.contains("success-screen") ||
+            targetEl.classList.contains("history-screen")
+          ) {
+            targetEl.classList.add("active");
+          } else if (screenId === "loginOnlyScreen") {
+            targetEl.style.display = "block";
+          } else {
+            targetEl.classList.remove("hidden");
+          }
         }
+      }
 
-        function prevStep(step) {
-            currentStep = step;
-            updateSteps();
+      function showMainMenu() {
+        // 更新顯示的 email
+        const emailDisplay = document.getElementById("successEmailDisplay");
+        if (emailDisplay && currentUser) {
+          emailDisplay.textContent =
+            currentUser.email || currentUser.id_number || "用戶";
         }
+        showScreen("mainMenu");
+      }
 
-        function showConfirmData() {
-            const html = `
-                <p><strong>姓名：</strong>${document.getElementById('appName').value}</p>
-                <p><strong>身分證字號：</strong>${document.getElementById('appIdNumber').value}</p>
-                <p><strong>手機：</strong>${document.getElementById('appPhone').value}</p>
-                <p><strong>地址：</strong>${document.getElementById('appAddress').value}</p>
+      function backToMainMenu() {
+        showMainMenu();
+      }
+
+      function logout() {
+        accessToken = null;
+        currentUser = null;
+        localStorage.removeItem("applicant_token");
+        localStorage.removeItem("applicant_user");
+        showScreen("loginOnlyScreen");
+        // 刷新頁面
+        location.reload();
+        window.location.href = "/applicant";
+      }
+
+      function showApplyForm() {
+        showScreen("applyForm");
+        currentStep = 1;
+        updateSteps();
+        // 預填資料
+        document.getElementById("appName").value = currentUser.full_name;
+        document.getElementById("appIdNumber").value = currentUser.id_number;
+        document.getElementById("appPhone").value = currentUser.phone || "";
+      }
+
+      function backToMenu() {
+        showMainMenu();
+      }
+
+      function updateSteps() {
+        for (let i = 1; i <= 5; i++) {
+          const step = document.getElementById(`step${i}`);
+          step.className = "step";
+          if (i < currentStep) step.classList.add("completed");
+          if (i === currentStep) step.classList.add("active");
+
+          document
+            .getElementById(`form-step${i}`)
+            .classList.toggle("hidden", i !== currentStep);
+        }
+      }
+
+      function nextStep(step) {
+        // 驗證當前步驟
+        if (currentStep === 4) {
+          showConfirmData();
+        }
+        currentStep = step;
+        updateSteps();
+      }
+
+      function prevStep(step) {
+        currentStep = step;
+        updateSteps();
+      }
+
+      function showConfirmData() {
+        document.getElementById("confirmData").innerHTML = `
+                <p><strong>姓名：</strong>${
+                  document.getElementById("appName").value
+                }</p>
+                <p><strong>身分證字號：</strong>${
+                  document.getElementById("appIdNumber").value
+                }</p>
+                <p><strong>手機：</strong>${
+                  document.getElementById("appPhone").value
+                }</p>
+                <p><strong>地址：</strong>${
+                  document.getElementById("appAddress").value
+                }</p>
                 <hr style="margin: 15px 0; border: none; border-top: 1px solid #e0e0e0;">
-                <p><strong>災害日期：</strong>${document.getElementById('appDate').value}</p>
-                <p><strong>災害類型：</strong>${document.getElementById('appType').selectedOptions[0].text}</p>
-                <p><strong>申請金額：</strong>NT$ ${parseInt(document.getElementById('appAmount').value).toLocaleString()}</p>
+                <p><strong>災害日期：</strong>${
+                  document.getElementById("appDate").value
+                }</p>
+                <p><strong>災害類型：</strong>${
+                  document.getElementById("appType").selectedOptions[0].text
+                }</p>
+                <p><strong>申請金額：</strong>NT$ ${parseInt(
+                  document.getElementById("appAmount").value
+                ).toLocaleString()}</p>
             `;
-            document.getElementById('confirmData').innerHTML = html;
-        }
+      }
 
-        async function submitApplication() {
-            const data = {
-                applicant_id: currentUser.id,
-                applicant_name: document.getElementById('appName').value,
-                id_number: document.getElementById('appIdNumber').value,
-                phone: document.getElementById('appPhone').value,
-                address: document.getElementById('appAddress').value,
-                disaster_date: document.getElementById('appDate').value,
-                disaster_type: document.getElementById('appType').value,
-                damage_description: document.getElementById('appDescription').value,
-                damage_location: document.getElementById('appDamageLocation').value,
-                estimated_loss: parseFloat(document.getElementById('appEstimatedLoss').value),
-                subsidy_type: document.getElementById('appSubsidyType').value,
-                requested_amount: parseFloat(document.getElementById('appAmount').value)
-            };
+      async function submitApplication() {
+        const data = {
+          applicant_id: currentUser.id,
+          applicant_name: document.getElementById("appName").value,
+          id_number: document.getElementById("appIdNumber").value,
+          phone: document.getElementById("appPhone").value,
+          address: document.getElementById("appAddress").value,
+          disaster_date: document.getElementById("appDate").value,
+          disaster_type: document.getElementById("appType").value,
+          damage_description: document.getElementById("appDescription").value,
+          damage_location: document.getElementById("appDamageLocation").value,
+          estimated_loss: parseFloat(
+            document.getElementById("appEstimatedLoss").value
+          ),
+          subsidy_type: document.getElementById("appSubsidyType").value,
+          requested_amount: parseFloat(
+            document.getElementById("appAmount").value
+          ),
+        };
 
-            const result = await fetch(`${API_BASE}/applications/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify(data)
-            });
+        const result = await fetch(`${API_BASE}/applications/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(data),
+        });
 
-            if (result.ok) {
-                const appResponse = await result.json();
-                const appData = appResponse.data || appResponse;
-                const applicationId = appData.id;
-                const caseNo = appData.case_no;
-                
-                // 上傳文件（如果有選擇文件）
-                if (selectedDocuments.length > 0) {
-                    console.log(`📤 開始上傳 ${selectedDocuments.length} 個文件...`);
-                    
-                    // 顯示上傳進度
-                    const uploadStatus = document.createElement('div');
-                    uploadStatus.id = 'uploadStatus';
-                    uploadStatus.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10000; text-align: center;';
-                    uploadStatus.innerHTML = `
+        if (result.ok) {
+          const appResponse = await result.json();
+          const appData = appResponse.data || appResponse;
+          const applicationId = appData.id;
+          const caseNo = appData.case_no;
+
+          // 上傳文件（如果有選擇文件）
+          if (selectedDocuments.length > 0) {
+            console.log(`📤 開始上傳 ${selectedDocuments.length} 個文件...`);
+
+            // 顯示上傳進度
+            const uploadStatus = document.createElement("div");
+            uploadStatus.id = "uploadStatus";
+            uploadStatus.style.cssText =
+              "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10000; text-align: center;";
+            uploadStatus.innerHTML = `
                         <div style="font-size: 48px; margin-bottom: 15px;">📤</div>
                         <h3 style="margin: 0 0 10px 0; color: #333;">正在上傳文件</h3>
                         <p style="color: #666; margin: 0;" id="uploadProgress">0 / ${selectedDocuments.length}</p>
                     `;
-                    document.body.appendChild(uploadStatus);
-                    
-                    try {
-                        await uploadDocuments(applicationId);
-                    } catch (error) {
-                        console.error('文件上傳失敗:', error);
-                    } finally {
-                        // 移除上傳狀態提示
-                        document.body.removeChild(uploadStatus);
-                    }
-                }
-                
-                document.getElementById('caseNumber').textContent = caseNo;
-                showScreen('successScreen');
-            } else {
-                alert('申請提交失敗，請稍後再試');
-            }
-        }
+            document.body.appendChild(uploadStatus);
 
-        async function showMyApplications() {
             try {
-                const result = await fetch(`${API_BASE}/applications/applicant/${currentUser.id}`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
+              await uploadDocuments(applicationId);
+            } catch (error) {
+              console.error("文件上傳失敗:", error);
+            } finally {
+              // 移除上傳狀態提示
+              document.body.removeChild(uploadStatus);
+            }
+          }
 
-                const list = document.getElementById('applicationsList');
+          document.getElementById("caseNumber").textContent = caseNo;
+          showScreen("successScreen");
+        } else {
+          alert("申請提交失敗，請稍後再試");
+        }
+      }
 
-                if (result.ok) {
-                    const response = await result.json();
-                    // 處理 APIResponse 格式
-                    const apps = response.data?.applications || response.data || response;
-                    
-                    if (apps.length === 0) {
-                        list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 0;">尚無申請紀錄</p>';
-                    } else {
-                        list.innerHTML = apps.map(app => `
-                            <div class="app-item">
-                                <strong>${app.case_no}</strong>
-                                <span class="badge ${app.status}">${getStatusText(app.status)}</span>
-                                <p style="margin-top: 8px; font-size: 14px; color: #666;">
-                                    申請日期：${new Date(app.submitted_at).toLocaleDateString()}<br>
-                                    申請金額：NT$ ${app.requested_amount?.toLocaleString()}
-                                    ${app.approved_amount ? `<br>核准金額：NT$ ${app.approved_amount.toLocaleString()}` : ''}
-                                </p>
+      async function showMyApplications() {
+        try {
+          const result = await fetch(
+            `${API_BASE}/applications/applicant/${currentUser.id}`,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+
+          const list = document.getElementById("applicationsList");
+
+          if (result.ok) {
+            const response = await result.json();
+            // 處理 APIResponse 格式
+            const apps =
+              response.data?.applications || response.data || response;
+
+            if (apps.length === 0) {
+              list.innerHTML = `
+                            <div class="record">
+                                <p style="text-align: center; color: #475569; padding: 20px 0;">尚無申請紀錄</p>
                             </div>
-                        `).join('');
-                    }
-                    showScreen('myApplicationsScreen');
-                } else {
-                    const errorData = await result.json().catch(() => ({}));
-                    list.innerHTML = `
-                        <div style="text-align: center; padding: 40px 20px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-                            <p style="color: #ef4444; font-size: 16px; margin-bottom: 8px;">無法載入申請紀錄</p>
-                            <p style="color: #999; font-size: 14px;">${errorData.detail || '請稍後再試或聯絡客服'}</p>
-                            <p style="color: #999; font-size: 12px; margin-top: 16px;">錯誤代碼: ${result.status}</p>
-                            <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;">返回主選單</button>
+                        `;
+            } else {
+              list.innerHTML = apps
+                .map((app) => {
+                  const statusInfo = getStatusInfo(app.status);
+                  const progress = getProgressPercentage(app.status);
+
+                  return `
+                                <div class="record">
+                                    <div class="record-head">
+                                        <div class="record-type">${getDisasterTypeText(
+                                          app.disaster_type
+                                        )}</div>
+                                        <div class="status-pill">${
+                                          statusInfo.text
+                                        }</div>
+                                    </div>
+                                    <div class="record-meta">
+                                        申請編號：${
+                                          app.case_no
+                                        } | 申請日期：${new Date(
+                    app.submitted_at
+                  ).toLocaleDateString("zh-TW")}
+                                    </div>
+                                    <div class="progress-row">
+                                        <div class="progress-bar" aria-hidden="true">
+                                            <div class="progress-fill" style="width:${progress}%"></div>
+                                        </div>
+                                        <div class="progress-percent">${progress}%</div>
+                                    </div>
+                                    <div class="card-bottom">
+                                        <div class="label">
+                                            申請金額：NT$ ${app.requested_amount?.toLocaleString()}
+                                            ${
+                                              app.approved_amount
+                                                ? ` | 核准：NT$ ${app.approved_amount.toLocaleString()}`
+                                                : ""
+                                            }
+                                        </div>
+                                        <a class="view-link" href="#" onclick="viewApplicationDetail('${
+                                          app.id
+                                        }'); return false;">
+                                            <span>查看詳情</span>
+                                            <span>→</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                })
+                .join("");
+            }
+            showScreen("myApplicationsScreen");
+          } else {
+            const errorData = await result.json().catch(() => ({}));
+            list.innerHTML = `
+                        <div class="record">
+                            <div style="text-align: center; padding: 20px;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                                <p style="color: #ef4444; font-size: 16px; margin-bottom: 8px;">無法載入申請紀錄</p>
+                                <p style="color: #999; font-size: 14px;">${
+                                  errorData.detail || "請稍後再試或聯絡客服"
+                                }</p>
+                                <p style="color: #999; font-size: 12px; margin-top: 16px;">錯誤代碼: ${
+                                  result.status
+                                }</p>
+                            </div>
                         </div>
                     `;
-                    showScreen('myApplicationsScreen');
-                }
-            } catch (error) {
-                console.error('Error loading applications:', error);
-                alert('載入失敗：' + error.message);
-            }
+            showScreen("myApplicationsScreen");
+          }
+        } catch (error) {
+          console.error("Error loading applications:", error);
+          alert("載入失敗：" + error.message);
+        }
+      }
+
+      function getStatusInfo(status) {
+        const map = {
+          pending: { text: "待審核", color: "#94A3B8" },
+          under_review: { text: "審核中", color: "#3B82F6" },
+          approved: { text: "已核准", color: "#10B981" },
+          rejected: { text: "已駁回", color: "#EF4444" },
+          completed: { text: "已完成", color: "#6366F1" },
+        };
+        return map[status] || { text: status, color: "#94A3B8" };
+      }
+
+      function getProgressPercentage(status) {
+        const map = {
+          pending: 20,
+          under_review: 50,
+          approved: 80,
+          rejected: 100,
+          completed: 100,
+        };
+        return map[status] || 0;
+      }
+
+      function getDisasterTypeText(type) {
+        const map = {
+          flood: "水災補助",
+          typhoon: "颱風補助",
+          earthquake: "地震補助",
+          other: "其他災害補助",
+        };
+        return map[type] || "災害補助";
+      }
+
+      function viewApplicationDetail(appId) {
+        // TODO: 實作查看申請詳情功能
+        alert("查看申請詳情功能開發中...\n申請 ID: " + appId);
+      }
+
+      // 處理文件選擇
+      function handleDocumentSelect(event) {
+        const files = Array.from(event.target.files);
+        const maxFiles = 5;
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        // 驗證文件數量
+        if (files.length > maxFiles) {
+          alert(`最多只能上傳 ${maxFiles} 個檔案`);
+          event.target.value = "";
+          return;
         }
 
-        function getStatusText(status) {
-            const map = {
-                'pending': '待審核',
-                'under_review': '審核中',
-                'approved': '已核准',
-                'rejected': '已駁回',
-                'completed': '已完成'
-            };
-            return map[status] || status;
+        // 驗證文件大小
+        const oversizedFiles = files.filter((f) => f.size > maxSize);
+        if (oversizedFiles.length > 0) {
+          alert(`檔案 ${oversizedFiles[0].name} 超過 10MB 限制`);
+          event.target.value = "";
+          return;
         }
 
-        // 處理文件選擇
-        function handleDocumentSelect(event) {
-            const files = Array.from(event.target.files);
-            const maxFiles = 5;
-            const maxSize = 10 * 1024 * 1024; // 10MB
-            
-            // 驗證文件數量
-            if (files.length > maxFiles) {
-                alert(`最多只能上傳 ${maxFiles} 個檔案`);
-                event.target.value = '';
-                return;
-            }
-            
-            // 驗證文件大小
-            const oversizedFiles = files.filter(f => f.size > maxSize);
-            if (oversizedFiles.length > 0) {
-                alert(`檔案 ${oversizedFiles[0].name} 超過 10MB 限制`);
-                event.target.value = '';
-                return;
-            }
-            
-            selectedDocuments = files;
-            displayDocumentPreview();
+        selectedDocuments = files;
+        displayDocumentPreview();
+      }
+
+      // 顯示文件預覽
+      function displayDocumentPreview() {
+        const container = document.getElementById("documentPreview");
+        if (selectedDocuments.length === 0) {
+          container.innerHTML = "";
+          return;
         }
 
-        // 顯示文件預覽
-        function displayDocumentPreview() {
-            const container = document.getElementById('documentPreview');
-            if (selectedDocuments.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            const html = selectedDocuments.map((file, index) => {
-                const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-                const icon = getFileIcon(file.name);
-                
-                return `
+        const html = selectedDocuments
+          .map((file, index) => {
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            const icon = getFileIcon(file.name);
+
+            return `
                     <div style="display: flex; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
                         <div style="font-size: 24px; margin-right: 10px;">${icon}</div>
                         <div style="flex: 1;">
@@ -1415,94 +1350,96 @@
                         </button>
                     </div>
                 `;
-            }).join('');
-            
-            container.innerHTML = `
+          })
+          .join("");
+
+        container.innerHTML = `
                 <div style="margin-bottom: 10px; color: #28a745; font-weight: 500;">
                     ✓ 已選擇 ${selectedDocuments.length} 個檔案
                 </div>
                 ${html}
             `;
+      }
+
+      // 獲取文件圖示
+      function getFileIcon(filename) {
+        const ext = filename.split(".").pop().toLowerCase();
+        const icons = {
+          pdf: "📄",
+          doc: "📝",
+          docx: "📝",
+          jpg: "🖼️",
+          jpeg: "🖼️",
+          png: "🖼️",
+        };
+        return icons[ext] || "📎";
+      }
+
+      // 移除文件
+      function removeDocument(index) {
+        const dt = new DataTransfer();
+        const files = Array.from(selectedDocuments);
+        files.splice(index, 1);
+
+        files.forEach((file) => dt.items.add(file));
+        document.getElementById("appDocuments").files = dt.files;
+        selectedDocuments = files;
+        displayDocumentPreview();
+      }
+
+      // 上傳文件到伺服器
+      async function uploadDocuments(applicationId) {
+        if (selectedDocuments.length === 0) {
+          return { success: true, documents: [] };
         }
 
-        // 獲取文件圖示
-        function getFileIcon(filename) {
-            const ext = filename.split('.').pop().toLowerCase();
-            const icons = {
-                'pdf': '📄',
-                'doc': '📝',
-                'docx': '📝',
-                'jpg': '🖼️',
-                'jpeg': '🖼️',
-                'png': '🖼️'
-            };
-            return icons[ext] || '📎';
-        }
+        const uploadedDocs = [];
+        let uploadCount = 0;
 
-        // 移除文件
-        function removeDocument(index) {
-            const dt = new DataTransfer();
-            const files = Array.from(selectedDocuments);
-            files.splice(index, 1);
-            
-            files.forEach(file => dt.items.add(file));
-            document.getElementById('appDocuments').files = dt.files;
-            selectedDocuments = files;
-            displayDocumentPreview();
-        }
+        for (const file of selectedDocuments) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("application_id", applicationId);
+          formData.append("document_type", "supporting_document");
+          formData.append("description", file.name);
+          formData.append("uploaded_by", currentUser.id); // 加入上傳者 ID
 
-        // 上傳文件到伺服器
-        async function uploadDocuments(applicationId) {
-            if (selectedDocuments.length === 0) {
-                return { success: true, documents: [] };
+          try {
+            const response = await fetch(`${API_BASE}/documents/upload`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              uploadedDocs.push(result.data);
+              uploadCount++;
+
+              // 更新上傳進度
+              const progressEl = document.getElementById("uploadProgress");
+              if (progressEl) {
+                progressEl.textContent = `${uploadCount} / ${selectedDocuments.length}`;
+              }
+
+              console.log(`✓ 檔案上傳成功: ${file.name}`);
+            } else {
+              const errorData = await response.json().catch(() => ({}));
+              console.error(`✗ 檔案上傳失敗: ${file.name}`, errorData);
+              alert(
+                `檔案 ${file.name} 上傳失敗: ${errorData.detail || "未知錯誤"}`
+              );
             }
-            
-            const uploadedDocs = [];
-            let uploadCount = 0;
-            
-            for (const file of selectedDocuments) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('application_id', applicationId);
-                formData.append('document_type', 'supporting_document');
-                formData.append('description', file.name);
-                formData.append('uploaded_by', currentUser.id);  // 加入上傳者 ID
-                
-                try {
-                    const response = await fetch(`${API_BASE}/documents/upload`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        },
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        uploadedDocs.push(result.data);
-                        uploadCount++;
-                        
-                        // 更新上傳進度
-                        const progressEl = document.getElementById('uploadProgress');
-                        if (progressEl) {
-                            progressEl.textContent = `${uploadCount} / ${selectedDocuments.length}`;
-                        }
-                        
-                        console.log(`✓ 檔案上傳成功: ${file.name}`);
-                    } else {
-                        const errorData = await response.json().catch(() => ({}));
-                        console.error(`✗ 檔案上傳失敗: ${file.name}`, errorData);
-                        alert(`檔案 ${file.name} 上傳失敗: ${errorData.detail || '未知錯誤'}`);
-                    }
-                } catch (error) {
-                    console.error(`✗ 檔案上傳錯誤: ${file.name}`, error);
-                    alert(`檔案 ${file.name} 上傳錯誤: ${error.message}`);
-                }
-            }
-            
-            return { success: true, documents: uploadedDocs };
+          } catch (error) {
+            console.error(`✗ 檔案上傳錯誤: ${file.name}`, error);
+            alert(`檔案 ${file.name} 上傳錯誤: ${error.message}`);
+          }
         }
+
+        return { success: true, documents: uploadedDocs };
+      }
     </script>
-</body>
+  </body>
 </html>
-

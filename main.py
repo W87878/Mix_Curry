@@ -89,18 +89,16 @@ static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+from fastapi.responses import FileResponse
 # 根路由
 @app.get("/")
 async def root():
-    """API 根路徑"""
-    return {
-        "message": "歡迎使用災民補助申請系統 API",
-        "version": settings.APP_VERSION,
-        "docs": "/docs",
-        "redoc": "/redoc",
-        "api_prefix": "/api/v1",
-        "test_page": "/test"
-    }
+    """首頁 - 顯示 home.html"""
+    static_file = os.path.join(os.path.dirname(__file__), "static", "home.html")
+    if os.path.exists(static_file):
+        return FileResponse(static_file)
+    else:
+        raise HTTPException(status_code=404, detail="首頁不存在")
 
 # 測試頁面
 @app.get("/test")

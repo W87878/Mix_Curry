@@ -1,0 +1,462 @@
+<!-- 災害補助申請平台 Figma 設計首頁 -->
+<html lang="zh-TW">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=1440">
+	<title>災害補助申請平台</title>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+	<style>
+		body {
+			margin: 0;
+			font-family: 'Noto Sans TC', sans-serif;
+			background: #F8FAFC;
+			color: #0F172A;
+		}
+			.header {
+				width: 100vw;
+				min-width: 320px;
+				height: 139px;
+				background: #CBD5E1;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 48px 96px;
+				box-sizing: border-box;
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 100;
+			}
+			body {
+				margin-top: 139px;
+			}
+		.header-title {
+			font-size: 36px;
+			font-weight: 700;
+			color: #000;
+		}
+		.header-menu {
+			display: flex;
+			gap: 24px;
+			font-size: 20px;
+			font-weight: 500;
+			color: #000;
+		}
+        .main {
+            width: 1248px;
+            margin: 0 auto;
+            margin-top: 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+        }
+        .header-menu a {
+            color: #000;
+            text-decoration: none;
+        }
+		.section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 40px;
+            margin-bottom: 24px;
+		}
+        .card-row {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+		.card {
+			background: #F1F5F9;
+			border-radius: 16px;
+			padding: 12px;
+			width: 400px;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+		.card-title {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+		}
+		.card-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: 10px;
+		}
+		.card-label {
+            background: #94A3B8;
+            color: #fff;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 400;
+            margin-left: auto;
+		}
+		.card-content {
+			font-size: 16px;
+			color: #0F172A;
+			margin-bottom: 4px;
+		}
+		.card-date, .card-amount {
+			font-size: 16px;
+			color: #0F172A;
+		}
+		.card-btn {
+			background: #0F172A;
+			color: #fff;
+			border-radius: 8px;
+			padding: 8px 16px;
+			text-align: center;
+			font-size: 16px;
+			font-weight: 400;
+			margin-top: 8px;
+			cursor: pointer;
+		}
+		.indicators {
+			display: flex;
+			gap: 8px;
+			justify-content: center;
+			margin: 16px auto;
+		}
+		.indicator {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: #CBD5E1;
+		}
+		.indicator.selected {
+			background:rgb(0, 0, 0);
+		}
+		/* 登入頁樣式略，依同設計規則 */
+
+        /* 輪播自訂樣式 */
+        .carousel-track {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+        .carousel-img-custom {
+            width: 320px;
+            height: 320px;
+            min-width: 100%;
+            min-height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+            transition: all 0.4s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 1;
+        }
+        .carousel-img-custom.center {
+            z-index: 2;
+            opacity: 1;
+            transform: scale(1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .carousel-img-custom.side {
+            z-index: 1;
+            opacity: 0.4;
+            transform: scale(0.85);
+        }
+            .carousel {
+                position: relative;
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto 24px auto;
+                height: 320px;
+                background: #F1F5F9;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .carousel-img {
+                width: 100%;
+                height: 320px;
+                object-fit: cover;
+                border-radius: 16px;
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: none;
+            }
+            .carousel-img.active {
+                display: block;
+            }
+            .carousel-controls {
+                position: absolute;
+                bottom: 16px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 16px;
+            }
+            .carousel-btn {
+                background: #CBD5E1;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-size: 20px;
+                cursor: pointer;
+                color: #0F172A;
+                font-weight: 700;
+            }
+	</style>
+</head>
+<body>
+	<div class="header">
+		<div class="header-title">災害補助申請平台</div>
+		<div class="header-menu">
+			<a href="/admin">審核人員入口</a>
+			<a href="https://welfare.ntpc.gov.tw/viewService/show/22023?fromOpa=1">申請流程</a>
+			<a href="/applicant">申請與查詢</a>
+		</div>
+	</div>
+	<div class="main">
+		<div>
+			<div class="section-title">即時消息</div>
+			<div class="carousel">
+				<div id="carousel-track" class="carousel-track"></div>
+			</div>
+			<div class="indicators" id="carousel-indicators"></div>
+		</div>
+		<div>
+			<div class="section-title">最新災害補助</div>
+            <div class="card-row" id="latest-disaster-cards"></div>
+		</div>
+		<div>
+			<div class="section-title">所有災害補助</div>
+            <div>
+                <div id="all-disaster-cards"></div>
+                <div style="text-align:center;margin-top:24px;margin-bottom:48px;">
+                    <button id="expand-all-btn" class="card-btn" style="width:200px;">全部展開</button>
+                </div>
+            </div>
+        </div>
+	</div>
+</body>
+<script>
+    // 所有災害補助卡片資料
+    const allDisasterCards = [
+        {
+            title: '水災補助',
+            label: '天然災害',
+            content: '因水災造成房屋損壞或生活必需品損失者',
+            date: '申請日期 : 即日起至114年11/12',
+            amount: '金額 : 最高50,000元',
+            icon: 'static/assets/water.svg',
+        },
+        // 可依需求增加更多卡片
+        {
+            title: '颱風補助',
+            label: '天然災害',
+            content: '因颱風造成財物損失者',
+            date: '申請日期 : 即日起至114年10/31',
+            amount: '金額 : 最高30,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '地震補助',
+            label: '天然災害',
+            content: '因地震造成房屋損壞者',
+            date: '申請日期 : 即日起至114年09/30',
+            amount: '金額 : 最高100,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '火災補助',
+            label: '意外災害',
+            content: '因火災造成財物損失者',
+            date: '申請日期 : 即日起至114年08/15',
+            amount: '金額 : 最高80,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '土石流補助',
+            label: '天然災害',
+            content: '因土石流造成損失者',
+            date: '申請日期 : 即日起至114年07/20',
+            amount: '金額 : 最高60,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '寒害補助',
+            label: '氣候災害',
+            content: '因寒害造成損失者',
+            date: '申請日期 : 即日起至114年12/31',
+            amount: '金額 : 最高40,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '旱災補助',
+            label: '氣候災害',
+            content: '因旱災造成損失者',
+            date: '申請日期 : 即日起至114年06/30',
+            amount: '金額 : 最高20,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '暴雨補助',
+            label: '氣候災害',
+            content: '因暴雨造成損失者',
+            date: '申請日期 : 即日起至114年05/31',
+            amount: '金額 : 最高25,000元',
+            icon: 'static/assets/water.svg',
+        },
+        {
+            title: '其他災害補助',
+            label: '其他',
+            content: '其他災害造成損失者',
+            date: '申請日期 : 即日起至114年12/31',
+            amount: '金額 : 最高10,000元',
+            icon: 'static/assets/water.svg',
+        },
+    ];
+
+    let isExpanded = false;
+
+    function renderAllDisasterCards() {
+        const container = document.getElementById('all-disaster-cards');
+        container.innerHTML = '';
+        // 每 row 3 個
+        const cardsPerRow = 3;
+        // 預設只顯示 2 row
+        const maxRows = isExpanded ? Math.ceil(allDisasterCards.length / cardsPerRow) : 2;
+        for (let row = 0; row < maxRows; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'card-row';
+            for (let i = row * cardsPerRow; i < (row + 1) * cardsPerRow && i < allDisasterCards.length; i++) {
+                const card = allDisasterCards[i];
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.innerHTML = `
+                    <div class="card-title">
+                        <div class="card-icon"><img src="${card.icon}" alt="icon" width="20" height="20"></div>
+                        <div style="font-weight:500;font-size:20px;">${card.title}</div>
+                        <div class="card-label">${card.label}</div>
+                    </div>
+                    <div class="card-content">${card.content}</div>
+                    <div class="card-date">${card.date}</div>
+                    <div class="card-amount">${card.amount}</div>
+                    <div class="card-btn">補助申請</div>
+                `;
+                rowDiv.appendChild(cardDiv);
+            }
+            container.appendChild(rowDiv);
+        }
+    }
+
+    function renderLatestDisasterCards() {
+        const container = document.getElementById('latest-disaster-cards');
+        container.innerHTML = '';
+        for (let i = 0; i < 3 && i < allDisasterCards.length; i++) {
+            const card = allDisasterCards[i];
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.innerHTML = `
+                <div class="card-title">
+                    <div class="card-icon"><img src="${card.icon}" alt="icon" width="20" height="20"></div>
+                    <div style="font-weight:500;font-size:20px;">${card.title}</div>
+                    <div class="card-label">${card.label}</div>
+                </div>
+                <div class="card-content">${card.content}</div>
+                <div class="card-date">${card.date}</div>
+                <div class="card-amount">${card.amount}</div>
+                <div class="card-btn">補助申請</div>
+            `;
+            container.appendChild(cardDiv);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCarousel();
+        renderIndicators();
+        resetTimer();
+        renderLatestDisasterCards();
+        renderAllDisasterCards();
+        document.getElementById('expand-all-btn').onclick = function() {
+            isExpanded = !isExpanded;
+            renderAllDisasterCards();
+            this.textContent = isExpanded ? '收合' : '全部展開';
+        };
+    });
+
+    const carouselImages = [
+        {src: 'static/assets/card1.png', alt: '即時消息1'},
+        {src: 'static/assets/card2.png', alt: '即時消息2'},
+        {src: 'static/assets/card3.jpeg', alt: '即時消息3'}
+    ];
+    let currentSlide = 0;
+    let timer = null;
+
+    function renderCarousel() {
+        const track = document.getElementById('carousel-track');
+        track.innerHTML = '';
+        // 上一張
+        let prevIdx = (currentSlide - 1 + carouselImages.length) % carouselImages.length;
+        const prevImg = document.createElement('img');
+        prevImg.src = carouselImages[prevIdx].src;
+        prevImg.alt = carouselImages[prevIdx].alt;
+        prevImg.className = 'carousel-img-custom side';
+        track.appendChild(prevImg);
+        // 當前
+        const centerImg = document.createElement('img');
+        centerImg.src = carouselImages[currentSlide].src;
+        centerImg.alt = carouselImages[currentSlide].alt;
+        centerImg.className = 'carousel-img-custom center';
+        track.appendChild(centerImg);
+        // 下一張
+        let nextIdx = (currentSlide + 1) % carouselImages.length;
+        const nextImg = document.createElement('img');
+        nextImg.src = carouselImages[nextIdx].src;
+        nextImg.alt = carouselImages[nextIdx].alt;
+        nextImg.className = 'carousel-img-custom side';
+        track.appendChild(nextImg);
+    }
+
+    function renderIndicators() {
+        const indicators = document.getElementById('carousel-indicators');
+        indicators.innerHTML = '';
+        carouselImages.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = 'indicator' + (i === currentSlide ? ' selected' : '');
+            dot.onclick = () => {
+                currentSlide = i;
+                renderCarousel();
+                renderIndicators();
+                resetTimer();
+            };
+            indicators.appendChild(dot);
+        });
+    }
+
+    function nextSlideAuto() {
+        currentSlide = (currentSlide + 1) % carouselImages.length;
+        renderCarousel();
+        renderIndicators();
+    }
+
+    function resetTimer() {
+        if (timer) clearInterval(timer);
+        timer = setInterval(nextSlideAuto, 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCarousel();
+        renderIndicators();
+        resetTimer();
+    });
+</script>
+</html>
