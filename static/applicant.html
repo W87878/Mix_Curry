@@ -1297,16 +1297,16 @@
           under_review: { text: "審核中", color: "#3B82F6" },
           approved: { text: "已核准", color: "#10B981" },
           rejected: { text: "已駁回", color: "#EF4444" },
-          completed: { text: "已完成", color: "#6366F1" },
+          completed: { text: "已領取", color: "#6366F1" },
         };
         return map[status] || { text: status, color: "#94A3B8" };
       }
 
       function getProgressPercentage(status) {
         const map = {
-          pending: 20,
+          pending: 50,
           under_review: 50,
-          approved: 80,
+          approved: 100,
           rejected: 100,
           completed: 100,
         };
