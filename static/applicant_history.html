@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>申請記錄 - 災害補助申請平台</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Sans TC',sans-serif}
+        body{background:#fff;min-height:100vh;color:#0F172A}
+        .header{background:#CBD5E1;padding:48px 96px;display:flex;justify-content:space-between;align-items:center}
+        .header h1{font-size:36px;font-weight:700}
+        .header .nav{display:flex;gap:24px;font-size:20px;font-weight:500}
+        .container{width:612px;margin:80px auto 120px;}
+        .title{font-size:30px;font-weight:700;text-align:center;margin-bottom:24px;letter-spacing:0.6px}
+        .records{display:flex;flex-direction:column;gap:16px}
+        .record{background:#F1F5F9;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px}
+        .record-head{display:flex;justify-content:space-between;align-items:center}
+        .record-type{font-size:24px;font-weight:700;color:#020618}
+        .status-pill{background:#94A3B8;color:#F8FAFC;padding:6px 12px;border-radius:16px;font-size:12px}
+        .record-meta{color:#475569;font-size:14px}
+        .progress-row{display:flex;align-items:center;gap:12px}
+        .progress-bar{width:188px;height:12px;background:#CBD5E1;border-radius:999px;overflow:hidden}
+        .progress-fill{height:100%;background:#64748B;width:40%}
+        .progress-percent{font-size:14px}
+        .actions{display:flex;justify-content:center;margin-top:32px;gap:16px}
+        .btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:16px}
+        .btn.secondary{background:#CBD5E1;color:#0F172A;width:376px}
+        .btn.primary{background:#0F172A;color:#fff;width:376px}
+        .card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+        .label{background:#94A3B8;color:#F8FAFC;padding:6px 12px;border-radius:16px;font-size:12px}
+        .view-link{display:inline-flex;align-items:center;gap:8px;color:#0F172A;text-decoration:none;font-size:14px}
+        .caret{width:20px;height:20px}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>災害補助申請平台</h1>
+        <nav class="nav">
+            <a href="/">返回首頁</a>
+        </nav>
+    </header>
+
+    <main class="container" role="main">
+        <h2 class="title">申請記錄</h2>
+
+        <div class="records">
+            <!-- 範例卡片，實際內容應從後端取得 -->
+            <div class="record">
+                <div class="record-head">
+                    <div class="record-type">水災補助</div>
+                    <div class="status-pill">審核中</div>
+                </div>
+                <div class="record-meta">申請編號：APP001 | 申請日期：2025-11-12</div>
+                <div class="progress-row">
+                    <div class="progress-bar" aria-hidden="true">
+                        <div class="progress-fill" style="width:40%"></div>
+                    </div>
+                    <div class="progress-percent">40%</div>
+                </div>
+                <div class="card-bottom">
+                    <div class="label">災害補助資格憑證：未發放</div>
+                    <a class="view-link" href="/applications/APP001">
+                        <span>查看完整進度</span>
+                        <img class="caret" src="http://localhost:3845/assets/a3c330dd37970dff47215c3d563db03ae50700a1.svg" alt=">"/>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 可放更多卡片 -->
+        </div>
+
+        <div class="actions">
+            <button class="btn secondary" id="backHome">回首頁</button>
+            <button class="btn primary" id="newApply">前往補助申請</button>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('backHome').addEventListener('click', function(){ window.location.href = '/'; });
+        document.getElementById('newApply').addEventListener('click', function(){ window.location.href = '/applications'; });
+    </script>
+</body>
+</html>
