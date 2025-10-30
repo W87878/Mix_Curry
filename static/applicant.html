@@ -22,11 +22,11 @@
 
         <div class="login-container">
           <div class="login-tabs">
-            <div class="login-tab active" data-tab="general">
-              <span style="margin-right: 8px">📧</span>一般登入 (推薦)
+            <div class="login-tab" data-tab="general">
+              <span style="margin-right: 8px">📧</span>一般登入
             </div>
-            <div class="login-tab" data-tab="digital">
-              📱 數位身分證憑證登入
+            <div class="login-tab active" data-tab="digital">
+              📱 數位身分證憑證登入 (推薦)
             </div>
           </div>
 
@@ -482,32 +482,32 @@
 
         // 🎯 先檢查 Google OAuth callback
         const isGoogleLogin = checkGoogleAuthToken();
-        
+
         // 如果正在處理 Google 登入，就不要繼續執行
         if (isGoogleLogin) {
-          console.log('🔄 正在處理 Google 登入，跳過其他初始化');
+          console.log("🔄 正在處理 Google 登入，跳過其他初始化");
           return;
         }
-        
+
         // 如果沒有從 Google 登入，檢查現有登入狀態
         if (!accessToken || !currentUser) {
-          accessToken = localStorage.getItem('applicant_token');
-          const userStr = localStorage.getItem('applicant_user');
+          accessToken = localStorage.getItem("applicant_token");
+          const userStr = localStorage.getItem("applicant_user");
           if (userStr) {
             try {
               currentUser = JSON.parse(userStr);
             } catch (e) {
-              console.error('解析 currentUser 失敗:', e);
+              console.error("解析 currentUser 失敗:", e);
             }
           }
         }
 
         // 檢查登入狀態
         if (accessToken && currentUser) {
-          console.log('✅ 已有登入狀態，顯示主選單');
+          console.log("✅ 已有登入狀態，顯示主選單");
           showMainMenu();
         } else {
-          console.log('❌ 未登入，顯示登入界面');
+          console.log("❌ 未登入，顯示登入界面");
           // 初始化登入界面
           initializeLoginUI();
         }
@@ -945,11 +945,11 @@
 
           // 取得使用者資訊並顯示主選單
           getUserInfoAndShowMenu();
-          
-          return true;  // 表示正在處理 Google 登入
+
+          return true; // 表示正在處理 Google 登入
         }
-        
-        return false;  // 沒有 Google token
+
+        return false; // 沒有 Google token
       }
 
       // 取得使用者資訊並顯示主選單
