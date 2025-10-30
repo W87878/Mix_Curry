@@ -22,7 +22,10 @@ Thumbs.db
 
 # Environment variables
 .env
-.env.*
+.env.local
+.env.*.local
+# 但保留 .env.example 供參考
+!.env.example
 
 # Test & Coverage
 htmlcov/
