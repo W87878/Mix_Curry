@@ -22,11 +22,11 @@
 
         <div class="login-container">
           <div class="login-tabs">
-            <div class="login-tab active" data-tab="general">
-              <span style="margin-right: 8px">📧</span>一般登入 (推薦)
+            <div class="login-tab" data-tab="general">
+              <span class="icon-spacer">📧</span>一般登入
             </div>
-            <div class="login-tab" data-tab="digital">
-              📱 數位身分證憑證登入
+            <div class="login-tab active" data-tab="digital">
+              📱 數位身分證憑證登入 (推薦)
             </div>
           </div>
 
@@ -43,18 +43,9 @@
             </div>
 
             <div class="form-group">
-              <div style="display: flex; align-items: center; gap: 12px">
-                <label for="password" style="margin-bottom: 0">驗證碼</label>
-                <small
-                  style="
-                    color: #666;
-                    margin: 0;
-                    display: inline;
-                    font-size: 12px;
-                  "
-                >
-                  驗證碼將發送到您的信箱
-                </small>
+              <div class="flex-center-gap">
+                <label for="password" class="no-margin-bottom">驗證碼</label>
+                <small class="hint-text"> 驗證碼將發送到您的信箱 </small>
               </div>
               <div class="input-with-button">
                 <input
@@ -99,7 +90,7 @@
             <button type="button" class="google-btn">使用Google繼續登入</button>
           </div>
 
-          <div id="digital-login-form" class="login-form" style="display: none">
+          <div id="digital-login-form" class="login-form hidden">
             <div class="digital-header">
               <div class="digital-title">數位憑證皮夾APP</div>
               <div class="digital-subtitle">數位身分憑證登入方式</div>
@@ -223,7 +214,7 @@
         </nav>
       </header>
 
-      <div class="card" style="margin: 80px auto; max-width: 600px">
+      <div class="card form-card">
         <div class="steps">
           <div class="step" id="step1">1</div>
           <div class="step" id="step2">2</div>
@@ -234,7 +225,7 @@
 
         <!-- 步驟1：基本資料 -->
         <div id="form-step1">
-          <h2 style="margin-bottom: 20px; color: #333">基本資料</h2>
+          <h2 class="section-title">基本資料</h2>
 
           <div class="form-group">
             <label>姓名 <span class="required">*</span></label>
@@ -271,7 +262,7 @@
 
         <!-- 步驟2：災害資訊 -->
         <div id="form-step2" class="hidden">
-          <h2 style="margin-bottom: 20px; color: #333">災害資訊</h2>
+          <h2 class="section-title">災害資訊</h2>
 
           <div class="form-group">
             <label>災害發生日期 <span class="required">*</span></label>
@@ -317,7 +308,7 @@
 
         <!-- 步驟3：補助金額 -->
         <div id="form-step3" class="hidden">
-          <h2 style="margin-bottom: 20px; color: #333">申請補助</h2>
+          <h2 class="section-title">申請補助</h2>
 
           <div class="info-box">
             💰 請根據實際損失填寫申請金額，審核人員會依據災損情況核定
@@ -355,7 +346,7 @@
 
         <!-- 步驟4：上傳證明文件 -->
         <div id="form-step4" class="hidden">
-          <h2 style="margin-bottom: 20px; color: #333">上傳證明文件</h2>
+          <h2 class="section-title">上傳證明文件</h2>
 
           <div class="info-box">
             📄 請上傳相關證明文件，如戶籍謄本、財產證明、災損照片等（選填）
@@ -375,7 +366,7 @@
             </div>
           </div>
 
-          <div id="documentPreview" style="margin-top: 15px">
+          <div id="documentPreview" class="document-preview">
             <!-- 已選擇的文件列表 -->
           </div>
 
@@ -389,31 +380,15 @@
 
         <!-- 步驟5：確認送出 -->
         <div id="form-step5" class="hidden">
-          <h2 style="margin-bottom: 20px; color: #333">確認資料</h2>
+          <h2 class="section-title">確認資料</h2>
 
           <div class="info-box">📋 請確認以下資料無誤後送出申請</div>
 
-          <div
-            id="confirmData"
-            style="
-              background: #f9fafb;
-              padding: 20px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-            "
-          >
+          <div id="confirmData" class="confirm-data-box">
             <!-- 將由 JS 填充 -->
           </div>
 
-          <div
-            style="
-              background: #fef3c7;
-              padding: 15px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-              font-size: 14px;
-            "
-          >
+          <div class="warning-box">
             ⚠️ 提醒：請確保所填資料真實正確，虛報或不實申報將影響您的權益
           </div>
 
@@ -436,12 +411,10 @@
         </nav>
       </header>
 
-      <div class="card" style="margin: 80px auto; max-width: 600px">
+      <div class="card form-card">
         <div class="success-icon">✓</div>
-        <h2 style="text-align: center; color: #333; margin-bottom: 15px">
-          申請已送出！
-        </h2>
-        <p style="text-align: center; color: #666; margin-bottom: 20px">
+        <h2 class="success-card-title">申請已送出！</h2>
+        <p class="success-card-text">
           您的申請案件編號：<strong id="caseNumber"></strong>
         </p>
 
@@ -482,32 +455,32 @@
 
         // 🎯 先檢查 Google OAuth callback
         const isGoogleLogin = checkGoogleAuthToken();
-        
+
         // 如果正在處理 Google 登入，就不要繼續執行
         if (isGoogleLogin) {
-          console.log('🔄 正在處理 Google 登入，跳過其他初始化');
+          console.log("🔄 正在處理 Google 登入，跳過其他初始化");
           return;
         }
-        
+
         // 如果沒有從 Google 登入，檢查現有登入狀態
         if (!accessToken || !currentUser) {
-          accessToken = localStorage.getItem('applicant_token');
-          const userStr = localStorage.getItem('applicant_user');
+          accessToken = localStorage.getItem("applicant_token");
+          const userStr = localStorage.getItem("applicant_user");
           if (userStr) {
             try {
               currentUser = JSON.parse(userStr);
             } catch (e) {
-              console.error('解析 currentUser 失敗:', e);
+              console.error("解析 currentUser 失敗:", e);
             }
           }
         }
 
         // 檢查登入狀態
         if (accessToken && currentUser) {
-          console.log('✅ 已有登入狀態，顯示主選單');
+          console.log("✅ 已有登入狀態，顯示主選單");
           showMainMenu();
         } else {
-          console.log('❌ 未登入，顯示登入界面');
+          console.log("❌ 未登入，顯示登入界面");
           // 初始化登入界面
           initializeLoginUI();
         }
@@ -545,10 +518,10 @@
           tabs.forEach((t) => t.classList.remove("active"));
           tabEl.classList.add("active");
 
-          Object.values(forms).forEach((form) => (form.style.display = "none"));
+          Object.values(forms).forEach((form) => form.classList.add("hidden"));
 
           const formId = tabEl.getAttribute("data-tab");
-          if (forms[formId]) forms[formId].style.display = "flex";
+          if (forms[formId]) forms[formId].classList.remove("hidden");
         }
 
         tabs.forEach((tab) => {
@@ -945,11 +918,11 @@
 
           // 取得使用者資訊並顯示主選單
           getUserInfoAndShowMenu();
-          
-          return true;  // 表示正在處理 Google 登入
+
+          return true; // 表示正在處理 Google 登入
         }
-        
-        return false;  // 沒有 Google token
+
+        return false; // 沒有 Google token
       }
 
       // 取得使用者資訊並顯示主選單
@@ -1112,7 +1085,7 @@
                 <p><strong>地址：</strong>${
                   document.getElementById("appAddress").value
                 }</p>
-                <hr style="margin: 15px 0; border: none; border-top: 1px solid #e0e0e0;">
+                <hr class="confirm-separator">
                 <p><strong>災害日期：</strong>${
                   document.getElementById("appDate").value
                 }</p>
@@ -1297,16 +1270,16 @@
           under_review: { text: "審核中", color: "#3B82F6" },
           approved: { text: "已核准", color: "#10B981" },
           rejected: { text: "已駁回", color: "#EF4444" },
-          completed: { text: "已完成", color: "#6366F1" },
+          completed: { text: "已領取", color: "#6366F1" },
         };
         return map[status] || { text: status, color: "#94A3B8" };
       }
 
       function getProgressPercentage(status) {
         const map = {
-          pending: 20,
+          pending: 50,
           under_review: 50,
-          approved: 80,
+          approved: 100,
           rejected: 100,
           completed: 100,
         };
@@ -1323,9 +1296,250 @@
         return map[type] || "災害補助";
       }
 
-      function viewApplicationDetail(appId) {
-        // TODO: 實作查看申請詳情功能
-        alert("查看申請詳情功能開發中...\n申請 ID: " + appId);
+      async function viewApplicationDetail(appId) {
+        try {
+          // 取得申請詳情
+          const response = await fetch(`${API_BASE}/applications/${appId}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (!response.ok) {
+            throw new Error("無法取得申請詳情");
+          }
+
+          const result = await response.json();
+          const app = result.data || result;
+
+          // 根據狀態顯示不同內容
+          if (app.application.status === "approved") {
+            // 已核准：顯示 QR Code
+            showQRCodeForApplicant(app);
+          } else if (app.application.status === "rejected") {
+            // 已駁回：顯示駁回原因
+            showRejectionReason(app);
+          } else {
+            // 審理中：顯示等待訊息
+            showPendingMessage(app);
+          }
+        } catch (error) {
+          console.error("查看申請詳情錯誤:", error);
+          alert("無法載入申請詳情：" + error.message);
+        }
+      }
+
+      // 顯示 QR Code 給申請人掃描（已核准）
+      function showQRCodeForApplicant(app) {
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        modal.style.cssText =
+          "display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;";
+
+        // 從申請資料中取得 QR Code（使用 gov_qr_code_data 欄位）
+        const qrCodeDisplay = app.application.gov_qr_code_data
+          ? `<img src="${app.application.gov_qr_code_data}" style="max-width: 300px; border: 3px solid #4CAF50; border-radius: 10px; padding: 10px;">`
+          : `<div style="padding: 20px; background: #f0f0f0; border-radius: 10px; text-align: center;">
+                <p style="margin-bottom: 10px;">❌ QR Code 尚未生成</p>
+                <p style="font-size: 12px; color: #666;">請稍後再試或聯繫里長</p>
+             </div>`;
+
+        modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; line-height: 1;">&times;</button>
+                    
+                    <div style="padding: 30px;">
+                        <h2 style="color: #4CAF50; text-align: center; margin-bottom: 20px;">✅ 申請已核准！</h2>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <h3 style="margin-bottom: 10px;">您的數位憑證 QR Code</h3>
+                            <p style="color: #666; margin-bottom: 20px; font-size: 14px;">請使用數位憑證 APP 掃描以領取補助</p>
+                            ${qrCodeDisplay}
+                            
+                            ${
+                              app.application.gov_deep_link &&
+                              app.application.gov_deep_link.startsWith(
+                                "modadigitalwallet://"
+                              )
+                                ? `
+                                <a href="${app.application.gov_deep_link}" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                    📱 點此直接開啟數位憑證 APP
+                                </a>
+                            `
+                                : ""
+                            }
+                            
+                            ${
+                              app.application.gov_transaction_id
+                                ? `<p style="margin-top: 15px; font-size: 12px; color: #888;">Transaction ID: ${app.application.gov_transaction_id}</p>`
+                                : ""
+                            }
+                            
+                            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left;">
+                                <p style="margin: 5px 0;"><strong>案件編號：</strong>${
+                                  app.application.case_no
+                                }</p>
+                                <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.application.requested_amount?.toLocaleString()}</p>
+                                <p style="margin: 5px 0;"><strong>核准金額：</strong><span style="color: #10b981; font-weight: 600;">NT$ ${
+                                  app.application.approved_amount?.toLocaleString() ||
+                                  "NT$ " +
+                                    app.application.requested_amount?.toLocaleString()
+                                }</span></p>
+                                ${
+                                  app.application.review_notes
+                                    ? `<p style="margin: 5px 0;"><strong>審核備註：</strong>${app.application.review_notes}</p>`
+                                    : ""
+                                }
+                            </div>
+                        </div>
+
+                        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #3b82f6;">
+                            <strong style="color: #1e40af;">📱 領取步驟：</strong>
+                            <ol style="margin: 10px 0 0 20px; color: #1e40af; font-size: 14px; line-height: 1.8;">
+                                <li>打開「TW FidO 數位憑證皮夾」APP（可點擊上方按鈕直接開啟）</li>
+                                <li>掃描上方 QR Code 或透過 Deep Link 自動匯入</li>
+                                <li>確認並儲存憑證到您的手機</li>
+                                <li>攜帶手機前往指定地點領取補助</li>
+                            </ol>
+                        </div>
+
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                            我知道了
+                        </button>
+                    </div>
+                </div>
+            `;
+
+        document.body.appendChild(modal);
+      }
+
+      // 顯示駁回原因（已駁回）
+      function showRejectionReason(app) {
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        modal.style.cssText =
+          "display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;";
+
+        modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; line-height: 1;">&times;</button>
+                    
+                    <div style="padding: 30px;">
+                        <h2 style="color: #ef4444; text-align: center; margin-bottom: 20px;">❌ 申請已駁回</h2>
+                        
+                        <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 20px;">
+                            <h3 style="color: #991b1b; margin-bottom: 10px; font-size: 16px;">駁回原因：</h3>
+                            <p style="color: #7f1d1d; font-size: 14px; line-height: 1.6; margin: 0;">
+                                ${
+                                  app.application.rejection_reason ||
+                                  app.application.review_notes ||
+                                  "未提供具體原因，請聯繫承辦人員"
+                                }
+                            </p>
+                        </div>
+
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 5px 0;"><strong>案件編號：</strong>${
+                              app.application.case_no
+                            }</p>
+                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.application.requested_amount?.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>災害類型：</strong>${getDisasterTypeText(
+                              app.application.disaster_type
+                            )}</p>
+                            <p style="margin: 5px 0;"><strong>提交日期：</strong>${new Date(
+                              app.application.submitted_at
+                            ).toLocaleDateString("zh-TW")}</p>
+                        </div>
+
+                        <div style="background: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <strong style="color: #92400e;">💡 建議：</strong>
+                            <ul style="margin: 10px 0 0 20px; color: #92400e; font-size: 14px; line-height: 1.6;">
+                                <li>請詳閱駁回原因並準備相關補充資料</li>
+                                <li>您可以修正問題後重新提出申請</li>
+                                <li>如有疑問，請聯繫里長或承辦人員</li>
+                            </ul>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" style="flex: 1; padding: 14px; background: #f3f4f6; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                                關閉
+                            </button>
+                            <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove(); showApplyForm();" style="flex: 1; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                                重新申請
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        document.body.appendChild(modal);
+      }
+
+      // 顯示審理中訊息
+      function showPendingMessage(app) {
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        modal.style.cssText =
+          "display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;";
+
+        const statusInfo = getStatusInfo(app.application.status);
+
+        modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; line-height: 1;">&times;</button>
+                    
+                    <div style="padding: 30px;">
+                        <h2 style="color: #3b82f6; text-align: center; margin-bottom: 20px;">⏳ 申請審核中</h2>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="width: 100px; height: 100px; margin: 0 auto 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: flex-start; justify-content: center; font-size: 48px; padding-top: 10px;">
+                                ⏱️
+                            </div>
+                            <p style="font-size: 18px; font-weight: 500; color: #333; margin-bottom: 10px;">
+                                您的申請正在審核中
+                            </p>
+                            <p style="color: #666; font-size: 14px;">
+                                目前狀態：<span style="color: ${
+                                  statusInfo.color
+                                }; font-weight: 500;">${statusInfo.text}</span>
+                            </p>
+                        </div>
+
+                        <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 5px 0;"><strong>案件編號：</strong>${
+                              app.case_no
+                            }</p>
+                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.requested_amount?.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>災害類型：</strong>${getDisasterTypeText(
+                              app.disaster_type
+                            )}</p>
+                            <p style="margin: 5px 0;"><strong>提交日期：</strong>${new Date(
+                              app.submitted_at
+                            ).toLocaleDateString("zh-TW")}</p>
+                        </div>
+
+                        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <strong style="color: #1e40af;">📋 審核流程：</strong>
+                            <ol style="margin: 10px 0 0 20px; color: #1e40af; font-size: 14px; line-height: 1.8;">
+                                <li>資料審查（進行中）</li>
+                                <li>里長審核</li>
+                                <li>核發補助憑證</li>
+                                <li>領取補助</li>
+                            </ol>
+                        </div>
+
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <p style="color: #92400e; font-size: 13px; margin: 0;">
+                                ⚠️ 審核通常需要 <strong>3-5 個工作天</strong>，審核結果將以簡訊或 Email 通知您，請耐心等候。
+                            </p>
+                        </div>
+
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                            我知道了
+                        </button>
+                    </div>
+                </div>
+            `;
+
+        document.body.appendChild(modal);
       }
 
       // 處理文件選擇
