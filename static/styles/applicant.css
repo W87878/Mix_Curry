@@ -708,6 +708,75 @@ input:focus, select:focus, textarea:focus {
     gap: 16px;
 }
 
+/* Additional utility classes */
+.icon-spacer {
+    margin-right: 8px;
+}
+
+.flex-center-gap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.no-margin-bottom {
+    margin-bottom: 0;
+}
+
+.hint-text {
+    color: #666;
+    margin: 0;
+    display: inline;
+    font-size: 12px;
+}
+
+.form-card {
+    margin: 80px auto;
+    max-width: 600px;
+}
+
+.section-title {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.document-preview {
+    margin-top: 15px;
+}
+
+.confirm-data-box {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.warning-box {
+    background: #fef3c7;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.success-card-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.success-card-text {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.confirm-separator {
+    margin: 15px 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+}
+
 @media (max-width: 600px) {
     .page-header {
         padding: 24px 20px;
