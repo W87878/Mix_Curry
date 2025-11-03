@@ -315,7 +315,11 @@
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; z-index: 9999; overflow-y: auto;">
                     <!-- Header -->
                     <header style="background-color: #CBD5E1; padding: 48px 96px; display: flex; justify-content: space-between; align-items: center;">
-                        <h1 style="font-size: 36px; font-weight: 700; color: #000; margin: 0;">災害補助申請平台</h1>
+                        <h1 style="font-size: 36px; font-weight: 700; color: #000;">災害補助申請平台
+                        </h1>
+                        <nav style="display: flex; gap: 24px; font-size: 20px; font-weight: 500; color: #000;">
+                          <a href="/" style="text-decoration: none; color: inherit; letter-spacing: 0.4px;">返回首頁</a>
+                        </nav>
                     </header>
 
                     <!-- Main Content -->
@@ -413,38 +417,38 @@
         document.body.appendChild(loginModal);
 
         // Tab 切換功能
-        const tabs = loginModal.querySelectorAll('.admin-login-tab');
-        const digitalForm = document.getElementById('adminDigitalLoginForm');
-        const generalForm = document.getElementById('adminGeneralLoginForm');
+        const tabs = loginModal.querySelectorAll(".admin-login-tab");
+        const digitalForm = document.getElementById("adminDigitalLoginForm");
+        const generalForm = document.getElementById("adminGeneralLoginForm");
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabType = this.getAttribute('data-tab');
-                
-                // 更新 tab 樣式
-                tabs.forEach(t => {
-                    if (t.getAttribute('data-tab') === tabType) {
-                        t.style.backgroundColor = '#64748B';
-                        t.style.color = '#F8FAFC';
-                        t.classList.add('active');
-                    } else {
-                        t.style.backgroundColor = '#CBD5E1';
-                        t.style.color = '#000';
-                        t.classList.remove('active');
-                    }
-                });
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            const tabType = this.getAttribute("data-tab");
 
-                // 切換表單
-                if (tabType === 'digital') {
-                    digitalForm.style.display = 'flex';
-                    generalForm.style.display = 'none';
-                    // 啟動數位登入流程
-                    adminLoginWithDigitalID();
-                } else {
-                    digitalForm.style.display = 'none';
-                    generalForm.style.display = 'flex';
-                }
+            // 更新 tab 樣式
+            tabs.forEach((t) => {
+              if (t.getAttribute("data-tab") === tabType) {
+                t.style.backgroundColor = "#64748B";
+                t.style.color = "#F8FAFC";
+                t.classList.add("active");
+              } else {
+                t.style.backgroundColor = "#CBD5E1";
+                t.style.color = "#000";
+                t.classList.remove("active");
+              }
             });
+
+            // 切換表單
+            if (tabType === "digital") {
+              digitalForm.style.display = "flex";
+              generalForm.style.display = "none";
+              // 啟動數位登入流程
+              adminLoginWithDigitalID();
+            } else {
+              digitalForm.style.display = "none";
+              generalForm.style.display = "flex";
+            }
+          });
         });
 
         // 預設啟動數位登入
@@ -454,290 +458,333 @@
         // Email 驗證登入事件處理器
         // ============================================
         let adminVerificationCode = "";
-        
+
         // Email 驗證碼發送按鈕
-        const adminVerificationBtn = loginModal.querySelector('.admin-verification-send-btn');
+        const adminVerificationBtn = loginModal.querySelector(
+          ".admin-verification-send-btn"
+        );
         let adminTimeLeft = 180;
         let adminCountdownTimer = null;
 
         function adminStartCountdown() {
-            if (!adminVerificationBtn) return;
-            adminVerificationBtn.disabled = true;
-            adminTimeLeft = 180;
+          if (!adminVerificationBtn) return;
+          adminVerificationBtn.disabled = true;
+          adminTimeLeft = 180;
 
-            function updateButtonText() {
-                const minutes = Math.floor(adminTimeLeft / 60);
-                const seconds = adminTimeLeft % 60;
-                adminVerificationBtn.textContent = `重新發送 (${minutes}:${seconds.toString().padStart(2, '0')})`;
+          function updateButtonText() {
+            const minutes = Math.floor(adminTimeLeft / 60);
+            const seconds = adminTimeLeft % 60;
+            adminVerificationBtn.textContent = `重新發送 (${minutes}:${seconds
+              .toString()
+              .padStart(2, "0")})`;
 
-                if (adminTimeLeft <= 0) {
-                    clearInterval(adminCountdownTimer);
-                    adminVerificationBtn.disabled = false;
-                    adminVerificationBtn.textContent = '發送驗證碼';
-                    return;
-                }
-                adminTimeLeft--;
+            if (adminTimeLeft <= 0) {
+              clearInterval(adminCountdownTimer);
+              adminVerificationBtn.disabled = false;
+              adminVerificationBtn.textContent = "發送驗證碼";
+              return;
             }
+            adminTimeLeft--;
+          }
 
-            updateButtonText();
-            adminCountdownTimer = setInterval(updateButtonText, 1000);
+          updateButtonText();
+          adminCountdownTimer = setInterval(updateButtonText, 1000);
         }
 
         if (adminVerificationBtn) {
-            adminVerificationBtn.addEventListener('click', async function() {
-                const email = document.getElementById('adminEmail').value;
+          adminVerificationBtn.addEventListener("click", async function () {
+            const email = document.getElementById("adminEmail").value;
 
-                if (!email) {
-                    alert('請輸入 Email');
-                    return;
+            if (!email) {
+              alert("請輸入 Email");
+              return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+              alert("請輸入有效的 Email 格式");
+              return;
+            }
+
+            try {
+              const response = await fetch("/api/v1/auth/email/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: email,
+                  is_verified: false,
+                }),
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                adminStartCountdown();
+                if (data.verification_code) {
+                  adminVerificationCode = data.verification_code;
+                  console.log("驗證碼(開發用):", data.verification_code);
+                  alert(
+                    "✅ 驗證碼已發送到您的Email，請查收！\n\n(開發環境：驗證碼已輸出到Console)"
+                  );
+                } else {
+                  alert("✅ 驗證碼已發送到您的Email，請查收！");
                 }
-
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    alert('請輸入有效的 Email 格式');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/v1/auth/email/auth', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: email,
-                            is_verified: false
-                        })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        adminStartCountdown();
-                        if (data.verification_code) {
-                            adminVerificationCode = data.verification_code;
-                            console.log('驗證碼(開發用):', data.verification_code);
-                            alert('✅ 驗證碼已發送到您的Email，請查收！\n\n(開發環境：驗證碼已輸出到Console)');
-                        } else {
-                            alert('✅ 驗證碼已發送到您的Email，請查收！');
-                        }
-                    } else {
-                        const error = await response.json();
-                        alert('發送失敗：' + (error.detail || '請稍後再試'));
-                    }
-                } catch (error) {
-                    console.error('發送驗證碼錯誤:', error);
-                    alert('網路錯誤：' + error.message);
-                }
-            });
+              } else {
+                const error = await response.json();
+                alert("發送失敗：" + (error.detail || "請稍後再試"));
+              }
+            } catch (error) {
+              console.error("發送驗證碼錯誤:", error);
+              alert("網路錯誤：" + error.message);
+            }
+          });
         }
 
         // 登入按鈕
-        const adminLoginBtn = loginModal.querySelector('.admin-login-btn');
+        const adminLoginBtn = loginModal.querySelector(".admin-login-btn");
         if (adminLoginBtn) {
-            adminLoginBtn.addEventListener('click', async function() {
-                const email = document.getElementById('adminEmail').value;
-                const verificationCode = document.getElementById('adminPassword').value;
-                const captchaInputEl = loginModal.querySelector('.admin-verification-input');
-                const captchaInput = captchaInputEl ? captchaInputEl.value : '';
-                const captchaTextEl = loginModal.querySelector('.admin-verification-code');
-                const captchaText = captchaTextEl ? captchaTextEl.textContent : '';
+          adminLoginBtn.addEventListener("click", async function () {
+            const email = document.getElementById("adminEmail").value;
+            const verificationCode =
+              document.getElementById("adminPassword").value;
+            const captchaInputEl = loginModal.querySelector(
+              ".admin-verification-input"
+            );
+            const captchaInput = captchaInputEl ? captchaInputEl.value : "";
+            const captchaTextEl = loginModal.querySelector(
+              ".admin-verification-code"
+            );
+            const captchaText = captchaTextEl ? captchaTextEl.textContent : "";
 
-                if (!email) {
-                    alert('請填寫email');
-                    return;
-                } else if (!verificationCode) {
-                    alert('請填寫驗證碼');
-                    return;
-                } else if (!captchaInput) {
-                    alert('請填寫圖形驗證碼');
-                    return;
+            if (!email) {
+              alert("請填寫email");
+              return;
+            } else if (!verificationCode) {
+              alert("請填寫驗證碼");
+              return;
+            } else if (!captchaInput) {
+              alert("請填寫圖形驗證碼");
+              return;
+            }
+
+            if (verificationCode.length !== 6) {
+              alert("驗證碼必須是 6 位數字");
+              return;
+            }
+
+            if (verificationCode !== adminVerificationCode) {
+              alert("驗證碼錯誤，請重新輸入");
+              return;
+            }
+
+            if (captchaInput !== captchaText) {
+              alert("圖形驗證碼錯誤，請重新輸入");
+              return;
+            }
+
+            try {
+              const response = await fetch("/api/v1/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: email,
+                  login_type: "password",
+                  verification_code: verificationCode,
+                  verify: true,
+                }),
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+
+                // 檢查權限
+                if (
+                  data.user.role !== "reviewer" &&
+                  data.user.role !== "admin"
+                ) {
+                  alert("❌ 此帳號沒有管理權限");
+                  return;
                 }
 
-                if (verificationCode.length !== 6) {
-                    alert('驗證碼必須是 6 位數字');
-                    return;
-                }
+                accessToken = data.access_token;
+                currentUser = data.user;
+                localStorage.setItem("admin_token", accessToken);
+                localStorage.setItem("admin_user", JSON.stringify(currentUser));
 
-                if (verificationCode !== adminVerificationCode) {
-                    alert('驗證碼錯誤，請重新輸入');
-                    return;
-                }
-
-                if (captchaInput !== captchaText) {
-                    alert('圖形驗證碼錯誤，請重新輸入');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/v1/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: email,
-                            login_type: 'password',
-                            verification_code: verificationCode,
-                            verify: true
-                        })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-
-                        // 檢查權限
-                        if (data.user.role !== 'reviewer' && data.user.role !== 'admin') {
-                            alert('❌ 此帳號沒有管理權限');
-                            return;
-                        }
-
-                        accessToken = data.access_token;
-                        currentUser = data.user;
-                        localStorage.setItem('admin_token', accessToken);
-                        localStorage.setItem('admin_user', JSON.stringify(currentUser));
-
-                        // 登入成功，重新載入頁面
-                        location.reload();
-                    } else {
-                        const error = await response.json();
-                        alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
-                    }
-                } catch (error) {
-                    console.error('登入錯誤:', error);
-                    alert('網路錯誤：' + error.message);
-                }
-            });
+                // 登入成功，重新載入頁面
+                location.reload();
+              } else {
+                const error = await response.json();
+                alert(
+                  "登入失敗：" +
+                    (error.detail?.message || error.detail || "請稍後再試")
+                );
+              }
+            } catch (error) {
+              console.error("登入錯誤:", error);
+              alert("網路錯誤：" + error.message);
+            }
+          });
         }
 
         // Google 登入按鈕
-        const adminGoogleBtn = loginModal.querySelector('.admin-google-btn');
+        const adminGoogleBtn = loginModal.querySelector(".admin-google-btn");
         if (adminGoogleBtn) {
-            adminGoogleBtn.addEventListener('click', function() {
-                window.location.href = '/api/v1/auth/google/login';
-            });
+          adminGoogleBtn.addEventListener("click", function () {
+            window.location.href = "/api/v1/auth/google/login";
+          });
         }
 
         // 刷新圖形驗證碼
-        const adminRefreshCaptchaBtn = loginModal.querySelector('.admin-refresh-captcha');
+        const adminRefreshCaptchaBtn = loginModal.querySelector(
+          ".admin-refresh-captcha"
+        );
         function adminGenerateCaptcha() {
-            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let captcha = '';
-            for (let i = 0; i < 5; i++) {
-                captcha += chars[Math.floor(Math.random() * chars.length)];
-            }
-            const captchaEl = loginModal.querySelector('.admin-verification-code');
-            if (captchaEl) captchaEl.textContent = captcha;
+          const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          let captcha = "";
+          for (let i = 0; i < 5; i++) {
+            captcha += chars[Math.floor(Math.random() * chars.length)];
+          }
+          const captchaEl = loginModal.querySelector(
+            ".admin-verification-code"
+          );
+          if (captchaEl) captchaEl.textContent = captcha;
         }
 
         if (adminRefreshCaptchaBtn)
-            adminRefreshCaptchaBtn.addEventListener('click', adminGenerateCaptcha);
+          adminRefreshCaptchaBtn.addEventListener(
+            "click",
+            adminGenerateCaptcha
+          );
         adminGenerateCaptcha();
 
         // ============================================
         // 數位身分憑證登入函數
         // ============================================
         async function adminLoginWithDigitalID() {
-            const vpRef = "00000000_mixcurry_idcard";
-            let transactionId = null;
-            let remainingSeconds = 300;
-            let pollingInterval = null;
-            let countdownInterval = null;
+          const vpRef = "00000000_mixcurry_idcard";
+          let transactionId = null;
+          let remainingSeconds = 300;
+          let pollingInterval = null;
+          let countdownInterval = null;
 
-            const qrImg = document.getElementById('adminQrImage');
-            const countdownEl = document.getElementById('adminQrCountdown');
+          const qrImg = document.getElementById("adminQrImage");
+          const countdownEl = document.getElementById("adminQrCountdown");
 
-            function updateCountdownDisplay() {
-                const minutes = Math.floor(remainingSeconds / 60);
-                const seconds = remainingSeconds % 60;
-                if (countdownEl) countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          function updateCountdownDisplay() {
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            if (countdownEl)
+              countdownEl.textContent = `${minutes}:${seconds
+                .toString()
+                .padStart(2, "0")}`;
+          }
+
+          updateCountdownDisplay();
+          countdownInterval = setInterval(() => {
+            remainingSeconds--;
+            if (remainingSeconds <= 0) {
+              if (pollingInterval) clearInterval(pollingInterval);
+              if (countdownInterval) clearInterval(countdownInterval);
+              updateCountdownDisplay();
+              alert("驗證逾時，請重新嘗試登入");
+              return;
+            }
+            updateCountdownDisplay();
+          }, 1000);
+
+          try {
+            const result = await fetch(
+              `/api/v1/complete-flow/generate-vp-qrcode`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ref: vpRef }),
+              }
+            );
+
+            const data = await result.json();
+            console.log("數位身分驗證回應:", data);
+
+            if (!data || !data.success) {
+              console.warn("generate-vp-qrcode failed or returned no success");
+              return;
             }
 
-            updateCountdownDisplay();
-            countdownInterval = setInterval(() => {
-                remainingSeconds--;
-                if (remainingSeconds <= 0) {
+            if (qrImg && data.qrcode_image) qrImg.src = data.qrcode_image;
+            transactionId = data.transaction_id;
+
+            if (transactionId) {
+              pollingInterval = setInterval(async () => {
+                try {
+                  const pollResult = await fetch(
+                    `/api/v1/complete-flow/verify-vp`,
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ transaction_id: transactionId }),
+                    }
+                  );
+                  const pollData = await pollResult.json();
+
+                  if (pollData && pollData.verified) {
+                    console.log("驗證成功，使用者資料：", pollData);
                     if (pollingInterval) clearInterval(pollingInterval);
                     if (countdownInterval) clearInterval(countdownInterval);
-                    updateCountdownDisplay();
-                    alert('驗證逾時，請重新嘗試登入');
-                    return;
-                }
-                updateCountdownDisplay();
-            }, 1000);
 
-            try {
-                const result = await fetch(`/api/v1/complete-flow/generate-vp-qrcode`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ref: vpRef })
-                });
+                    try {
+                      const loginResponse = await fetch("/api/v1/auth/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          email: pollData.email,
+                          password: "",
+                          login_type: "password",
+                        }),
+                      });
 
-                const data = await result.json();
-                console.log('數位身分驗證回應:', data);
+                      if (loginResponse.ok) {
+                        const loginData = await loginResponse.json();
 
-                if (!data || !data.success) {
-                    console.warn('generate-vp-qrcode failed or returned no success');
-                    return;
-                }
-
-                if (qrImg && data.qrcode_image) qrImg.src = data.qrcode_image;
-                transactionId = data.transaction_id;
-
-                if (transactionId) {
-                    pollingInterval = setInterval(async () => {
-                        try {
-                            const pollResult = await fetch(`/api/v1/complete-flow/verify-vp`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ transaction_id: transactionId })
-                            });
-                            const pollData = await pollResult.json();
-
-                            if (pollData && pollData.verified) {
-                                console.log('驗證成功，使用者資料：', pollData);
-                                if (pollingInterval) clearInterval(pollingInterval);
-                                if (countdownInterval) clearInterval(countdownInterval);
-
-                                try {
-                                    const loginResponse = await fetch('/api/v1/auth/login', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            email: pollData.email,
-                                            password: '',
-                                            login_type: 'password'
-                                        })
-                                    });
-
-                                    if (loginResponse.ok) {
-                                        const loginData = await loginResponse.json();
-                                        
-                                        // 檢查權限
-                                        if (loginData.user.role !== 'reviewer' && loginData.user.role !== 'admin') {
-                                            alert('❌ 此帳號沒有管理權限');
-                                            return;
-                                        }
-
-                                        accessToken = loginData.access_token;
-                                        currentUser = loginData.user;
-                                        localStorage.setItem('admin_token', accessToken);
-                                        localStorage.setItem('admin_user', JSON.stringify(currentUser));
-                                        location.reload();
-                                    } else {
-                                        const error = await loginResponse.json();
-                                        alert('登入失敗：' + (error.detail?.message || error.detail || '請稍後再試'));
-                                    }
-                                } catch (error) {
-                                    console.error('Digital ID login error:', error);
-                                    alert('登入過程發生錯誤，請稍後再試');
-                                }
-                            }
-                        } catch (err) {
-                            console.error('Polling error:', err);
+                        // 檢查權限
+                        if (
+                          loginData.user.role !== "reviewer" &&
+                          loginData.user.role !== "admin"
+                        ) {
+                          alert("❌ 此帳號沒有管理權限");
+                          return;
                         }
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('數位身分驗證錯誤:', error);
-            }
-        }
 
+                        accessToken = loginData.access_token;
+                        currentUser = loginData.user;
+                        localStorage.setItem("admin_token", accessToken);
+                        localStorage.setItem(
+                          "admin_user",
+                          JSON.stringify(currentUser)
+                        );
+                        location.reload();
+                      } else {
+                        const error = await loginResponse.json();
+                        alert(
+                          "登入失敗：" +
+                            (error.detail?.message ||
+                              error.detail ||
+                              "請稍後再試")
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Digital ID login error:", error);
+                      alert("登入過程發生錯誤，請稍後再試");
+                    }
+                  }
+                } catch (err) {
+                  console.error("Polling error:", err);
+                }
+              }, 2000);
+            }
+          } catch (error) {
+            console.error("數位身分驗證錯誤:", error);
+          }
+        }
       }
 
       function initDashboard() {
@@ -1026,7 +1073,6 @@
           alert(`系統錯誤：${error.message}`);
         }
       }
-
 
       async function rejectApplication() {
         const comments = document.getElementById("reviewComments").value;
@@ -2110,7 +2156,6 @@
           alert(`系統錯誤：${error.message}`);
         }
       }
-
 
       async function rejectApplication() {
         const comments = document.getElementById("reviewComments").value;
