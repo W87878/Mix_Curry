@@ -1360,7 +1360,7 @@
                                 "modadigitalwallet://"
                               )
                                 ? `
-                                <a href="${app.gov_deep_link}" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                <a href="${app.application.gov_deep_link}" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
                                     📱 點此直接開啟數位憑證 APP
                                 </a>
                             `
@@ -1429,8 +1429,8 @@
                             <h3 style="color: #991b1b; margin-bottom: 10px; font-size: 16px;">駁回原因：</h3>
                             <p style="color: #7f1d1d; font-size: 14px; line-height: 1.6; margin: 0;">
                                 ${
-                                  app.rejection_reason ||
-                                  app.review_notes ||
+                                  app.application.rejection_reason ||
+                                  app.application.review_notes ||
                                   "未提供具體原因，請聯繫承辦人員"
                                 }
                             </p>
@@ -1438,14 +1438,14 @@
 
                         <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                             <p style="margin: 5px 0;"><strong>案件編號：</strong>${
-                              app.case_no
+                              app.application.case_no
                             }</p>
-                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.requested_amount?.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.application.requested_amount?.toLocaleString()}</p>
                             <p style="margin: 5px 0;"><strong>災害類型：</strong>${getDisasterTypeText(
-                              app.disaster_type
+                              app.application.disaster_type
                             )}</p>
                             <p style="margin: 5px 0;"><strong>提交日期：</strong>${new Date(
-                              app.submitted_at
+                              app.application.submitted_at
                             ).toLocaleDateString("zh-TW")}</p>
                         </div>
 
@@ -1459,10 +1459,10 @@
                         </div>
 
                         <div style="display: flex; gap: 10px; margin-top: 20px;">
-                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="flex: 1; padding: 14px; background: #f3f4f6; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                            <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" style="flex: 1; padding: 14px; background: #f3f4f6; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
                                 關閉
                             </button>
-                            <button onclick="this.parentElement.parentElement.parentElement.remove(); showApplyForm();" style="flex: 1; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
+                            <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove(); showApplyForm();" style="flex: 1; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500;">
                                 重新申請
                             </button>
                         </div>
