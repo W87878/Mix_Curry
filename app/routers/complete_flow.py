@@ -25,6 +25,7 @@ class ReviewApplicationRequest(BaseModel):
     application_id: str
     approved: bool
     review_notes: Optional[str] = ""
+    approved_amount: Optional[int] = None
 
 
 class IssueCredentialResponse(BaseModel):
@@ -159,6 +160,7 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
         db_service.client.table("applications").update({
             "status": "approved",
             "review_notes": request.review_notes,
+            "approved_amount": request.approved_amount,
             "reviewed_at": datetime.now().isoformat(),
             "gov_qr_code_data": issue_result.get("qr_code_data"),
             "gov_transaction_id": issue_result.get("transaction_id"),
