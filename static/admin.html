@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>里長審核後台 - 災民補助管理系統</title>
+    <title>審核後台 - 災民補助管理系統</title>
     <link rel="stylesheet" href="/static/styles/admin.css" />
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDbuTGzgDiR9WfXuvbPOZSc5nNm7NDucuQ&libraries=places,geometry"></script>
   </head>
   <body>
     <div class="header">
-      <div class="logo">👨‍💼 里長審核後台</div>
+      <div class="logo">👨‍💼 審核人員後台</div>
       <div class="user-info">
         <div>
           <div style="font-size: 14px; font-weight: 500" id="adminName">
@@ -324,7 +324,7 @@
 
                     <!-- Main Content -->
                     <main style="display: flex; flex-direction: column; align-items: center; padding-top: 80px; flex: 1;">
-                        <h2 style="font-size: 30px; font-weight: 700; margin-bottom: 40px; letter-spacing: 0.6px;">里長/管理員登入</h2>
+                        <h2 style="font-size: 30px; font-weight: 700; margin-bottom: 40px; letter-spacing: 0.6px;">審核人員登入</h2>
 
                         <div style="width: 612px; border-radius: 16px; overflow: hidden; margin-bottom: 48px;">
                             <!-- Tabs -->
@@ -447,6 +447,13 @@
             } else {
               digitalForm.style.display = "none";
               generalForm.style.display = "flex";
+              // 停止數位登入的輪詢和倒數計時
+              if (window.digitalLoginPollingInterval) {
+                clearInterval(window.digitalLoginPollingInterval);
+              }
+              if (window.digitalLoginCountdownInterval) {
+                clearInterval(window.digitalLoginCountdownInterval);
+              }
             }
           });
         });
@@ -664,8 +671,9 @@
           const vpRef = "00000000_mixcurry_idcard";
           let transactionId = null;
           let remainingSeconds = 300;
-          let pollingInterval = null;
-          let countdownInterval = null;
+          // 使用 window 物件來存儲計時器，以便在其他地方可以存取
+          window.digitalLoginPollingInterval = null;
+          window.digitalLoginCountdownInterval = null;
 
           const qrImg = document.getElementById("adminQrImage");
           const countdownEl = document.getElementById("adminQrCountdown");
@@ -680,11 +688,11 @@
           }
 
           updateCountdownDisplay();
-          countdownInterval = setInterval(() => {
+          window.digitalLoginCountdownInterval = setInterval(() => {
             remainingSeconds--;
             if (remainingSeconds <= 0) {
-              if (pollingInterval) clearInterval(pollingInterval);
-              if (countdownInterval) clearInterval(countdownInterval);
+              if (window.digitalLoginPollingInterval) clearInterval(window.digitalLoginPollingInterval);
+              if (window.digitalLoginCountdownInterval) clearInterval(window.digitalLoginCountdownInterval);
               updateCountdownDisplay();
               alert("驗證逾時，請重新嘗試登入");
               return;
@@ -714,7 +722,7 @@
             transactionId = data.transaction_id;
 
             if (transactionId) {
-              pollingInterval = setInterval(async () => {
+              window.digitalLoginPollingInterval = setInterval(async () => {
                 try {
                   const pollResult = await fetch(
                     `/api/v1/complete-flow/verify-vp`,
@@ -726,12 +734,10 @@
                   );
                   const pollData = await pollResult.json();
 
-                  if (pollData && pollData.verified) {
-                    console.log("驗證成功，使用者資料：", pollData);
-                    if (pollingInterval) clearInterval(pollingInterval);
-                    if (countdownInterval) clearInterval(countdownInterval);
-
-                    try {
+                    if (pollData && pollData.verified) {
+                      console.log("驗證成功，使用者資料：", pollData);
+                      if (window.digitalLoginPollingInterval) clearInterval(window.digitalLoginPollingInterval);
+                      if (window.digitalLoginCountdownInterval) clearInterval(window.digitalLoginCountdownInterval);                    try {
                       const loginResponse = await fetch("/api/v1/auth/login", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -1076,34 +1082,51 @@
 
       async function rejectApplication() {
         const comments = document.getElementById("reviewComments").value;
+        const amount = 0;
 
         if (!comments) {
           alert("請填寫駁回原因");
           return;
         }
 
-        const result = await fetch(
-          `${API_BASE}/reviews/reject/${currentApplication.id}`,
-          {
+        try {
+          const result = await fetch(`/api/v1/complete-flow/review-and-issue`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
-              rejection_reason: comments,
-              comments: comments,
+              application_id: currentApplication.id,
+              approved: false,
+              review_notes: comments,
+              approved_amount: amount,
             }),
-          }
-        );
+          });
 
-        if (result.ok) {
-          alert("❌ 已駁回申請");
-          closeReviewModal();
-          loadDashboardStats();
-          loadPendingApplications();
-        } else {
-          alert("操作失敗，請稍後再試");
+          const data = await result.json();
+          console.log("駁回回應數據:", data); // 調試用
+          console.log("data.qr_code 存在?", !!data.qr_code);
+          console.log("data.qr_code 類型:", typeof data.qr_code);
+          console.log("data 所有鍵:", Object.keys(data));
+
+          if (data.success) {
+            // 駁回成功，QR Code 已儲存至申請人的申請記錄中
+            alert(
+              "✅ 駁回成功！\n\n" +
+                "駁回原因已發送給申請人。\n" +
+                "申請人可在「查詢申請歷史紀錄」中查看駁回原因。\n\n" +
+                `案件編號：${currentApplication.case_no}`
+            );
+
+            closeReviewModal();
+            loadDashboardStats();
+            loadPendingApplications();
+          } else {
+            alert(`操作失敗：${data.message || "請稍後再試"}`);
+          }
+        } catch (error) {
+          console.error("審核錯誤:", error);
+          alert(`系統錯誤：${error.message}`);
         }
       }
 
@@ -2101,131 +2124,6 @@
         }
       }
 
-      function closeReviewModal() {
-        document.getElementById("reviewModal").classList.remove("show");
-        currentApplication = null;
-      }
-
-      async function approveApplication() {
-        const amount = document.getElementById("approvedAmount").value;
-        const comments = document.getElementById("reviewComments").value;
-
-        if (!amount) {
-          alert("請輸入核准金額");
-          return;
-        }
-
-        // 使用新的完整流程 API（整合政府發行端）
-        try {
-          const result = await fetch(`/api/v1/complete-flow/review-and-issue`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              application_id: currentApplication.id,
-              approved: true,
-              review_notes: comments,
-              approved_amount: amount,
-            }),
-          });
-
-          const data = await result.json();
-          console.log("審核回應數據:", data); // 調試用
-          console.log("data.qr_code 存在?", !!data.qr_code);
-          console.log("data.qr_code 類型:", typeof data.qr_code);
-          console.log("data 所有鍵:", Object.keys(data));
-
-          if (data.success) {
-            // 核准成功，QR Code 已儲存至申請人的申請記錄中
-            alert(
-              "✅ 核准成功！\n\n" +
-                "數位憑證已產生並發送給災民。\n" +
-                "災民可在「查詢申請歷史紀錄」中查看 QR Code 並掃描領取補助。\n\n" +
-                `案件編號：${currentApplication.case_no}`
-            );
-
-            closeReviewModal();
-            loadDashboardStats();
-            loadPendingApplications();
-          } else {
-            alert(`操作失敗：${data.message || "請稍後再試"}`);
-          }
-        } catch (error) {
-          console.error("審核錯誤:", error);
-          alert(`系統錯誤：${error.message}`);
-        }
-      }
-
-      async function rejectApplication() {
-        const comments = document.getElementById("reviewComments").value;
-
-        if (!comments) {
-          alert("請填寫駁回原因");
-          return;
-        }
-
-        const result = await fetch(
-          `${API_BASE}/reviews/reject/${currentApplication.id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              rejection_reason: comments,
-              comments: comments,
-            }),
-          }
-        );
-
-        if (result.ok) {
-          alert("❌ 已駁回申請");
-          closeReviewModal();
-          loadDashboardStats();
-          loadPendingApplications();
-        } else {
-          alert("操作失敗，請稍後再試");
-        }
-      }
-
-      function loadStatistics() {
-        document.getElementById("statisticsContent").innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📊</div>
-                    <p>統計功能開發中...</p>
-                </div>
-            `;
-      }
-
-      function logout() {
-        if (confirm("確定要登出嗎？")) {
-          localStorage.removeItem("admin_token");
-          localStorage.removeItem("admin_user");
-          location.reload();
-        }
-      }
-
-      function getStatusText(status) {
-        const map = {
-          pending: "待審核",
-          under_review: "審核中",
-          approved: "已核准",
-          rejected: "已駁回",
-        };
-        return map[status] || status;
-      }
-
-      function getDisasterTypeText(type) {
-        const map = {
-          flood: "水災",
-          typhoon: "颱風",
-          earthquake: "地震",
-          other: "其他",
-        };
-        return map[type] || type;
-      }
     </script>
   </body>
 </html>
