@@ -1505,14 +1505,14 @@
 
                         <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                             <p style="margin: 5px 0;"><strong>案件編號：</strong>${
-                              app.case_no
+                              app.application.case_no
                             }</p>
-                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.requested_amount?.toLocaleString()}</p>
+                            <p style="margin: 5px 0;"><strong>申請金額：</strong>NT$ ${app.application.requested_amount?.toLocaleString()}</p>
                             <p style="margin: 5px 0;"><strong>災害類型：</strong>${getDisasterTypeText(
-                              app.disaster_type
+                              app.application.disaster_type
                             )}</p>
                             <p style="margin: 5px 0;"><strong>提交日期：</strong>${new Date(
-                              app.submitted_at
+                              app.application.submitted_at
                             ).toLocaleDateString("zh-TW")}</p>
                         </div>
 
