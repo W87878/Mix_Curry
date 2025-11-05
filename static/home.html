@@ -9,14 +9,14 @@
 		body {
 			margin: 0;
 			font-family: 'Noto Sans TC', sans-serif;
-			background: #F8FAFC;
+			background: #FFFFFF;
 			color: #0F172A;
 		}
 			.header {
 				width: 100vw;
 				min-width: 320px;
 				height: 139px;
-				background: #CBD5E1;
+				background: #F9F7F4;
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
@@ -34,7 +34,7 @@
 		.header-title {
 			font-size: 36px;
 			font-weight: 700;
-			color: #000;
+			color: #1E81B2;
 		}
 		.header-menu {
 			display: flex;
@@ -119,6 +119,23 @@
 			margin-top: 8px;
 			cursor: pointer;
 		}
+        .expand-all-btn {
+            background: #fff;
+            color: black;
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 400;
+            border: 0px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            &:hover {
+                background: black;
+                color: #fff;
+                border-radius: 8px;
+            }
+        }
 		.indicators {
 			display: flex;
 			gap: 8px;
@@ -241,7 +258,7 @@
             <div>
                 <div id="all-disaster-cards"></div>
                 <div style="text-align:center;margin-top:24px;margin-bottom:48px;">
-                    <button id="expand-all-btn" class="card-btn" style="width:200px;">全部展開</button>
+                    <button id="expand-all-btn" class="expand-all-btn" style="width:200px;">查看全部</button>
                 </div>
             </div>
         </div>
@@ -389,7 +406,7 @@
         document.getElementById('expand-all-btn').onclick = function() {
             isExpanded = !isExpanded;
             renderAllDisasterCards();
-            this.textContent = isExpanded ? '收合' : '全部展開';
+            this.textContent = isExpanded ? '查看較少' : '查看全部';
         };
     });
 
