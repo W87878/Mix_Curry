@@ -312,13 +312,13 @@
         const loginModal = document.createElement("div");
         loginModal.id = "adminLoginModal";
         loginModal.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; z-index: 9999; overflow-y: auto;">
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F9F7F4; display: flex; flex-direction: column; z-index: 9999; overflow-y: auto;">
                     <!-- Header -->
-                    <header style="background-color: #CBD5E1; padding: 48px 96px; display: flex; justify-content: space-between; align-items: center;">
-                        <h1 style="font-size: 36px; font-weight: 700; color: #000;">災害補助申請平台
+                    <header style="background-color: #F9F7F4; padding: 48px 96px; display: flex; justify-content: space-between; align-items: center;">
+                        <h1 style="font-size: 36px; font-weight: 700; color: #1E81B2;">災害補助申請平台
                         </h1>
                         <nav style="display: flex; gap: 24px; font-size: 20px; font-weight: 500; color: #000;">
-                          <a href="/" style="text-decoration: none; color: inherit; letter-spacing: 0.4px;">返回首頁</a>
+                          <a href="/" style="text-decoration: none; color: black; letter-spacing: 0.4px;">返回首頁</a>
                         </nav>
                     </header>
 
@@ -329,16 +329,16 @@
                         <div style="width: 612px; border-radius: 16px; overflow: hidden; margin-bottom: 48px;">
                             <!-- Tabs -->
                             <div style="display: flex;">
-                                <div class="admin-login-tab" data-tab="general" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #CBD5E1; color: #000;">
+                                <div class="admin-login-tab" data-tab="general" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #E4F1FA; color: #1E81B2;">
                                     <span style="margin-right: 8px">📧</span>一般登入
                                 </div>
-                                <div class="admin-login-tab active" data-tab="digital" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #64748B; color: #F8FAFC;">
+                                <div class="admin-login-tab active" data-tab="digital" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #1E81B2; color: #F4F7F7;">
                                     📱 數位身分證憑證登入 (推薦)
                                 </div>
                             </div>
 
                             <!-- General Login Form -->
-                            <div id="adminGeneralLoginForm" style="background-color: #F1F5F9; padding: 48px; display: none; flex-direction: column; gap: 24px;">
+                            <div id="adminGeneralLoginForm" style="background-color: #FFFFFF; padding: 48px; display: none; flex-direction: column; gap: 24px;">
                                 <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; margin-bottom: 20px;">
                                     <label style="font-size: 16px; color: #020618; letter-spacing: 0.64px; display: block; font-weight: 500; margin-bottom: 8px;">電子信箱</label>
                                     <input type="email" id="adminEmail" name="email" placeholder="輸入信箱帳號" required style="padding: 8px 12px; height: 40px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; font-size: 14px; color: #62748E; width: 100%;" />
@@ -351,7 +351,7 @@
                                     </div>
                                     <div style="position: relative; width: 100%;">
                                         <input type="password" id="adminPassword" name="password" placeholder="輸入驗證碼" required style="width: 100%; padding: 8px 110px 8px 12px; height: 40px; border: 1px solid #E2E8F0; border-radius: 6px; background: #fff; font-size: 14px; color: #62748E;" />
-                                        <button type="button" class="admin-verification-send-btn" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); height: calc(100% - 4px); margin: 0; border-radius: 4px; padding: 8px 16px; background: #0F172A; color: white; border: none; font-size: 14px; letter-spacing: 0.64px; cursor: pointer; white-space: nowrap; transition: background-color 0.3s;">
+                                        <button type="button" class="admin-verification-send-btn" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); height: calc(100% - 4px); margin: 0; border-radius: 4px; padding: 8px 16px; background: #1E81B2; color: white; border: none; font-size: 14px; letter-spacing: 0.64px; cursor: pointer; white-space: nowrap; transition: background-color 0.3s;">
                                             發送驗證碼
                                         </button>
                                         <style>
@@ -371,19 +371,47 @@
                                     <input type="text" class="admin-verification-input" placeholder="請輸入左方圖片中的文字" required style="flex: 1; padding: 8px 12px; height: 40px; border: 1px solid #E2E8F0; border-radius: 8px; background: #fff; font-size: 14px; color: #62748E;" />
                                 </div>
 
-                                <button type="submit" class="admin-login-btn" style="width: 100%; padding: 8px 16px; background: #0F172A; color: white; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">登入</button>
+                                <button type="submit" class="admin-login-btn" style="width: 100%; padding: 8px 16px; background: #1E81B2; color: #F4F7F7; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">登入</button>
 
                                 <div style="display: flex; align-items: center; gap: 8px; width: 100%; margin: 8px 0;">
-                                    <div style="flex: 1; height: 2px; background: #94A3B8; border-radius: 999px;"></div>
-                                    <span style="color: #94A3B8; font-size: 14px; letter-spacing: 0.56px;">或</span>
-                                    <div style="flex: 1; height: 2px; background: #94A3B8; border-radius: 999px;"></div>
+                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
+                                    <span style="color: #779299; font-size: 14px; letter-spacing: 0.56px;">或</span>
+                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
                                 </div>
 
-                                <button type="button" class="admin-google-btn" style="width: 100%; padding: 8px 16px; background: #CBD5E1; color: #0F172A; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">使用Google繼續登入</button>
+                                <button type="button" class="admin-google-btn" style="width: 100%; padding: 8px 16px; background: white; color: #0F172A; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">
+                                <!-- Google SVG Icon -->
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  x="0px"
+                                  y="0px"
+                                  width="30"
+                                  height="30"
+                                  viewBox="0 0 48 48"
+                                  style="vertical-align: middle; position: relative; top: -0.5px"
+                                >
+                                  <path
+                                    fill="#FFC107"
+                                    d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                                  ></path>
+                                  <path
+                                    fill="#FF3D00"
+                                    d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+                                  ></path>
+                                  <path
+                                    fill="#4CAF50"
+                                    d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+                                  ></path>
+                                  <path
+                                    fill="#1976D2"
+                                    d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+                                  ></path>
+                                </svg>
+                                Google 帳號登入</button>
                             </div>
 
                             <!-- Digital Login Form -->
-                            <div id="adminDigitalLoginForm" style="background-color: #F1F5F9; padding: 48px; display: flex; flex-direction: column; gap: 24px;">
+                            <div id="adminDigitalLoginForm" style="background-color: #FFFFFF; padding: 48px; display: flex; flex-direction: column; gap: 24px;">
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                                     <div style="font-weight: 700; font-size: 24px; line-height: 32px; text-align: center; letter-spacing: 0.48px; color: #020618;">數位憑證皮夾APP</div>
                                     <div style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; letter-spacing: 0.64px; color: #020618;">數位身分憑證登入方式</div>
@@ -398,16 +426,16 @@
                                     </div>
                                 </div>
 
-                                <p style="font-weight: 400; font-size: 12px; line-height: 20px; text-align: center; letter-spacing: 0.48px; color: #475569; margin-bottom: 24px;">使用數位憑證皮夾APP掃碼登入</p>
+                                <p style="font-weight: 400; font-size: 12px; line-height: 20px; text-align: center; letter-spacing: 0.48px; color: #779299; margin-bottom: 24px;">使用數位憑證皮夾APP掃碼登入</p>
 
                                 <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
-                                    <div style="flex: 1; height: 2px; background: #94A3B8; border-radius: 999px;"></div>
+                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
                                 </div>
 
                                 <a href="https://moda.gov.tw/major-policies/wallet/1695" target="_blank" style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; text-decoration-line: underline; color: #000000; letter-spacing: 0.64px; margin: 24px 0; display: block;">關於數位身分證憑證說明</a>
 
                                 <p style="font-family: 'Noto Sans TC', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; letter-spacing: 0.64px; color: #000000;">
-                                    尚未加入會員? <a href="/register" style="text-decoration-line: underline; color: inherit;">馬上註冊</a>
+                                    還沒有數位身分憑證嗎？ <a target="_blank" href="https://wallet.gov.tw/zh-twr" style="text-decoration-line: underline; color: inherit;">點我立即申請</a>
                                 </p>
                             </div>
                         </div>
@@ -428,12 +456,12 @@
             // 更新 tab 樣式
             tabs.forEach((t) => {
               if (t.getAttribute("data-tab") === tabType) {
-                t.style.backgroundColor = "#64748B";
-                t.style.color = "#F8FAFC";
+                t.style.backgroundColor = "#1E81B2";
+                t.style.color = "#F4F7F7";
                 t.classList.add("active");
               } else {
-                t.style.backgroundColor = "#CBD5E1";
-                t.style.color = "#000";
+                t.style.backgroundColor = "#E4F1FA";
+                t.style.color = "#1E81B2";
                 t.classList.remove("active");
               }
             });
