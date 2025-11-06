@@ -719,8 +719,10 @@
           window.digitalLoginCountdownInterval = setInterval(() => {
             remainingSeconds--;
             if (remainingSeconds <= 0) {
-              if (window.digitalLoginPollingInterval) clearInterval(window.digitalLoginPollingInterval);
-              if (window.digitalLoginCountdownInterval) clearInterval(window.digitalLoginCountdownInterval);
+              if (window.digitalLoginPollingInterval)
+                clearInterval(window.digitalLoginPollingInterval);
+              if (window.digitalLoginCountdownInterval)
+                clearInterval(window.digitalLoginCountdownInterval);
               updateCountdownDisplay();
               alert("驗證逾時，請重新嘗試登入");
               return;
@@ -762,10 +764,13 @@
                   );
                   const pollData = await pollResult.json();
 
-                    if (pollData && pollData.verified) {
-                      console.log("驗證成功，使用者資料：", pollData);
-                      if (window.digitalLoginPollingInterval) clearInterval(window.digitalLoginPollingInterval);
-                      if (window.digitalLoginCountdownInterval) clearInterval(window.digitalLoginCountdownInterval);                    try {
+                  if (pollData && pollData.verified) {
+                    console.log("驗證成功，使用者資料：", pollData);
+                    if (window.digitalLoginPollingInterval)
+                      clearInterval(window.digitalLoginPollingInterval);
+                    if (window.digitalLoginCountdownInterval)
+                      clearInterval(window.digitalLoginCountdownInterval);
+                    try {
                       const loginResponse = await fetch("/api/v1/auth/login", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -2147,7 +2152,6 @@
           alert("下載失敗: " + error.message);
         }
       }
-
     </script>
   </body>
 </html>

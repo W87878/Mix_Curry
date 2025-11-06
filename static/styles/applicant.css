@@ -215,7 +215,7 @@ textarea:focus {
 .divider-line {
   flex: 1;
   height: 2px;
-  background: #C9D5D8;
+  background: #c9d5d8;
   border-radius: 999px;
 }
 
@@ -715,7 +715,7 @@ textarea:focus {
 }
 
 .label {
-  background: #F2F9FD;
+  background: #f2f9fd;
   color: #000000;
   padding: 6px 12px;
   border-radius: 16px;
