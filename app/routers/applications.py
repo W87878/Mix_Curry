@@ -349,14 +349,21 @@ async def list_applications(
     - **status**: 可選的狀態篩選
     """
     try:
+        # 建立查詢
+        query = db_service.client.table("applications")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)
+        
+        # 如果有狀態篩選
         if status:
-            applications = db_service.get_applications_by_status(status, limit)
-        else:
-            # 取得所有案件（這裡可以優化成分頁查詢）
-            applications = db_service.get_applications_by_status("pending", 1000)
+            query = query.eq("status", status)
+        
+        result = query.execute()
+        applications = result.data if result.data else []
         
         # 簡單分頁
-        paginated = applications[skip:skip + limit]
+        paginated = applications[skip:skip + limit] if skip > 0 else applications
         
         return APIResponse(
             success=True,

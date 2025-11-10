@@ -69,14 +69,19 @@
             margin-bottom: 32px;
         }
 		.card {
-			background: #F1F5F9;
-			border-radius: 16px;
-			padding: 12px;
+			background: #FFFFFF;
+			border-radius: 12px;
+			padding: 24px;
 			width: 400px;
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+			transition: all 0.3s ease;
+		}
+		.card:hover {
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 		}
 		.card-title {
             display: flex;
@@ -91,33 +96,59 @@
 			margin-right: 10px;
 		}
 		.card-label {
-            background: #94A3B8;
-            color: #fff;
+            background: #D1E9FF;
+            color: #1E81B2;
             border-radius: 16px;
             padding: 4px 12px;
             font-size: 12px;
-            font-weight: 400;
+            font-weight: 500;
             margin-left: auto;
 		}
 		.card-content {
-			font-size: 16px;
-			color: #0F172A;
-			margin-bottom: 4px;
+			font-size: 14px;
+			color: #64748B;
+			margin-bottom: 8px;
+			line-height: 1.6;
 		}
 		.card-date, .card-amount {
-			font-size: 16px;
-			color: #0F172A;
+			font-size: 14px;
+			color: #475569;
+			margin-bottom: 4px;
+		}
+		.card-buttons {
+			display: flex;
+			gap: 12px;
+			margin-top: 12px;
 		}
 		.card-btn {
-			background: #0F172A;
-			color: #fff;
+			flex: 1;
 			border-radius: 8px;
-			padding: 8px 16px;
+			padding: 10px 16px;
 			text-align: center;
-			font-size: 16px;
-			font-weight: 400;
-			margin-top: 8px;
+			font-size: 14px;
+			font-weight: 500;
 			cursor: pointer;
+			border: none;
+			transition: all 0.3s ease;
+		}
+		.card-btn-primary {
+			background: #1E81B2;
+			color: #fff;
+		}
+		.card-btn-primary:hover {
+			background: #166a93;
+		}
+		.card-btn-primary:disabled {
+			background: #94A3B8;
+			cursor: not-allowed;
+			opacity: 0.6;
+		}
+		.card-btn-secondary {
+			background: #F1F5F9;
+			color: #475569;
+		}
+		.card-btn-secondary:hover {
+			background: #E2E8F0;
 		}
         .expand-all-btn {
             background: #fff;
@@ -154,210 +185,156 @@
 		/* 登入頁樣式略，依同設計規則 */
 
         /* 輪播自訂樣式 */
-        .carousel-track {
+        .carousel {
             position: relative;
             width: 100%;
-            height: 320px;
+            margin: 0 auto 24px auto;
             display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 24px;
+            overflow: visible;
         }
-        .carousel-img-custom {
-            width: 320px;
-            height: 320px;
-            min-width: 100%;
-            min-height: 100%;
-            object-fit: cover;
-            border-radius: 16px;
-            transition: all 0.4s cubic-bezier(.4,0,.2,1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        
+        .carousel-card {
             position: relative;
-            z-index: 1;
+            flex: 1;
+            height: 240px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.3s ease;
         }
-        .carousel-img-custom.center {
-            z-index: 2;
-            opacity: 1;
-            transform: scale(1);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        
+        .carousel-card:hover {
+            transform: translateY(-4px);
         }
-        .carousel-img-custom.side {
-            z-index: 1;
-            opacity: 0.4;
-            transform: scale(0.85);
+        
+        .carousel-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-            .carousel {
-                position: relative;
-                width: 100%;
-                max-width: 800px;
-                margin: 0 auto 24px auto;
-                height: 320px;
-                background: #F1F5F9;
-                border-radius: 16px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
-            .carousel-img {
-                width: 100%;
-                height: 320px;
-                object-fit: cover;
-                border-radius: 16px;
-                position: absolute;
-                left: 0;
-                top: 0;
-                display: none;
-            }
-            .carousel-img.active {
-                display: block;
-            }
-            .carousel-controls {
-                position: absolute;
-                bottom: 16px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 16px;
-            }
-            .carousel-btn {
-                background: #CBD5E1;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 16px;
-                font-size: 20px;
-                cursor: pointer;
-                color: #0F172A;
-                font-weight: 700;
-            }
+        
+        .carousel-card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 24px 20px;
+            color: white;
+        }
+        
+        .carousel-card-text {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
 	</style>
 </head>
 <body>
 	<div class="header">
-		<div class="header-title">災害補助申請平台</div>
+		<div class="header-title">🏚️ 災害補助申請平台</div>
 		<div class="header-menu">
 			<a href="/admin">審核人員入口</a>
 			<a href="https://welfare.ntpc.gov.tw/viewService/show/22023?fromOpa=1">申請流程</a>
-			<a href="/applicant">申請與查詢</a>
+			<a href="/applicant">進度查詢</a>
 		</div>
 	</div>
+	
 	<div class="main">
+		<!-- 即時消息輪播 -->
 		<div>
 			<div class="section-title">即時消息</div>
-			<div class="carousel">
-				<div id="carousel-track" class="carousel-track"></div>
+			<div class="carousel" id="carousel-container">
+				<!-- 動態生成輪播卡片 -->
 			</div>
 			<div class="indicators" id="carousel-indicators"></div>
 		</div>
+		
+		<!-- 災害補助項目 -->
 		<div>
-			<div class="section-title">最新災害補助</div>
-            <div class="card-row" id="latest-disaster-cards"></div>
-		</div>
-		<div>
-			<div class="section-title">所有災害補助</div>
-            <div>
-                <div id="all-disaster-cards"></div>
-                <div style="text-align:center;margin-top:24px;margin-bottom:48px;">
-                    <button id="expand-all-btn" class="expand-all-btn" style="width:200px;">查看全部</button>
-                </div>
-            </div>
+			<div class="section-title">災害補助項目</div>
+            <div id="all-disaster-cards"></div>
         </div>
 	</div>
 </body>
 <script>
-    // 所有災害補助卡片資料
+    // 災害補助卡片資料（只保留 6 個）
     const allDisasterCards = [
         {
-            title: '水災補助',
-            label: '天然災害',
-            content: '因水災造成房屋損壞或生活必需品損失者',
-            date: '申請日期 : 即日起至114年11/12',
-            amount: '金額 : 最高50,000元',
-            icon: 'static/assets/water.svg',
-        },
-        // 可依需求增加更多卡片
-        {
-            title: '颱風補助',
-            label: '天然災害',
-            content: '因颱風造成財物損失者',
-            date: '申請日期 : 即日起至114年10/31',
-            amount: '金額 : 最高30,000元',
+            title: '淹水救助',
+            label: '救濟項目',
+            content: '情況：住家因水災受損達50公分以上，且有高度財損之相關證明文件。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高20,000元',
             icon: 'static/assets/water.svg',
         },
         {
-            title: '地震補助',
-            label: '天然災害',
-            content: '因地震造成房屋損壞者',
-            date: '申請日期 : 即日起至114年09/30',
-            amount: '金額 : 最高100,000元',
+            title: '土石流損害救助',
+            label: '救濟項目',
+            content: '情況：住家因土石流受災達30公分以上，且有高度財損之相關證明文件。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高20,000元',
             icon: 'static/assets/water.svg',
         },
         {
-            title: '火災補助',
-            label: '意外災害',
-            content: '因火災造成財物損失者',
-            date: '申請日期 : 即日起至114年08/15',
-            amount: '金額 : 最高80,000元',
+            title: '安援救助',
+            label: '救濟項目',
+            content: '情況：住家因災不堪居住住，並造遷居或短期居住旅館之住宿。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高20,000元',
             icon: 'static/assets/water.svg',
         },
         {
-            title: '土石流補助',
-            label: '天然災害',
-            content: '因土石流造成損失者',
-            date: '申請日期 : 即日起至114年07/20',
-            amount: '金額 : 最高60,000元',
+            title: '重傷救助',
+            label: '救濟項目',
+            content: '情況：因災受到重傷住院或就醫，且有相關住診證明及醫療費單據。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高100,000元',
             icon: 'static/assets/water.svg',
         },
         {
-            title: '寒害補助',
-            label: '氣候災害',
-            content: '因寒害造成損失者',
-            date: '申請日期 : 即日起至114年12/31',
-            amount: '金額 : 最高40,000元',
+            title: '失蹤救助',
+            label: '救濟項目',
+            content: '情況：因災失蹤滿3日以上，經全民眾報案警方或其機構關搜尋。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高20,000元',
             icon: 'static/assets/water.svg',
         },
         {
-            title: '旱災補助',
-            label: '氣候災害',
-            content: '因旱災造成損失者',
-            date: '申請日期 : 即日起至114年06/30',
-            amount: '金額 : 最高20,000元',
-            icon: 'static/assets/water.svg',
-        },
-        {
-            title: '暴雨補助',
-            label: '氣候災害',
-            content: '因暴雨造成損失者',
-            date: '申請日期 : 即日起至114年05/31',
-            amount: '金額 : 最高25,000元',
-            icon: 'static/assets/water.svg',
-        },
-        {
-            title: '其他災害補助',
-            label: '其他',
-            content: '其他災害造成損失者',
-            date: '申請日期 : 即日起至114年12/31',
-            amount: '金額 : 最高10,000元',
+            title: '死亡救助',
+            label: '救濟項目',
+            content: '情況：因災死亡或失蹤滿1年以上，由家屬代提出政府開具之死亡證明。',
+            date: '申請日期：即日起至114年11/12',
+            amount: '金額：最高200,000元',
             icon: 'static/assets/water.svg',
         },
     ];
 
-    let isExpanded = false;
-
     function renderAllDisasterCards() {
         const container = document.getElementById('all-disaster-cards');
         container.innerHTML = '';
-        // 每 row 3 個
+        
+        // 每 row 3 個，固定顯示 2 rows（6 個卡片）
         const cardsPerRow = 3;
-        // 預設只顯示 2 row
-        const maxRows = isExpanded ? Math.ceil(allDisasterCards.length / cardsPerRow) : 2;
+        const maxRows = 2;
+        
         for (let row = 0; row < maxRows; row++) {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'card-row';
+            
             for (let i = row * cardsPerRow; i < (row + 1) * cardsPerRow && i < allDisasterCards.length; i++) {
                 const card = allDisasterCards[i];
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'card';
+                
+                // 只有淹水救助可以點擊申請
+                const isAvailable = card.title === '淹水救助';
+                const applyBtnDisabled = !isAvailable ? 'disabled' : '';
+                const applyBtnClass = isAvailable ? 'card-btn card-btn-primary' : 'card-btn card-btn-primary';
+                
                 cardDiv.innerHTML = `
                     <div class="card-title">
                         <div class="card-icon"><img src="${card.icon}" alt="icon" width="20" height="20"></div>
@@ -367,7 +344,14 @@
                     <div class="card-content">${card.content}</div>
                     <div class="card-date">${card.date}</div>
                     <div class="card-amount">${card.amount}</div>
-                    <div class="card-btn">補助申請</div>
+                    <div class="card-buttons">
+                        <button class="${applyBtnClass}" ${applyBtnDisabled} onclick="${isAvailable ? 'window.location.href=\'/applicant?action=apply\'' : ''}"}>
+                            ${isAvailable ? '點擊申請' : '即將開放'}
+                        </button>
+                        <button class="card-btn card-btn-secondary" onclick="alert('補助詳情功能開發中...')">
+                            補助詳情
+                        </button>
+                    </div>
                 `;
                 rowDiv.appendChild(cardDiv);
             }
@@ -375,72 +359,46 @@
         }
     }
 
-    function renderLatestDisasterCards() {
-        const container = document.getElementById('latest-disaster-cards');
-        container.innerHTML = '';
-        for (let i = 0; i < 3 && i < allDisasterCards.length; i++) {
-            const card = allDisasterCards[i];
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'card';
-            cardDiv.innerHTML = `
-                <div class="card-title">
-                    <div class="card-icon"><img src="${card.icon}" alt="icon" width="20" height="20"></div>
-                    <div style="font-weight:500;font-size:20px;">${card.title}</div>
-                    <div class="card-label">${card.label}</div>
-                </div>
-                <div class="card-content">${card.content}</div>
-                <div class="card-date">${card.date}</div>
-                <div class="card-amount">${card.amount}</div>
-                <div class="card-btn">補助申請</div>
-            `;
-            container.appendChild(cardDiv);
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
+        renderAllDisasterCards();
         renderCarousel();
         renderIndicators();
         resetTimer();
-        renderLatestDisasterCards();
-        renderAllDisasterCards();
-        document.getElementById('expand-all-btn').onclick = function() {
-            isExpanded = !isExpanded;
-            renderAllDisasterCards();
-            this.textContent = isExpanded ? '查看較少' : '查看全部';
-        };
     });
 
+    // 圖片輪播相關
     const carouselImages = [
-        {src: 'static/assets/card1.png', alt: '即時消息1'},
-        {src: 'static/assets/card2.png', alt: '即時消息2'},
-        {src: 'static/assets/card3.jpeg', alt: '即時消息3'}
+        {
+            src: 'static/assets/card1.png', 
+            text: '協助加速災後重建，受災民眾申請災損證明 🏚️'
+        },
+        {
+            src: 'static/assets/card2.png', 
+            text: '樹倒壓損屋經2機關認定，居交通壅塞處易獲賠 🌳'
+        },
+        {
+            src: 'static/assets/card3.jpeg', 
+            text: '曾經發路凍貧窮攝影，攝影展募資 📸'
+        }
     ];
     let currentSlide = 0;
     let timer = null;
 
     function renderCarousel() {
-        const track = document.getElementById('carousel-track');
-        track.innerHTML = '';
-        // 上一張
-        let prevIdx = (currentSlide - 1 + carouselImages.length) % carouselImages.length;
-        const prevImg = document.createElement('img');
-        prevImg.src = carouselImages[prevIdx].src;
-        prevImg.alt = carouselImages[prevIdx].alt;
-        prevImg.className = 'carousel-img-custom side';
-        track.appendChild(prevImg);
-        // 當前
-        const centerImg = document.createElement('img');
-        centerImg.src = carouselImages[currentSlide].src;
-        centerImg.alt = carouselImages[currentSlide].alt;
-        centerImg.className = 'carousel-img-custom center';
-        track.appendChild(centerImg);
-        // 下一張
-        let nextIdx = (currentSlide + 1) % carouselImages.length;
-        const nextImg = document.createElement('img');
-        nextImg.src = carouselImages[nextIdx].src;
-        nextImg.alt = carouselImages[nextIdx].alt;
-        nextImg.className = 'carousel-img-custom side';
-        track.appendChild(nextImg);
+        const container = document.getElementById('carousel-container');
+        container.innerHTML = '';
+        
+        carouselImages.forEach((image, index) => {
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+            card.innerHTML = `
+                <img src="${image.src}" alt="${image.text}" />
+                <div class="carousel-card-overlay">
+                    <div class="carousel-card-text">${image.text}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
     }
 
     function renderIndicators() {
@@ -451,7 +409,6 @@
             dot.className = 'indicator' + (i === currentSlide ? ' selected' : '');
             dot.onclick = () => {
                 currentSlide = i;
-                renderCarousel();
                 renderIndicators();
                 resetTimer();
             };
@@ -461,7 +418,6 @@
 
     function nextSlideAuto() {
         currentSlide = (currentSlide + 1) % carouselImages.length;
-        renderCarousel();
         renderIndicators();
     }
 
@@ -470,10 +426,5 @@
         timer = setInterval(nextSlideAuto, 3500);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        renderCarousel();
-        renderIndicators();
-        resetTimer();
-    });
 </script>
 </html>

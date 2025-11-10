@@ -46,7 +46,7 @@ class GenerateVPQRCodeRequest(BaseModel):
 class VerifyVPRequest(BaseModel):
     """驗證 VP"""
     transaction_id: str  # 從 generate_vp_qrcode 取得的 transactionId
-
+    applicant_id_number: Optional[str] = None  # 申請人身分證字號
 
 # ==========================================
 # API 端點
@@ -64,43 +64,65 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
     4. 通知災民（發送 QR Code）
     """
     try:
+        print(f"\n{'='*60}")
+        print(f"📝 開始審核申請")
+        print(f"{'='*60}")
+        print(f"申請ID: {request.application_id}")
+        print(f"審核結果: {'✅ 核准' if request.approved else '❌ 駁回'}")
+        print(f"審核備註: {request.review_notes or '無'}")
+        
         # 1. 檢查申請是否存在
         try:
+            print(f"\n🔍 步驟 1: 查詢申請記錄...")
             result = db_service.client.table("applications")\
                 .select("*")\
                 .eq("id", request.application_id)\
                 .execute()
             
             if not result.data:
+                print(f"❌ 找不到申請記錄: {request.application_id}")
                 raise HTTPException(status_code=404, detail="找不到申請記錄")
             
             application = result.data[0]
-        except Exception as db_error:
-            # 如果資料庫查詢失敗，使用測試資料
-            print(f"資料庫查詢失敗，使用測試資料: {db_error}")
-            application = {
-                "id": request.application_id,
-                "applicant_name": "測試用戶",
-                "id_number": "A123456789",
-                "phone": "0912345678",
-                "address": "台南市中西區民生路100號",
-                "damage_address": "台南市中西區民生路100號"
-            }
-        
-        # 2. 更新審核狀態
-        if not request.approved:
-            db_service.client.table("applications").update({
-                "status": "rejected",
-                "review_notes": request.review_notes,
-                "reviewed_at": datetime.now().isoformat()
-            }).eq("id", request.application_id).execute()
+            print(f"✅ 找到申請記錄:")
+            print(f"   案件編號: {application.get('case_no', 'N/A')}")
+            print(f"   申請人: {application.get('applicant_name', 'N/A')}")
+            print(f"   身分證: {application.get('id_number', 'N/A')}")
             
-            return {
-                "success": True,
-                "message": "申請已駁回"
-            }
+        except HTTPException:
+            raise
+        except Exception as db_error:
+            print(f"❌ 資料庫查詢失敗: {db_error}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"資料庫查詢失敗: {str(db_error)}"
+            )
+        
+        # 2. 處理駁回情況
+        if not request.approved:
+            print(f"\n❌ 步驟 2: 駁回申請...")
+            try:
+                db_service.client.table("applications").update({
+                    "status": "rejected",
+                    "review_notes": request.review_notes,
+                    "reviewed_at": datetime.now().isoformat()
+                }).eq("id", request.application_id).execute()
+                
+                print(f"✅ 申請已駁回")
+                return {
+                    "success": True,
+                    "message": "申請已駁回"
+                }
+            except Exception as update_error:
+                print(f"❌ 更新駁回狀態失敗: {update_error}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"更新狀態失敗: {str(update_error)}"
+                )
         
         # 3. 審核通過，準備發行憑證
+        print(f"\n✅ 步驟 3: 核准申請，準備發行憑證...")
+        
         # 根據 VC 面板要求的欄位格式化資料
         now = datetime.now()
         issuance_date = now.strftime("%Y%m%d")
@@ -136,12 +158,19 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
         # 使用真實的 vcUid (從 VC 面板的 credentialType)
         vc_uid = "00000000_subsidy_666"  # 你提供的 vcUid
         
-        issue_result = await gov_service.generate_qrcode_data(
-            vctid=vc_uid,
-            issuance_date=issuance_date,
-            expired_date=expired_date,
-            fields=fields
-        )
+        try:
+            issue_result = await gov_service.generate_qrcode_data(
+                vctid=vc_uid,
+                issuance_date=issuance_date,
+                expired_date=expired_date,
+                fields=fields
+            )
+        except Exception as api_error:
+            print(f"❌ 呼叫政府發行端 API 失敗: {api_error}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"發行憑證失敗: {str(api_error)}"
+            )
         
         print(f"🔍 issue_result 內容:")
         print(f"  - success: {issue_result.get('success')}")
@@ -157,15 +186,22 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
             )
         
         # 5. 更新資料庫
-        db_service.client.table("applications").update({
-            "status": "approved",
-            "review_notes": request.review_notes,
-            "approved_amount": request.approved_amount,
-            "reviewed_at": datetime.now().isoformat(),
-            "gov_qr_code_data": issue_result.get("qr_code_data"),
-            "gov_transaction_id": issue_result.get("transaction_id"),
-            "gov_deep_link": issue_result.get("deep_link")
-        }).eq("id", request.application_id).execute()
+        try:
+            db_service.client.table("applications").update({
+                "status": "approved",
+                "review_notes": request.review_notes,
+                "approved_amount": request.approved_amount,
+                "reviewed_at": datetime.now().isoformat(),
+                "gov_qr_code_data": issue_result.get("qr_code_data"),
+                "gov_transaction_id": issue_result.get("transaction_id"),
+                "gov_deep_link": issue_result.get("deep_link")
+            }).eq("id", request.application_id).execute()
+        except Exception as db_error:
+            print(f"❌ 更新資料庫失敗: {db_error}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"更新資料庫失敗: {str(db_error)}"
+            )
         
         # 6. TODO: 發送通知給災民（包含 QR Code）
         # send_notification_to_applicant(...)
@@ -343,6 +379,8 @@ async def verify_vp(request: VerifyVPRequest):
                         "user_id": user_id,
                         "email": email,
                         "name": name,
+                        "id_number": id_number,  # 加入身分證字號
+                        "phone": phone,
                         "message": "✅ 身分驗證成功！使用者資料已更新"
                     }
                     
@@ -354,8 +392,8 @@ async def verify_vp(request: VerifyVPRequest):
                         "message": f"身分驗證成功，但資料庫更新失敗: {str(db_error)}"
                     }
             
-            # 2️⃣ 處理災害補助憑證 (00000000_subsidy_667 或 00000000_subsidy_666)
-            elif credential_type in ["00000000_subsidy_667", "00000000_subsidy_666"]:
+            # 2️⃣ 處理災害補助憑證 (00000000_subsidy_667)
+            elif credential_type == "00000000_subsidy_667":
                 # 解析憑證資料
                 name = ''
                 email = ''
@@ -443,6 +481,83 @@ async def verify_vp(request: VerifyVPRequest):
                         "message": f"憑證驗證成功，但補助發放失敗: {str(db_error)}"
                     }
             
+            elif credential_type == "00000000_20251110":
+                # 解析房屋持有憑證 (20251112)
+                property_owner_name = ''
+                property_owner_id_number = ''
+                property_address = ''
+                
+                for dic in claims:
+                    ename = dic.get("ename", "")
+                    value = dic.get("value", "")
+                    
+                    if ename == "name":
+                        property_owner_name = value
+                    elif ename == "id_number":
+                        property_owner_id_number = value
+                    elif ename == "address":
+                        property_address = value
+                
+                # 驗證必要欄位
+                if not property_owner_id_number:
+                    return {
+                        "success": False,
+                        "verified": False,
+                        "id_match": False,
+                        "message": "❌ 房屋持有人身分證號碼遺失"
+                    }
+                
+                # 🔍 比對身分證字號
+                if property_owner_id_number != request.applicant_id_number:
+                    return {
+                        "success": False,
+                        "verified": True,
+                        "id_match": False,
+                        "property_owner_name": property_owner_name,
+                        "property_owner_id_number": property_owner_id_number,
+                        "applicant_id_number": request.applicant_id_number,
+                        "message": "❌ 房屋持有人與申請人不符！\n\n房屋持有人須與申請人為同一人。\n請確認您的憑證是否正確。"
+                    }
+                
+                # 檢查使用者是否已存在（用 email 查詢）
+                existing_user = db_service.client.table("users")\
+                    .select("*")\
+                    .eq("id_number", property_owner_id_number)\
+                    .execute()
+                if existing_user.data and len(existing_user.data) > 0:
+                    user_data = existing_user.data[0]
+                else:
+                    user_data = {
+                        "full_name": property_owner_name,
+                        "id_number": property_owner_id_number,
+                        "address": property_address,
+                        "role": "applicant",
+                        "is_verified": True,
+                        "twfido_verified": True,
+                        # "verified_at": datetime.now().isoformat(),
+                        # "registered_address": registered_address
+                    }
+                
+                
+                if existing_user.data and len(existing_user.data) > 0:
+                    # 更新現有使用者
+                    user_id = existing_user.data[0]["id"]
+                    db_service.client.table("users").update(user_data)\
+                        .eq("id", user_id).execute()
+
+                    print(f"✅ 使用者已更新: {property_owner_name} ({property_owner_id_number})")
+
+                # ✅ 身分證相符
+                return {
+                    "success": True,
+                    "verified": True,
+                    "id_match": True,
+                    "property_owner_name": property_owner_name,
+                    "property_owner_id_number": property_owner_id_number,
+                    "property_address": property_address,
+                    "message": "✅ 房屋持有驗證成功！"
+                }
+
             # 3️⃣ 未知憑證類型
             else:
                 return {
@@ -463,6 +578,37 @@ async def verify_vp(request: VerifyVPRequest):
         print(f"驗證 VP 錯誤: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/check-credential-claim/{transaction_id}")
+async def check_credential_claim(transaction_id: str):
+    """
+    🔍 檢查用戶是否已掃描並存入 VC 卡片
+    
+    對應政府 API: GET /api/credential/nonce/{transactionId}
+    
+    流程：
+    1. 前端定期輪詢此 API（每 2 秒一次）
+    2. 呼叫政府驗證端 GET /api/credential/nonce/{transactionId}
+    3. 檢查回應中的 credential 欄位
+    4. 如果有 credential (JWT Token)，表示用戶已掃描並存入
+    
+    Returns:
+        - credential 存在 → 用戶已領取憑證
+        - credential 不存在 → 用戶尚未掃描或尚未存入
+    """
+    try:
+        gov_service = get_gov_wallet_service()
+        
+        # 呼叫政府驗證端 API
+        result = await gov_service.check_credential_nonce(transaction_id)
+        
+        print(f"🔍 檢查憑證領取狀態: transaction_id={transaction_id}")
+        print(f"   結果: {result}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"檢查憑證領取狀態錯誤: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/health")
 async def health_check():
