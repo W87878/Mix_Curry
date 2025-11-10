@@ -1777,7 +1777,7 @@
                   
                   // 判斷是否顯示 VP 領取按鈕
                   const showVPButton = app.status === 'approved' && !app.vp_claimed;
-                  const showVPSuccess = app.status === 'approved' && app.vp_claimed;
+                  const showVPSuccess = app.status === 'completed' && app.vp_claimed;
 
                   return `
                                 <div class="record" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="showApplicationProgress('${app.id}')">
@@ -3210,27 +3210,6 @@
           
           const application = appData.data?.application || appData.application || appData;
           console.log('📋 解析後的申請:', application);
-          
-          // 檢查是否已經有 QR Code（已發行過憑證）
-          if (application.gov_qr_code_data && application.gov_transaction_id) {
-            console.log('✅ 使用已存在的 QR Code');
-            console.log('   gov_qr_code_data 長度:', application.gov_qr_code_data.length);
-            console.log('   gov_transaction_id:', application.gov_transaction_id);
-            
-            const qrCodeImg = document.getElementById('vpQrCode');
-            if (!qrCodeImg) {
-              console.error('❌ 找不到 vpQrCode 圖片元素');
-              throw new Error('系統錯誤：找不到 QR Code 顯示元素');
-            }
-            
-            qrCodeImg.src = application.gov_qr_code_data;
-            console.log('✅ QR Code 已設定到圖片元素');
-            
-            startVCCountdown(300); // 5分鐘
-            // 開始輪詢憑證領取狀態
-            startVCPolling(application.gov_transaction_id, applicationId);
-            return;
-          }
           
           // 如果沒有 QR Code，產生新的（調用後端發行 API）
           console.log('📤 產生新的災害補助憑證 QR Code');
