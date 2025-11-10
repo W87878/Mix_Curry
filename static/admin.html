@@ -33,238 +33,222 @@
 
     <div class="layout">
       <div class="sidebar">
-        <div class="nav-item active" onclick="showPage('dashboard')">
-          📊 儀表板
+        <div class="nav-item active" onclick="showPage('applications')">
+          📋 案件管理
         </div>
-        <div class="nav-item" onclick="showPage('applications')">
-          📋 待審核案件
+        <div class="nav-item" onclick="showPage('statistics')">
+          📊 統計數據
         </div>
-        <div class="nav-item" onclick="showPage('map')">🗺️ 案件地圖</div>
-        <div class="nav-item" onclick="showPage('history')">📜 審核歷史</div>
-        <div class="nav-item" onclick="showPage('statistics')">📈 統計報表</div>
       </div>
 
       <div class="main-content">
-        <!-- Dashboard Page -->
-        <div id="dashboard-page">
-          <div class="page-header">
-            <h1 class="page-title">儀表板</h1>
-            <p class="page-subtitle">總覽本區申請案件狀態</p>
-          </div>
-
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-label">待審核</div>
-              <div class="stat-value" id="statPending">-</div>
-              <div class="stat-change">需處理的案件</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">審核中</div>
-              <div class="stat-value" id="statReview">-</div>
-              <div class="stat-change">處理中</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">已核准</div>
-              <div class="stat-value" id="statApproved">-</div>
-              <div class="stat-change positive">✓ 完成審核</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">總申請額</div>
-              <div class="stat-value" id="statTotal" style="font-size: 24px">
-                -
-              </div>
-              <div class="stat-change">本月統計</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">最近待審核案件</h3>
-              <button
-                class="btn btn-primary btn-sm"
-                onclick="loadPendingApplications()"
-              >
-                重新整理
-              </button>
-            </div>
-            <div class="card-body">
-              <div id="recentApplications"></div>
-            </div>
-          </div>
-        </div>
-
         <!-- Applications Page -->
-        <div id="applications-page" class="hidden">
-          <div class="page-header">
-            <h1 class="page-title">待審核案件</h1>
-            <p class="page-subtitle">審核本區災民的補助申請</p>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">案件列表</h3>
-              <button
-                class="btn btn-primary btn-sm"
-                onclick="loadPendingApplications()"
-              >
-                重新整理
-              </button>
+        <div id="applications-page">
+          <!-- 統計卡片 -->
+          <div class="stats-header">
+            <div class="stat-card" onclick="filterByStatus('pending')" style="cursor: pointer;">
+              <div class="stat-label">需審核通知</div>
+              <div class="stat-value" id="statPending">-</div>
+              <div class="stat-unit">件</div>
+              <div class="stat-icon" style="background: #fee2e2;">ℹ️</div>
             </div>
-            <div class="card-body">
-              <div id="applicationsList"></div>
+            <div class="stat-card" onclick="filterByStatus('site_inspection')" style="cursor: pointer;">
+              <div class="stat-label">待勘</div>
+              <div class="stat-value" id="statInspection">-</div>
+              <div class="stat-unit">件</div>
+              <div class="stat-icon" style="background: #fef3c7;">📋</div>
             </div>
-          </div>
-        </div>
-
-        <!-- Map Page -->
-        <div id="map-page" class="hidden">
-          <div class="page-header">
-            <h1 class="page-title">🗺️ 案件地圖視圖</h1>
-            <p class="page-subtitle">查看案件分布並規劃訪問路線</p>
-          </div>
-
-          <!-- 選擇案件 -->
-          <div class="select-applications-box">
-            <h3 style="margin-bottom: 15px">📋 選擇要查看的案件</h3>
-            <div class="map-controls">
-              <button
-                class="btn btn-primary btn-sm"
-                onclick="loadMapApplications()"
-              >
-                載入案件列表
-              </button>
-              <button
-                class="btn btn-success btn-sm"
-                onclick="showSelectedOnMap()"
-              >
-                在地圖上顯示 (<span id="selectedCount">0</span>)
-              </button>
-              <button class="btn btn-primary btn-sm" onclick="planRoutes()">
-                🎯 規劃最佳路線
-              </button>
-              <button
-                class="btn btn-sm"
-                onclick="clearMapSelection()"
-                style="background: #f3f4f6; color: #666"
-              >
-                清除選擇
-              </button>
+            <div class="stat-card" onclick="filterByStatus('rejected')" style="cursor: pointer;">
+              <div class="stat-label">已駁回</div>
+              <div class="stat-value" id="statRejected">-</div>
+              <div class="stat-unit">件</div>
+              <div class="stat-icon" style="background: #fed7aa;">⚠️</div>
             </div>
-            <div id="mapApplicationsList" style="margin-top: 15px">
-              <p style="color: #666; text-align: center; padding: 20px">
-                點擊「載入案件列表」開始
-              </p>
+            <div class="stat-card" onclick="filterByStatus('approved')" style="cursor: pointer;">
+              <div class="stat-label">已完成</div>
+              <div class="stat-value" id="statCompleted">-</div>
+              <div class="stat-unit">件</div>
+              <div class="stat-icon" style="background: #d1fae5;">✓</div>
             </div>
           </div>
 
-          <!-- Google 地圖 -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">📍 案件分布地圖</h3>
-              <div style="font-size: 14px; color: #666">
-                點擊標記查看案件詳情
-              </div>
-            </div>
-            <div class="card-body">
-              <div id="map"></div>
+          <!-- 篩選工具列 -->
+          <div class="filters-toolbar">
+            <div class="filters-left">
+              <select class="filter-dropdown" id="filterCity" onchange="updateTownships()">
+                <option value="">所有縣市</option>
+                <option value="台北市">台北市</option>
+                <option value="新北市">新北市</option>
+                <option value="桃園市">桃園市</option>
+                <option value="台中市">台中市</option>
+                <option value="台南市">台南市</option>
+                <option value="高雄市">高雄市</option>
+                <option value="基隆市">基隆市</option>
+                <option value="新竹市">新竹市</option>
+                <option value="嘉義市">嘉義市</option>
+                <option value="新竹縣">新竹縣</option>
+                <option value="苗栗縣">苗栗縣</option>
+                <option value="彰化縣">彰化縣</option>
+                <option value="南投縣">南投縣</option>
+                <option value="雲林縣">雲林縣</option>
+                <option value="嘉義縣">嘉義縣</option>
+                <option value="屏東縣">屏東縣</option>
+                <option value="宜蘭縣">宜蘭縣</option>
+                <option value="花蓮縣">花蓮縣</option>
+                <option value="台東縣">台東縣</option>
+                <option value="澎湖縣">澎湖縣</option>
+                <option value="金門縣">金門縣</option>
+                <option value="連江縣">連江縣</option>
+              </select>
+              <select class="filter-dropdown" id="filterTownship" onchange="updateVillages()">
+                <option value="">所有鄉鎮市區</option>
+              </select>
+              <select class="filter-dropdown" id="filterVillage" onchange="filterApplications()">
+                <option value="">所有村/里</option>
+              </select>
+              <select class="filter-dropdown" id="filterDisasterType" onchange="filterApplications()">
+                <option value="">所有災害類型</option>
+                <option value="flood">水災</option>
+                <option value="typhoon">颱風</option>
+                <option value="earthquake">地震</option>
+              </select>
+              <select class="filter-dropdown" id="filterStatus" onchange="filterApplications()">
+                <option value="">所有狀態</option>
+                <option value="pending">待審核</option>
+                <option value="site_inspection">已查訪</option>
+                <option value="approved">已完成</option>
+                <option value="rejected">已駁回</option>
+              </select>
             </div>
           </div>
 
-          <!-- 路線規劃結果 -->
-          <div id="routesContainer" class="hidden">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">🎯 Top 3 最佳路線方案</h3>
-              </div>
-              <div class="card-body">
-                <div id="routesList"></div>
-              </div>
+          <!-- View Tabs -->
+          <div class="view-tabs">
+            <div class="view-tab active" onclick="switchView('list')" id="listViewTab">
+              <span class="tab-icon">≡</span> 列表檢視
+            </div>
+            <div class="view-tab" onclick="switchView('map')" id="mapViewTab">
+              <span class="tab-icon">🗺</span> 地圖檢視
             </div>
           </div>
-        </div>
 
-        <!-- History Page -->
-        <div id="history-page" class="hidden">
-          <div class="page-header">
-            <h1 class="page-title">審核歷史</h1>
-            <p class="page-subtitle">查看已完成的審核記錄</p>
+          <!-- List View -->
+          <div id="listView" class="list-view">
+            <div class="applications-list" id="applicationsList">
+              <!-- 將由 JS 動態生成 -->
+            </div>
           </div>
 
-          <div class="card">
-            <div class="card-body">
-              <div class="empty-state">
-                <div class="empty-state-icon">📜</div>
-                <p>審核歷史記錄</p>
-              </div>
-            </div>
+          <!-- Map View -->
+          <div id="mapView" class="map-view" style="display: none;">
+            <div id="applicationsMap" style="width: 100%; height: 600px; border-radius: 8px;"></div>
           </div>
         </div>
 
         <!-- Statistics Page -->
         <div id="statistics-page" class="hidden">
           <div class="page-header">
-            <h1 class="page-title">統計報表</h1>
-            <p class="page-subtitle">本區申請案件統計分析</p>
+            <h1 class="page-title">統計數據</h1>
           </div>
+          <div id="statisticsContent"></div>
+        </div>
+      </div>
 
-          <div class="card">
-            <div class="card-body">
-              <div id="statisticsContent"></div>
-            </div>
+        <!-- Map Page -->
+        <!-- Statistics Page -->
+        <div id="statistics-page" class="hidden">
+          <div class="page-header">
+            <h1 class="page-title">統計數據</h1>
           </div>
+          <div id="statisticsContent"></div>
         </div>
       </div>
     </div>
 
-    <!-- Review Modal -->
-    <div id="reviewModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>審核申請案件</h3>
-          <button class="close-btn" onclick="closeReviewModal()">×</button>
+    <!-- Review Modal (中間彈出) -->
+    <div id="reviewModal" class="review-modal-overlay" style="display: none;">
+      <div class="review-modal">
+        <div class="review-modal-header">
+          <h3>審核詳情</h3>
+          <button class="modal-close-btn" onclick="closeReviewModal()">×</button>
         </div>
-        <div class="modal-body">
-          <h4 style="margin-bottom: 16px">申請人資訊</h4>
-          <div id="applicantInfo"></div>
-
-          <h4 style="margin: 24px 0 16px">災害資訊</h4>
-          <div id="disasterInfo"></div>
-
-          <h4 style="margin: 24px 0 16px">證明文件</h4>
-          <div id="documentsInfo">
-            <p style="color: #999; font-size: 14px">載入中...</p>
+        
+        <div class="review-modal-body">
+          <!-- 申請人資訊 -->
+          <div class="info-section">
+            <h4 class="section-title">申請人資訊</h4>
+            <div id="applicantInfo" class="info-grid"></div>
           </div>
 
-          <h4 style="margin: 24px 0 16px">審核動作</h4>
-          <div class="form-group">
-            <label>審核意見</label>
-            <textarea
-              id="reviewComments"
-              placeholder="請填寫審核意見..."
-            ></textarea>
+          <!-- 災害資訊 -->
+          <div class="info-section">
+            <h4 class="section-title">災害資訊</h4>
+            <div id="disasterInfo" class="info-grid"></div>
           </div>
-          <div class="form-group">
-            <label>核准金額（核准時必填）</label>
-            <input
-              type="number"
-              id="approvedAmount"
-              placeholder="請輸入核准金額"
-            />
+
+          <!-- 災損照片 -->
+          <div class="info-section">
+            <h4 class="section-title">災損照片</h4>
+            <div id="damagePhotos" class="photos-grid">
+              <p style="color: #999; font-size: 14px">載入中...</p>
+            </div>
+          </div>
+
+          <!-- 審核表單 -->
+          <div class="info-section">
+            <h4 class="section-title">審核意見</h4>
+            <div class="form-group">
+              <label>審核結果 *</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="reviewResult" value="approve" checked>
+                  <span class="radio-text">✓ 核准</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="reviewResult" value="reject">
+                  <span class="radio-text">✗ 駁回</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>審核意見</label>
+              <textarea
+                id="reviewComments"
+                placeholder="請填寫審核意見（選填）..."
+                rows="4"
+                class="form-textarea"
+              ></textarea>
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button
-            class="btn"
-            onclick="closeReviewModal()"
-            style="background: #f3f4f6; color: #666"
-          >
+
+        <div class="review-modal-footer">
+          <button class="btn btn-secondary" onclick="closeReviewModal()">
             取消
           </button>
-          <button class="btn btn-danger" onclick="rejectApplication()">
-            ❌ 駁回
+          <button class="btn btn-primary" onclick="submitReview()">
+            送出審核
           </button>
-          <button class="btn btn-success" onclick="approveApplication()">
-            ✅ 核准
+        </div>
+      </div>
+    </div>
+
+    <!-- 地圖 Modal -->
+    <div id="mapModal" class="map-modal hidden">
+      <div class="map-modal-overlay" onclick="closeMapModal()"></div>
+      <div class="map-modal-content">
+        <div class="map-modal-header">
+          <h3 id="mapModalTitle">案件位置</h3>
+          <button class="close-btn" onclick="closeMapModal()">×</button>
+        </div>
+        <div class="map-modal-body">
+          <div id="singleLocationMap" style="width: 100%; height: 500px;"></div>
+        </div>
+        <div class="map-modal-footer">
+          <button class="btn btn-secondary" onclick="closeMapModal()">關閉</button>
+          <button class="btn btn-primary" onclick="openInGoogleMaps()">
+            在 Google 地圖中開啟
           </button>
         </div>
       </div>
@@ -272,6 +256,8 @@
 
     <!-- 載入配置管理模組 -->
     <script src="/static/js/config.js"></script>
+    <script src="/static/js/taiwan-districts.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDbuTGzgDiR9WfXuvbPOZSc5nNm7NDucuQ&libraries=places,geometry"></script>
     <script>
       // 全域變數
       let API_BASE = null; // 將由配置模組設定
@@ -305,6 +291,40 @@
           currentUser.full_name.charAt(0);
         loadDashboardStats();
         loadPendingApplications();
+        
+        // 初始化搜尋和篩選功能
+        initializeFilters();
+      }
+      
+      function initializeFilters() {
+        // 搜尋框事件
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', filterApplications);
+        }
+        
+        // 篩選器事件  
+        const filterCity = document.getElementById('filterCity');
+        const filterTownship = document.getElementById('filterTownship');
+        const filterVillage = document.getElementById('filterVillage');
+        const filterDisasterType = document.getElementById('filterDisasterType');
+        const filterStatus = document.getElementById('filterStatus');
+        
+        if (filterCity) {
+          filterCity.addEventListener('change', filterApplications);
+        }
+        if (filterTownship) {
+          filterTownship.addEventListener('change', filterApplications);
+        }
+        if (filterVillage) {
+          filterVillage.addEventListener('change', filterApplications);
+        }
+        if (filterDisasterType) {
+          filterDisasterType.addEventListener('change', filterApplications);
+        }
+        if (filterStatus) {
+          filterStatus.addEventListener('change', filterApplications);
+        }
       }
 
       function showLoginPrompt() {
@@ -836,31 +856,34 @@
       }
 
       function showPage(page) {
-        [
-          "dashboard-page",
-          "applications-page",
-          "map-page",
-          "history-page",
-          "statistics-page",
-        ].forEach((id) => {
-          document.getElementById(id).classList.add("hidden");
+        // 隱藏所有頁面
+        const pages = document.querySelectorAll('.main-content > div');
+        pages.forEach(div => {
+          if (div.id && div.id.endsWith('-page')) {
+            div.classList.add('hidden');
+          }
         });
-        document.getElementById(`${page}-page`).classList.remove("hidden");
+        
+        // 顯示目標頁面
+        const targetPage = document.getElementById(`${page}-page`);
+        if (targetPage) {
+          targetPage.classList.remove("hidden");
+        }
 
+        // 更新側邊欄激活狀態
         document.querySelectorAll(".nav-item").forEach((item) => {
           item.classList.remove("active");
         });
-        event.target.classList.add("active");
+        if (event && event.target) {
+          event.target.classList.add("active");
+        }
+      }
 
-        if (page === "statistics") {
+        // 載入對應頁面的資料
+        if (page === 'applications') {
+          loadPendingApplications();
+        } else if (page === "statistics") {
           loadStatistics();
-        } else if (page === "map") {
-          // 初始化地圖（如果還沒初始化）
-          if (!map) {
-            setTimeout(() => {
-              initializeMap();
-            }, 100);
-          }
         }
       }
 
@@ -895,229 +918,493 @@
           }
 
           document.getElementById("statPending").textContent = apps.length;
-
-          // 簡單統計
-          let totalAmount = 0;
-          apps.forEach((app) => {
-            totalAmount += app.requested_amount || 0;
-          });
-          document.getElementById("statTotal").textContent = `$${(
-            totalAmount / 10000
-          ).toFixed(1)}萬`;
         }
       }
 
+      // 過濾和搜尋功能
+      let allApplications = [];
+
       async function loadPendingApplications() {
-        const result = await fetch(`${API_BASE}/applications/status/pending`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+        try {
+          // 改為載入所有案件，而不只是 pending
+          const result = await fetch(`${API_BASE}/applications/?limit=1000`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (result.ok) {
+            const response = await result.json();
+            
+            let apps = [];
+            if (Array.isArray(response)) {
+              apps = response;
+            } else if (response.data) {
+              if (response.data.applications && Array.isArray(response.data.applications)) {
+                apps = response.data.applications;
+              } else if (Array.isArray(response.data)) {
+                apps = response.data;
+              } else {
+                apps = [response.data];
+              }
+            } else if (response.applications) {
+              apps = Array.isArray(response.applications) ? response.applications : [response.applications];
+            }
+
+            console.log('載入案件數量:', apps.length, apps);
+            
+            allApplications = apps;
+            
+            // 更新統計卡片
+            updateStatCards(apps);
+            
+            // 顯示案件列表（預設只顯示待審核的）
+            const pendingApps = apps.filter(app => app.status === 'pending');
+            displayApplications(pendingApps, "applicationsList");
+          } else {
+            console.error('載入案件失敗:', result.status);
+            allApplications = [];
+            updateStatCards([]);
+            displayApplications([], "applicationsList");
+          }
+        } catch (error) {
+          console.error('載入案件錯誤:', error);
+          allApplications = [];
+          updateStatCards([]);
+          displayApplications([], "applicationsList");
+        }
+      }
+
+      // 更新統計卡片
+      function updateStatCards(apps) {
+        const pending = apps.filter(app => app.status === 'pending').length;
+        const siteInspection = apps.filter(app => app.status === 'site_inspection').length;
+        const rejected = apps.filter(app => app.status === 'rejected').length;
+        const approved = apps.filter(app => app.status === 'approved' || app.status === 'completed').length;
+        
+        const statPending = document.getElementById('statPending');
+        const statInspection = document.getElementById('statInspection');
+        const statRejected = document.getElementById('statRejected');
+        const statCompleted = document.getElementById('statCompleted');
+        
+        if (statPending) statPending.textContent = pending || '0';
+        if (statInspection) statInspection.textContent = siteInspection || '0';
+        if (statRejected) statRejected.textContent = rejected || '0';
+        if (statCompleted) statCompleted.textContent = approved || '0';
+        
+        console.log('統計更新:', { pending, siteInspection, rejected, approved, total: apps.length });
+      }
+
+      // 按狀態篩選案件
+      let currentStatusFilter = null;
+      
+      function filterByStatus(status) {
+        console.log('篩選狀態:', status);
+        
+        // 如果點擊相同的狀態，則取消篩選
+        if (currentStatusFilter === status) {
+          currentStatusFilter = null;
+          displayApplications(allApplications, "applicationsList");
+        } else {
+          currentStatusFilter = status;
+          const filtered = allApplications.filter(app => {
+            if (status === 'approved') {
+              return app.status === 'approved' || app.status === 'completed';
+            }
+            return app.status === status;
+          });
+          displayApplications(filtered, "applicationsList");
+        }
+        
+        // 更新卡片樣式
+        document.querySelectorAll('.stat-mini-card').forEach(card => {
+          card.classList.remove('active');
+        });
+        if (currentStatusFilter) {
+          event.target.closest('.stat-mini-card').classList.add('active');
+        }
+      }
+
+      function filterApplications() {
+        const filterCity = document.getElementById('filterCity')?.value || '';
+        const filterTownship = document.getElementById('filterTownship')?.value || '';
+        const filterVillage = document.getElementById('filterVillage')?.value || '';
+        const filterDisasterType = document.getElementById('filterDisasterType')?.value || '';
+        const filterStatus = document.getElementById('filterStatus')?.value || '';
+
+        let filtered = allApplications;
+
+        // 按地區過濾（縣市/鄉鎮/村里）
+        if (filterCity || filterTownship || filterVillage) {
+          filtered = filtered.filter(app => {
+            const address = app.damage_location || app.address || '';
+            
+            // 如果沒有地址，過濾掉
+            if (!address || address === '未提供地址') {
+              return false;
+            }
+            
+            // 縣市篩選
+            if (filterCity) {
+              const cityName = filterCity.replace('縣', '').replace('市', '');
+              if (!address.includes(cityName)) {
+                return false;
+              }
+            }
+            
+            // 鄉鎮市區篩選
+            if (filterTownship && !address.includes(filterTownship)) {
+              return false;
+            }
+            
+            // 村里篩選
+            if (filterVillage && !address.includes(filterVillage)) {
+              return false;
+            }
+            
+            return true;
+          });
+        }
+
+        // 按災害類型過濾
+        if (filterDisasterType) {
+          filtered = filtered.filter(app => app.disaster_type === filterDisasterType);
+        }
+
+        // 按狀態過濾
+        if (filterStatus) {
+          filtered = filtered.filter(app => app.status === filterStatus);
+        }
+
+        console.log('篩選結果:', {
+          原始數量: allApplications.length,
+          篩選後: filtered.length,
+          條件: { filterCity, filterTownship, filterVillage, filterDisasterType, filterStatus }
         });
 
-        if (result.ok) {
-          const response = await result.json();
-          console.log("API Response:", response); // 除錯用
-
-          // 處理不同的回應格式
-          let apps = [];
-          if (Array.isArray(response)) {
-            apps = response;
-          } else if (response.data) {
-            // 處理嵌套結構: {data: {applications: [...]}}
-            if (
-              response.data.applications &&
-              Array.isArray(response.data.applications)
-            ) {
-              apps = response.data.applications;
-            } else if (Array.isArray(response.data)) {
-              apps = response.data;
-            } else {
-              apps = [response.data];
-            }
-          } else if (response.applications) {
-            apps = Array.isArray(response.applications)
-              ? response.applications
-              : [response.applications];
-          }
-
-          console.log("Parsed apps:", apps); // 除錯用
-          displayApplications(apps, "recentApplications");
-          displayApplications(apps, "applicationsList");
-        }
+        displayApplications(filtered, "applicationsList");
       }
 
       function displayApplications(apps, containerId) {
         const container = document.getElementById(containerId);
 
-        if (apps.length === 0) {
-          container.innerHTML =
-            '<div class="empty-state"><div class="empty-state-icon">📭</div><p>目前沒有待審核案件</p></div>';
+        if (!container) {
+          console.error('容器不存在:', containerId);
           return;
         }
 
-        const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>案件編號</th>
-                            <th>申請人</th>
-                            <th>災害類型</th>
-                            <th>申請金額</th>
-                            <th>提交時間</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${apps
-                          .map(
-                            (app) => `
-                            <tr>
-                                <td><strong>${app.case_no}</strong></td>
-                                <td>${app.applicant_name}</td>
-                                <td>${getDisasterTypeText(
-                                  app.disaster_type
-                                )}</td>
-                                <td>NT$ ${app.requested_amount?.toLocaleString()}</td>
-                                <td>${new Date(
-                                  app.submitted_at
-                                ).toLocaleDateString()}</td>
-                                <td><span class="badge ${
-                                  app.status
-                                }">${getStatusText(app.status)}</span></td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm" onclick='openReviewModal(${JSON.stringify(
-                                      app
-                                    )})'>
-                                        審核
-                                    </button>
-                                </td>
-                            </tr>
-                        `
-                          )
-                          .join("")}
-                    </tbody>
-                </table>
-            `;
+        if (apps.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">📭</div><p>目前沒有案件</p></div>';
+          return;
+        }
+      }
+
+        // 新的列表樣式 - 一排一個案件
+        const html = apps.map(app => {
+          const disasterType = app.disaster_type ? getDisasterTypeText(app.disaster_type) : '水災';
+          const location = app.damage_location || app.address || '未提供地址';
+          const date = app.submitted_at ? new Date(app.submitted_at).toLocaleDateString('zh-TW', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+          }) : '未知日期';
+          
+          return `
+          <div class="application-row" data-id="${app.id}">
+            <div class="app-row-left">
+              <div class="app-status-badge status-${app.status}">${getStatusText(app.status)}</div>
+              <div class="app-info">
+                <div class="app-name">${app.applicant_name}</div>
+                <div class="app-case">案件編號：${app.case_no}</div>
+              </div>
+            </div>
+            
+            <div class="app-row-middle">
+              <div class="app-detail-item">
+                <span class="app-label">申請項目：${disasterType}</span>
+              </div>
+              <div class="app-detail-item">
+                <span class="app-location">${location}</span>
+              </div>
+            </div>
+            
+            <div class="app-row-right">
+              <div class="app-date">${date}</div>
+              <div class="app-actions">
+                <button class="btn-導航" onclick="showLocationOnMap('${app.id}', '${location.replace(/'/g, "\\'")}'); event.stopPropagation();" title="在地圖上查看">
+                  導航
+                </button>
+                <button class="btn-前往審核" onclick='openReviewModal(${JSON.stringify(app).replace(/'/g, "&apos;")})'>
+                  前往審核 →
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        }).join('');
+        
         container.innerHTML = html;
       }
 
       async function openReviewModal(app) {
         currentApplication = app;
 
+        // 顯示申請人資訊（不顯示身分證字號）
         document.getElementById("applicantInfo").innerHTML = `
-                <div class="info-row">
-                    <div class="info-label">姓名</div>
-                    <div class="info-value">${app.applicant_name}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">電話</div>
-                    <div class="info-value">${app.phone}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">聯絡地址</div>
-                    <div class="info-value">${app.address || "未提供"}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">災損地點</div>
-                    <div class="info-value">${
-                      app.damage_location || "未提供"
-                    }</div>
-                </div>
-            `;
+          <div class="info-item">
+            <span class="info-label">姓名</span>
+            <span class="info-value">${app.applicant_name}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">電話</span>
+            <span class="info-value">${app.phone}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">聯絡地址</span>
+            <span class="info-value">${app.address || "未提供"}</span>
+          </div>
+        `;
 
+        // 顯示災害資訊（不顯示金額）
         document.getElementById("disasterInfo").innerHTML = `
-                <div class="info-row">
-                    <div class="info-label">災害日期</div>
-                    <div class="info-value">${app.disaster_date}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">災害類型</div>
-                    <div class="info-value">${getDisasterTypeText(
-                      app.disaster_type
-                    )}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">災損描述</div>
-                    <div class="info-value">${app.damage_description}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">申請金額</div>
-                    <div class="info-value">NT$ ${app.requested_amount?.toLocaleString()}</div>
-                </div>
-            `;
+          <div class="info-item">
+            <span class="info-label">災害日期</span>
+            <span class="info-value">${app.disaster_date}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">災害類型</span>
+            <span class="info-value">${getDisasterTypeText(app.disaster_type)}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">災損地點</span>
+            <span class="info-value">${app.damage_location || "未提供"}</span>
+          </div>
+          <div class="info-item full-width">
+            <span class="info-label">災損描述</span>
+            <span class="info-value">${app.damage_description}</span>
+          </div>
+        `;
 
-        document.getElementById("approvedAmount").value = app.requested_amount;
-
-        // 載入證明文件
+        // 載入災損照片
         await loadApplicationDocuments(app.id);
 
-        document.getElementById("reviewModal").classList.add("show");
+        // 顯示中間彈窗
+        document.getElementById("reviewModal").style.display = "flex";
+        document.body.style.overflow = "hidden";
       }
 
       function closeReviewModal() {
-        document.getElementById("reviewModal").classList.remove("show");
+        document.getElementById("reviewModal").style.display = "none";
+        document.body.style.overflow = "auto";
         currentApplication = null;
       }
 
-      async function approveApplication() {
-        const amount = document.getElementById("approvedAmount").value;
-        const comments = document.getElementById("reviewComments").value;
+      // 載入災損照片
+      async function loadApplicationDocuments(applicationId) {
+        const photosContainer = document.getElementById('damagePhotos');
+        
+        try {
+          photosContainer.innerHTML = '<p style="color: #999; font-size: 14px; text-align: center;">載入中...</p>';
+          
+          // 先嘗試從 photos API 獲取照片
+          let photos = [];
+          try {
+            const photosResponse = await fetch(`${API_BASE}/photos/application/${applicationId}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            
+            if (photosResponse.ok) {
+              const photosResult = await photosResponse.json();
+              photos = photosResult.data?.photos || [];
+              console.log('從 photos API 載入:', photos.length, '張照片');
+            }
+          } catch (error) {
+            console.log('photos API 失敗，嘗試 documents API');
+          }
+          
+          // 如果 photos API 沒有資料，從 documents API 獲取
+          if (photos.length === 0) {
+            const docsResponse = await fetch(`${API_BASE}/documents/application/${applicationId}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            
+            if (!docsResponse.ok) {
+              throw new Error(`HTTP ${docsResponse.status}: 無法載入文件`);
+            }
+            
+            const docsResult = await docsResponse.json();
+            const documents = docsResult.data?.documents || [];
+            
+            // 只選擇圖片檔案
+            photos = documents.filter(doc => 
+              doc.mime_type && doc.mime_type.startsWith('image/')
+            ).map(doc => ({
+              ...doc,
+              signed_url: doc.signed_url,
+              photo_type: doc.document_type || 'other',
+              created_at: doc.uploaded_at || doc.created_at
+            }));
+            
+            console.log('從 documents API 載入:', photos.length, '張照片');
+          }
+          
+          if (photos.length === 0) {
+            photosContainer.innerHTML = '<p style="color: #999; font-size: 14px; text-align: center;">暫無照片</p>';
+            return;
+          }
 
-        if (!amount) {
-          alert("請輸入核准金額");
+          // 顯示照片（使用 API 返回的 signed_url）
+          photosContainer.innerHTML = photos.map(photo => {
+            const photoUrl = photo.signed_url || '/static/assets/placeholder.png';
+            const photoType = getPhotoTypeText(photo.photo_type) || photo.file_name;
+            const photoDate = new Date(photo.created_at).toLocaleDateString('zh-TW');
+            
+            return `
+              <div class="photo-item">
+                <img 
+                  src="${photoUrl}" 
+                  alt="${photoType}" 
+                  onclick="viewPhotoFullscreen('${photoUrl}')" 
+                  onerror="this.onerror=null; this.src='/static/assets/placeholder.png'; this.parentElement.style.opacity='0.5';"
+                >
+                <div class="photo-info">
+                  <small>${photoType} - ${photoDate}</small>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } catch (error) {
+          console.error('載入照片錯誤:', error);
+          photosContainer.innerHTML = `<p style="color: #ef4444; font-size: 14px; text-align: center;">載入照片失敗：${error.message}</p>`;
+        }
+      }
+      
+      // 照片類型文字轉換
+      function getPhotoTypeText(type) {
+        const typeMap = {
+          'before_damage': '災損前',
+          'after_damage': '災損後',
+          'site_inspection': '現場勘查',
+          'other': '其他'
+        };
+        return typeMap[type] || '災損照片';
+      }
+
+      // 全螢幕查看照片
+      function viewPhotoFullscreen(url) {
+        const modal = document.createElement('div');
+        modal.className = 'photo-fullscreen-modal';
+        modal.innerHTML = `
+          <div class="photo-fullscreen-overlay" onclick="this.parentElement.remove()"></div>
+          <div class="photo-fullscreen-content">
+            <button class="photo-close-btn" onclick="this.closest('.photo-fullscreen-modal').remove()">×</button>
+            <img src="${url}" alt="災損照片">
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+
+      // 地圖導航功能 - 在卡片內顯示小地圖
+      let miniMaps = {};
+
+      // 地圖導航功能 - 在案件行下顯示小地圖
+      async function showLocationOnMap(appId, location) {
+        if (!location || location === '未提供地址' || location === 'null' || location === 'undefined') {
+          alert('此案件未提供地址資訊');
           return;
         }
 
-        // 使用新的完整流程 API（整合政府發行端）
-        try {
-          const result = await fetch(`/api/v1/complete-flow/review-and-issue`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              application_id: currentApplication.id,
-              approved: true,
-              review_notes: comments,
-              approved_amount: amount,
-            }),
+        // 找到對應的案件行
+        const row = document.querySelector(`.application-row[data-id="${appId}"]`);
+        if (!row) {
+          console.error('找不到案件行:', appId);
+          return;
+        }
+
+        // 檢查是否已有地圖容器
+        let existingMap = row.nextElementSibling;
+        if (existingMap && existingMap.classList.contains('mini-map-container')) {
+          // 如果已經顯示，則移除
+          existingMap.remove();
+          return;
+        }
+
+        // 創建地圖容器
+        const mapContainer = document.createElement('div');
+        mapContainer.className = 'mini-map-container';
+        mapContainer.innerHTML = `
+          <div class="mini-map-header">
+            <span>📍 ${location}</span>
+            <button class="close-mini-map" onclick="this.remove(); this.closest('.mini-map-container').remove();">×</button>
+          </div>
+          <div class="mini-map" id="miniMap_${appId}" style="width: 100%; height: 300px;"></div>
+          <div class="mini-map-actions">
+            <button class="btn-open-gmaps" onclick="openInGoogleMaps('${encodeURIComponent(location)}')">
+              在 Google Maps 開啟
+            </button>
+          </div>
+        `;
+
+        // 插入到案件行之後
+        row.after(mapContainer);
+
+        // 初始化 Google Maps
+        setTimeout(async () => {
+          const mapEl = document.getElementById(`miniMap_${appId}`);
+          if (!mapEl) return;
+          
+          const map = new google.maps.Map(mapEl, {
+            zoom: 15,
+            center: { lat: 23.987, lng: 121.601 }, // 花蓮預設中心
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
           });
 
-          const data = await result.json();
-          console.log("審核回應數據:", data); // 調試用
-          console.log("data.qr_code 存在?", !!data.qr_code);
-          console.log("data.qr_code 類型:", typeof data.qr_code);
-          console.log("data 所有鍵:", Object.keys(data));
-
-          if (data.success) {
-            // 核准成功，QR Code 已儲存至申請人的申請記錄中
-            alert(
-              "✅ 核准成功！\n\n" +
-                "數位憑證已產生並發送給災民。\n" +
-                "災民可在「查詢申請歷史紀錄」中查看 QR Code 並掃描領取補助。\n\n" +
-                `案件編號：${currentApplication.case_no}`
-            );
-
-            closeReviewModal();
-            loadDashboardStats();
-            loadPendingApplications();
-          } else {
-            alert(`操作失敗：${data.message || "請稍後再試"}`);
-          }
-        } catch (error) {
-          console.error("審核錯誤:", error);
-          alert(`系統錯誤：${error.message}`);
-        }
+          // 使用 Geocoding API 取得座標
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: location }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+              const position = results[0].geometry.location;
+              map.setCenter(position);
+              
+              // 添加標記
+              new google.maps.Marker({
+                position: position,
+                map: map,
+                title: location,
+                animation: google.maps.Animation.DROP
+              });
+            } else {
+              console.error('Geocoding 失敗:', status);
+              mapEl.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #ef4444;">
+                  <p style="font-size: 16px; margin-bottom: 8px;">❌ 無法定位此地址</p>
+                  <p style="font-size: 12px; color: #999;">${location}</p>
+                </div>
+              `;
+            }
+          });
+        }, 100);
       }
 
-      async function rejectApplication() {
-        const comments = document.getElementById("reviewComments").value;
-        const amount = 0;
+      function openInGoogleMaps(location) {
+        const url = `https://www.google.com/maps/search/?api=1&query=${location}`;
+        window.open(url, '_blank');
+      }
 
-        if (!comments) {
+      // 提交審核（整合核准和駁回）
+      async function submitReview() {
+        const reviewResult = document.querySelector('input[name="reviewResult"]:checked').value;
+        const comments = document.getElementById("reviewComments").value;
+
+        if (reviewResult === 'reject' && !comments) {
           alert("請填寫駁回原因");
           return;
         }
 
+        const isApproved = reviewResult === 'approve';
+
         try {
           const result = await fetch(`/api/v1/complete-flow/review-and-issue`, {
             method: "POST",
@@ -1126,26 +1413,25 @@
             },
             body: JSON.stringify({
               application_id: currentApplication.id,
-              approved: false,
+              approved: isApproved,
               review_notes: comments,
-              approved_amount: amount,
+              approved_amount: 0, // 不再需要金額
             }),
           });
 
           const data = await result.json();
-          console.log("駁回回應數據:", data); // 調試用
-          console.log("data.qr_code 存在?", !!data.qr_code);
-          console.log("data.qr_code 類型:", typeof data.qr_code);
-          console.log("data 所有鍵:", Object.keys(data));
 
           if (data.success) {
-            // 駁回成功，QR Code 已儲存至申請人的申請記錄中
-            alert(
-              "✅ 駁回成功！\n\n" +
-                "駁回原因已發送給申請人。\n" +
-                "申請人可在「查詢申請歷史紀錄」中查看駁回原因。\n\n" +
-                `案件編號：${currentApplication.case_no}`
-            );
+            if (isApproved) {
+              alert(
+                "✅ 核准成功！\n\n" +
+                  "數位憑證已產生並發送給災民。\n" +
+                  "災民可在申請記錄中查看並掃描 QR Code 領取憑證。\n\n" +
+                  `案件編號：${currentApplication.case_no}`
+              );
+            } else {
+              alert(`❌ 已駁回申請\n\n案件編號：${currentApplication.case_no}`);
+            }
 
             closeReviewModal();
             loadDashboardStats();
@@ -1158,6 +1444,8 @@
           alert(`系統錯誤：${error.message}`);
         }
       }
+
+
 
       function loadStatistics() {
         document.getElementById("statisticsContent").innerHTML = `
@@ -1196,962 +1484,185 @@
         return map[type] || type;
       }
 
-      // ============================================
-      // Google Maps 功能
-      // ============================================
-      let map = null;
-      let markers = [];
-      let selectedApplications = [];
-      let allMapApplications = [];
-      let directionsService = null;
-      let directionsRenderers = [];
-
+      // 切換列表/地圖檢視
+      let applicationsMap = null;
+      let mapMarkers = [];
+      
+      function switchView(view) {
+        const listView = document.getElementById('listView');
+        const mapView = document.getElementById('mapView');
+        const listTab = document.getElementById('listViewTab');
+        const mapTab = document.getElementById('mapViewTab');
+        
+        if (view === 'list') {
+          listView.style.display = 'block';
+          mapView.style.display = 'none';
+          listTab.classList.add('active');
+          mapTab.classList.remove('active');
+        } else if (view === 'map') {
+          listView.style.display = 'none';
+          mapView.style.display = 'block';
+          listTab.classList.remove('active');
+          mapTab.classList.add('active');
+          
+          // 初始化地圖（如果還沒有初始化）
+          if (!applicationsMap) {
+            initializeApplicationsMap();
+          } else {
+            // 更新地圖標記
+            updateMapMarkers();
+          }
+        }
+      }
+      
       // 初始化地圖
-      function initializeMap() {
-        // 預設中心點（台南市政府）
-        const defaultCenter = { lat: 22.9917, lng: 120.2009 };
-
-        map = new google.maps.Map(document.getElementById("map"), {
+      function initializeApplicationsMap() {
+        const mapElement = document.getElementById('applicationsMap');
+        if (!mapElement) return;
+        
+        // 預設中心點（花蓮）
+        const defaultCenter = { lat: 23.9871, lng: 121.6015 };
+        
+        applicationsMap = new google.maps.Map(mapElement, {
           center: defaultCenter,
-          zoom: 13,
+          zoom: 12,
           mapTypeControl: true,
           streetViewControl: false,
           fullscreenControl: true,
         });
-
-        directionsService = new google.maps.DirectionsService();
-
-        console.log("地圖初始化完成");
+        
+        // 顯示案件標記
+        updateMapMarkers();
       }
-
-      // 載入案件列表（用於地圖選擇）
-      async function loadMapApplications() {
-        try {
-          // 檢查使用者是否有 district_id
-          if (!currentUser.district_id) {
-            console.warn("使用者沒有 district_id，無法載入案件");
-            document.getElementById("mapApplicationsList").innerHTML = `
-                        <div style="padding: 20px; text-align: center;">
-                            <p style="color: #ff9800; margin-bottom: 10px;">⚠️ 您的帳號尚未設定管轄區域</p>
-                            <p style="color: #999; font-size: 14px;">請聯繫管理員設定您的管轄區域</p>
-                        </div>
-                    `;
-            return;
-          }
-
-          const response = await fetch(
-            `${API_BASE}/applications/district/${currentUser.district_id}`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
+      
+      // 更新地圖標記
+      async function updateMapMarkers() {
+        if (!applicationsMap) return;
+        
+        // 清除舊標記
+        mapMarkers.forEach(marker => marker.setMap(null));
+        mapMarkers = [];
+        
+        // 獲取篩選後的案件
+        const filterCity = document.getElementById('filterCity')?.value || '';
+        const filterTownship = document.getElementById('filterTownship')?.value || '';
+        const filterVillage = document.getElementById('filterVillage')?.value || '';
+        const filterStatus = document.getElementById('filterStatus')?.value || '';
+        
+        let filteredApps = allApplications;
+        
+        // 按地區篩選
+        if (filterCity || filterTownship || filterVillage) {
+          filteredApps = filteredApps.filter(app => {
+            const address = app.damage_location || app.address || '';
+            if (filterCity && !address.includes(filterCity.replace('縣', '').replace('市', ''))) {
+              return false;
             }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            allMapApplications = data.data?.applications || data.data || [];
-            displayMapApplicationsList();
-          } else {
-            alert("載入案件列表失敗");
-          }
-        } catch (error) {
-          console.error("Error loading map applications:", error);
-          alert("載入失敗：" + error.message);
+            if (filterTownship && !address.includes(filterTownship)) {
+              return false;
+            }
+            if (filterVillage && !address.includes(filterVillage)) {
+              return false;
+            }
+            return true;
+          });
         }
-      }
-
-      // 顯示案件列表（勾選框）
-      function displayMapApplicationsList() {
-        const container = document.getElementById("mapApplicationsList");
-
-        if (allMapApplications.length === 0) {
-          container.innerHTML = `
-                    <p style="color: #999; text-align: center; padding: 20px;">
-                        目前沒有可用的案件
-                    </p>
-                `;
+        
+        // 按狀態篩選
+        if (filterStatus) {
+          filteredApps = filteredApps.filter(app => app.status === filterStatus);
+        }
+        
+        console.log('地圖顯示案件數量:', filteredApps.length);
+        
+        if (filteredApps.length === 0) {
+          alert('沒有符合條件的案件');
           return;
         }
-
-        container.innerHTML = allMapApplications
-          .map(
-            (app) => `
-                <div class="application-item-checkbox" onclick="toggleApplicationSelection('${
-                  app.id
-                }')">
-                    <input type="checkbox" 
-                           id="app_${app.id}" 
-                           value="${app.id}"
-                           ${
-                             selectedApplications.includes(app.id)
-                               ? "checked"
-                               : ""
-                           }
-                           onclick="event.stopPropagation()">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 500; margin-bottom: 5px;">
-                            ${app.case_no} - ${app.applicant_name}
-                        </div>
-                        <div style="font-size: 13px; color: #666;">
-                            📍 ${
-                              app.damage_location || app.address || "地址未提供"
-                            }
-                        </div>
-                        <div style="font-size: 12px; color: #999; margin-top: 3px;">
-                            ${getDisasterTypeText(app.disaster_type)} | 
-                            申請金額: NT$ ${app.requested_amount?.toLocaleString()}
-                        </div>
-                    </div>
-                    <span class="badge ${app.status}">${getStatusText(
-              app.status
-            )}</span>
-                </div>
-            `
-          )
-          .join("");
-
-        updateSelectedCount();
-      }
-
-      // 切換案件選擇狀態
-      function toggleApplicationSelection(appId) {
-        const checkbox = document.getElementById(`app_${appId}`);
-        checkbox.checked = !checkbox.checked;
-
-        if (checkbox.checked) {
-          if (!selectedApplications.includes(appId)) {
-            selectedApplications.push(appId);
-          }
-        } else {
-          selectedApplications = selectedApplications.filter(
-            (id) => id !== appId
-          );
-        }
-
-        updateSelectedCount();
-      }
-
-      // 更新選擇數量
-      function updateSelectedCount() {
-        document.getElementById("selectedCount").textContent =
-          selectedApplications.length;
-      }
-
-      // 在地圖上顯示選中的案件
-      async function showSelectedOnMap() {
-        if (selectedApplications.length === 0) {
-          alert("請先選擇要查看的案件");
-          return;
-        }
-
-        // 初始化地圖（如果還沒初始化）
-        if (!map) {
-          initializeMap();
-        }
-
-        // 清除舊的標記
-        clearMarkers();
-
-        try {
-          // 取得案件的地理位置資訊
-          const response = await fetch(
-            `${API_BASE}/maps/applications-map-data`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify({
-                application_ids: selectedApplications,
-              }),
-            }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            const applications = data.applications;
-
-            if (applications.length === 0) {
-              alert("沒有可顯示的案件位置");
-              return;
-            }
-
-            // 建立地圖邊界
-            const bounds = new google.maps.LatLngBounds();
-
-            // 為每個案件建立標記
-            applications.forEach((app, index) => {
-              if (app.latitude && app.longitude) {
-                const position = {
-                  lat: parseFloat(app.latitude),
-                  lng: parseFloat(app.longitude),
-                };
-
-                // 建立標記
-                const marker = new google.maps.Marker({
-                  position: position,
-                  map: map,
-                  title: app.case_no,
-                  label: {
-                    text: (index + 1).toString(),
-                    color: "white",
-                  },
-                  animation: google.maps.Animation.DROP,
-                });
-
-                // 建立資訊視窗
-                const infoWindow = new google.maps.InfoWindow({
-                  content: `
-                                    <div style="padding: 10px; min-width: 200px;">
-                                        <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">
-                                            ${app.case_no}
-                                        </h3>
-                                        <p style="margin: 5px 0;"><strong>申請人:</strong> ${
-                                          app.applicant_name
-                                        }</p>
-                                        <p style="margin: 5px 0;"><strong>災損地點:</strong> ${
-                                          app.damage_location ||
-                                          app.address ||
-                                          "未提供"
-                                        }</p>
-                                        <p style="margin: 5px 0;"><strong>災害類型:</strong> ${getDisasterTypeText(
-                                          app.disaster_type
-                                        )}</p>
-                                        <p style="margin: 5px 0;"><strong>申請金額:</strong> NT$ ${app.requested_amount?.toLocaleString()}</p>
-                                        <p style="margin: 5px 0;">
-                                            <span class="badge ${
-                                              app.status
-                                            }">${getStatusText(
-                    app.status
-                  )}</span>
-                                        </p>
-                                    </div>
-                                `,
-                });
-
-                // 點擊標記時顯示資訊
-                marker.addListener("click", () => {
-                  // 關閉所有其他資訊視窗
-                  markers.forEach((m) => {
-                    if (m.infoWindow) {
-                      m.infoWindow.close();
-                    }
-                  });
-
-                  infoWindow.open(map, marker);
-                });
-
-                marker.infoWindow = infoWindow;
-                markers.push(marker);
-                bounds.extend(position);
+        
+        // 使用 Geocoding API 為每個案件創建標記
+        const geocoder = new google.maps.Geocoder();
+        const bounds = new google.maps.LatLngBounds();
+        
+        for (const app of filteredApps) {
+          const address = app.damage_location || app.address;
+          if (!address || address === '未提供地址') continue;
+          
+          try {
+            const result = await new Promise((resolve, reject) => {
+              geocoder.geocode({ address: address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                  resolve(results[0]);
+                } else {
+                  reject(new Error('Geocoding failed'));
+                }
+              });
+            });
+            
+            const position = result.geometry.location;
+            
+            // 根據狀態選擇標記顏色
+            let markerColor = '#3B82F6'; // 藍色
+            if (app.status === 'pending') markerColor = '#EF4444'; // 紅色
+            else if (app.status === 'site_inspection') markerColor = '#F59E0B'; // 橙色
+            else if (app.status === 'approved') markerColor = '#10B981'; // 綠色
+            else if (app.status === 'rejected') markerColor = '#F97316'; // 深橙色
+            
+            const marker = new google.maps.Marker({
+              position: position,
+              map: applicationsMap,
+              title: `${app.applicant_name} - ${app.case_no}`,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: markerColor,
+                fillOpacity: 0.8,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
               }
             });
-
-            // 調整地圖視野以包含所有標記
-            map.fitBounds(bounds);
-
-            alert(`✅ 已在地圖上標示 ${applications.length} 個案件位置`);
-          } else {
-            alert("取得位置資訊失敗");
-          }
-        } catch (error) {
-          console.error("Error showing on map:", error);
-          alert("顯示失敗：" + error.message);
-        }
-      }
-
-      // 清除地圖標記
-      function clearMarkers() {
-        markers.forEach((marker) => marker.setMap(null));
-        markers = [];
-      }
-
-      // 清除路線渲染
-      function clearDirectionsRenderers() {
-        directionsRenderers.forEach((renderer) => renderer.setMap(null));
-        directionsRenderers = [];
-      }
-
-      // 規劃最佳路線
-      async function planRoutes() {
-        console.log("🚀 開始規劃路線...");
-        console.log("📊 當前狀態:", {
-          selectedApplications: selectedApplications,
-          selectedCount: selectedApplications.length,
-          allMapApplications: allMapApplications,
-          allMapCount: allMapApplications.length,
-        });
-
-        if (selectedApplications.length < 2) {
-          alert("請至少選擇 2 個案件才能規劃路線");
-          return;
-        }
-
-        if (selectedApplications.length > 10) {
-          alert("一次最多只能規劃 10 個地點的路線");
-          return;
-        }
-
-        try {
-          // 顯示載入中
-          document.getElementById("routesList").innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">🗺️</div>
-                        <p style="color: #666;">正在計算最佳路線...</p>
-                        <p style="color: #999; font-size: 14px;">這可能需要幾秒鐘</p>
-                    </div>
-                `;
-          document.getElementById("routesContainer").classList.remove("hidden");
-
-          // 直接從已載入的案件列表中取得選中的案件
-          const applications = allMapApplications.filter((app) =>
-            selectedApplications.includes(app.id)
-          );
-
-          console.log("✅ 選中的案件:", {
-            total: applications.length,
-            selectedIds: selectedApplications,
-            matchedApps: applications.map((a) => ({
-              id: a.id,
-              case_no: a.case_no,
-              address: a.address,
-              damage_location: a.damage_location,
-            })),
-          });
-
-          // 驗證案件資料
-          if (!applications || applications.length === 0) {
-            throw new Error("沒有找到選中的案件資料");
-          }
-
-          // 提取地址，過濾掉空值
-          const destinations = applications
-            .map((app) => {
-              const addr =
-                app.damage_location || app.address || app.formatted_address;
-              console.log(`📌 案件 ${app.case_no}:`, {
-                damage_location: app.damage_location,
-                address: app.address,
-                formatted_address: app.formatted_address,
-                selected: addr,
+            
+            // 添加點擊事件
+            marker.addListener('click', () => {
+              const infoWindow = new google.maps.InfoWindow({
+                content: `
+                  <div style="padding: 10px; min-width: 200px;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 16px;">${app.applicant_name}</h4>
+                    <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                      <strong>案件編號：</strong>${app.case_no}
+                    </p>
+                    <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                      <strong>狀態：</strong><span style="color: ${markerColor};">${getStatusText(app.status)}</span>
+                    </p>
+                    <p style="margin: 4px 0; font-size: 13px; color: #666;">
+                      <strong>地址：</strong>${address}
+                    </p>
+                    <button onclick='openReviewModal(${JSON.stringify(app).replace(/'/g, "&apos;")})' 
+                            style="margin-top: 8px; padding: 6px 12px; background: #1E81B2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      查看詳情
+                    </button>
+                  </div>
+                `
               });
-              return addr;
-            })
-            .filter((addr) => addr && addr.trim().length > 0);
-
-          // 驗證目的地
-          if (destinations.length === 0) {
-            throw new Error(
-              `❌ 所有 ${applications.length} 個案件都沒有地址資訊！\n\n` +
-                `請檢查案件資料：\n` +
-                applications
-                  .map(
-                    (a) =>
-                      `- ${a.case_no}: damage_location=${a.damage_location}, address=${a.address}`
-                  )
-                  .join("\n")
-            );
-          }
-
-          console.log("📍 路線規劃資料:", {
-            applications: applications.length,
-            destinations: destinations,
-            selectedApplications,
-            currentUser: currentUser,
-          });
-
-          // 使用里長所在區域辦公處作為起點（或使用第一個案件地址）
-          let startLocation = destinations[0]; // 預設使用第一個案件地址
-
-          if (currentUser && currentUser.district_name) {
-            startLocation = `${currentUser.district_name}辦公處`;
-            console.log("✓ 使用區域辦公處作為起點:", startLocation);
-          } else {
-            console.log(
-              "⚠️ 未設定區域，使用第一個案件地址作為起點:",
-              startLocation
-            );
-          }
-
-          // 準備請求資料
-          const requestData = {
-            start_location: startLocation,
-            destinations: destinations,
-            mode: "driving",
-          };
-
-          console.log("🚗 發送路線規劃請求:", requestData);
-
-          // 呼叫路線規劃 API
-          const routeResponse = await fetch(`${API_BASE}/maps/optimal-routes`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify(requestData),
-          });
-
-          if (!routeResponse.ok) {
-            const errorData = await routeResponse.json().catch(() => ({}));
-            console.error("路線規劃錯誤:", {
-              status: routeResponse.status,
-              statusText: routeResponse.statusText,
-              error: errorData,
+              infoWindow.open(applicationsMap, marker);
             });
-
-            // 顯示詳細錯誤訊息
-            let errorMessage = errorData.detail || "路線規劃失敗";
-            if (Array.isArray(errorData.detail)) {
-              errorMessage = errorData.detail
-                .map((e) => `${e.loc?.join(".")}: ${e.msg}`)
-                .join("\\n");
-            }
-
-            throw new Error(errorMessage);
+            
+            mapMarkers.push(marker);
+            bounds.extend(position);
+            
+          } catch (error) {
+            console.error(`無法定位地址: ${address}`, error);
           }
-
-          const routeData = await routeResponse.json();
-          console.log("✅ 路線規劃成功:", routeData);
-          displayRoutes(routeData.routes, applications);
-        } catch (error) {
-          console.error("Error planning routes:", error);
-          document.getElementById("routesList").innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-                        <p style="color: #ef4444; font-weight: bold; margin-bottom: 10px;">路線規劃失敗</p>
-                        <p style="color: #666; margin-top: 8px; white-space: pre-wrap;">${error.message}</p>
-                        <button onclick="document.getElementById('routesContainer').classList.add('hidden')" 
-                                style="margin-top: 20px; padding: 8px 16px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            關閉
-                        </button>
-                    </div>
-                `;
         }
-      }
-
-      // 顯示路線規劃結果
-      function displayRoutes(routes, applications) {
-        if (!routes || routes.length === 0) {
-          document.getElementById("routesList").innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <p style="color: #999;">沒有找到可用的路線</p>
-                    </div>
-                `;
-          return;
-        }
-
-        const routesHtml = routes
-          .slice(0, 3)
-          .map((route) => {
-            const waypointInfo = route.ordered_addresses
-              .map((addr, idx) => {
-                const app = applications.find(
-                  (a) => a.formatted_address === addr || a.address === addr
-                );
-                return `
-                        <li class="waypoint-item">
-                            <strong>第 ${idx + 1} 站</strong> - ${
-                  app?.applicant_name || "未知"
-                }
-                            <div style="font-size: 13px; color: #666; margin-top: 3px;">
-                                ${addr}
-                            </div>
-                            <div style="font-size: 12px; color: #999; margin-top: 3px;">
-                                ${app?.case_no || ""} | ${getDisasterTypeText(
-                  app?.disaster_type
-                )}
-                            </div>
-                        </li>
-                    `;
-              })
-              .join("");
-
-            return `
-                    <div class="route-card rank-${route.rank}">
-                        <div class="route-header">
-                            <div class="route-rank rank-${route.rank}">
-                                ${
-                                  route.rank === 1
-                                    ? "🥇"
-                                    : route.rank === 2
-                                    ? "🥈"
-                                    : "🥉"
-                                }
-                            </div>
-                            <div style="flex: 1;">
-                                <h3 style="margin: 0; color: #333;">
-                                    ${
-                                      route.rank === 1
-                                        ? "最佳路線"
-                                        : route.rank === 2
-                                        ? "次佳路線"
-                                        : "第三路線"
-                                    }
-                                </h3>
-                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
-                                    共 ${
-                                      route.ordered_addresses.length
-                                    } 個訪問地點
-                                </p>
-                            </div>
-                            <button class="btn btn-primary btn-sm" onclick="showRouteOnMap(${
-                              route.rank - 1
-                            })">
-                                在地圖上顯示
-                            </button>
-                        </div>
-
-                        <div class="route-stats">
-                            <div class="route-stat">
-                                <div class="route-stat-label">總距離</div>
-                                <div class="route-stat-value">${
-                                  route.total_distance.text
-                                }</div>
-                            </div>
-                            <div class="route-stat">
-                                <div class="route-stat-label">預估時間</div>
-                                <div class="route-stat-value">${
-                                  route.total_duration.text
-                                }</div>
-                            </div>
-                            <div class="route-stat">
-                                <div class="route-stat-label">訪問順序</div>
-                                <div class="route-stat-value">${route.waypoint_order
-                                  .map((i) => i + 1)
-                                  .join(" → ")}</div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 style="margin: 15px 0 10px 0; color: #666; font-size: 14px;">📍 訪問順序：</h4>
-                            <ul class="waypoint-list">
-                                ${waypointInfo}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-          })
-          .join("");
-
-        document.getElementById("routesList").innerHTML = routesHtml;
-      }
-
-      // 在地圖上顯示特定路線
-      async function showRouteOnMap(routeIndex) {
-        if (!map) {
-          initializeMap();
-        }
-
-        // 清除舊的路線
-        clearDirectionsRenderers();
-
-        try {
-          // 取得路線資料
-          const response = await fetch(
-            `${API_BASE}/maps/applications-map-data`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify({
-                application_ids: selectedApplications,
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("取得案件資料失敗");
-          }
-
-          const data = await response.json();
-          const applications = data.applications;
-          const destinations = applications.map(
-            (app) => app.formatted_address || app.address
-          );
-
-          // 使用里長所在區域辦公處作為起點
-          const startLocation = currentUser.district_name
-            ? `台南市${currentUser.district_name}辦公處`
-            : destinations[0];
-
-          // 重新計算路線以取得完整的路線資料
-          const routeResponse = await fetch(`${API_BASE}/maps/optimal-routes`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              start_location: startLocation,
-              destinations: destinations,
-              mode: "driving",
-            }),
-          });
-
-          if (!routeResponse.ok) {
-            throw new Error("路線規劃失敗");
-          }
-
-          const routeData = await routeResponse.json();
-          const selectedRoute = routeData.routes[routeIndex];
-
-          if (!selectedRoute) {
-            throw new Error("找不到指定的路線");
-          }
-
-          // 建立路線渲染器
-          const directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map,
-            suppressMarkers: false, // 顯示起點終點標記
-            polylineOptions: {
-              strokeColor:
-                routeIndex === 0
-                  ? "#3b82f6"
-                  : routeIndex === 1
-                  ? "#10b981"
-                  : "#f59e0b",
-              strokeWeight: 6,
-              strokeOpacity: 0.8,
-            },
-          });
-
-          // 建立路線請求
-          const waypoints = selectedRoute.ordered_addresses
-            .slice(0, -1)
-            .map((addr) => ({
-              location: addr,
-              stopover: true,
-            }));
-
-          const request = {
-            origin: startLocation,
-            destination:
-              selectedRoute.ordered_addresses[
-                selectedRoute.ordered_addresses.length - 1
-              ],
-            waypoints: waypoints,
-            travelMode: google.maps.TravelMode.DRIVING,
-            optimizeWaypoints: false, // 已經最佳化過了
-          };
-
-          // 繪製路線
-          directionsService.route(request, (result, status) => {
-            if (status === google.maps.DirectionsStatus.OK) {
-              directionsRenderer.setDirections(result);
-              directionsRenderers.push(directionsRenderer);
-
-              // 提示成功
-              const routeName =
-                routeIndex === 0
-                  ? "最佳路線"
-                  : routeIndex === 1
-                  ? "次佳路線"
-                  : "第三路線";
-              alert(
-                `✅ ${routeName}已顯示在地圖上\n\n` +
-                  `總距離: ${selectedRoute.total_distance.text}\n` +
-                  `預估時間: ${selectedRoute.total_duration.text}`
-              );
-            } else {
-              console.error("路線繪製失敗:", status);
-              alert("路線繪製失敗：" + status);
-            }
-          });
-        } catch (error) {
-          console.error("Error showing route on map:", error);
-          alert("顯示路線失敗：" + error.message);
-        }
-      }
-
-      // 清除地圖選擇
-      function clearMapSelection() {
-        selectedApplications = [];
-        const checkboxes = document.querySelectorAll(
-          '#mapApplicationsList input[type="checkbox"]'
-        );
-        checkboxes.forEach((cb) => (cb.checked = false));
-        updateSelectedCount();
-        clearMarkers();
-        clearDirectionsRenderers();
-        document.getElementById("routesContainer").classList.add("hidden");
-      }
-
-      // ============================================
-      // 文件管理功能
-      // ============================================
-
-      async function loadApplicationDocuments(applicationId) {
-        const documentsContainer = document.getElementById("documentsInfo");
-        documentsContainer.innerHTML =
-          '<p style="color: #999; font-size: 14px;">載入中...</p>';
-
-        try {
-          const response = await fetch(
-            `${API_BASE}/documents/application/${applicationId}`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          );
-
-          if (response.ok) {
-            const result = await response.json();
-            const documents = result.data?.documents || [];
-
-            if (documents.length === 0) {
-              documentsContainer.innerHTML = `
-                            <div style="padding: 20px; text-align: center; background: #f9fafb; border-radius: 8px; color: #999;">
-                                📄 此案件暫無上傳證明文件
-                            </div>
-                        `;
-              return;
-            }
-
-            // 顯示文件列表
-            const html = documents
-              .map((doc) => {
-                const sizeInMB = (doc.file_size / (1024 * 1024)).toFixed(2);
-                const icon = getDocumentIcon(doc.file_name);
-                const isDocx =
-                  doc.mime_type ===
-                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-                return `
-                            <div style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
-                                <div style="font-size: 32px; margin-right: 15px;">${icon}</div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 500; color: #333; margin-bottom: 4px;">${
-                                      doc.file_name
-                                    }</div>
-                                    <div style="font-size: 12px; color: #666;">
-                                        ${sizeInMB} MB · ${getDocumentTypeText(
-                  doc.document_type
-                )} · ${new Date(doc.uploaded_at).toLocaleString()}
-                                    </div>
-                                    ${
-                                      doc.description
-                                        ? `<div style="font-size: 12px; color: #999; margin-top: 4px;">📝 ${doc.description}</div>`
-                                        : ""
-                                    }
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    ${
-                                      isDocx
-                                        ? `
-                                        <button class="btn btn-sm" onclick="previewDocument('${doc.id}', '${doc.file_name}')" style="background: #3b82f6; color: white;" title="預覽（自動轉 PDF）">
-                                            👁️ 預覽
-                                        </button>
-                                    `
-                                        : doc.mime_type.startsWith("image/") ||
-                                          doc.mime_type === "application/pdf"
-                                        ? `
-                                        <button class="btn btn-sm" onclick="previewDocument('${doc.id}', '${doc.file_name}')" style="background: #3b82f6; color: white;">
-                                            👁️ 預覽
-                                        </button>
-                                    `
-                                        : ""
-                                    }
-                                    <button class="btn btn-sm" onclick="downloadDocument('${
-                                      doc.id
-                                    }', '${
-                  doc.file_name
-                }')" style="background: #10b981; color: white;">
-                                        ⬇️ 下載
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-              })
-              .join("");
-
-            documentsContainer.innerHTML = `
-                        <div style="background: #eff6ff; padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; color: #1e40af;">
-                            📋 共 ${documents.length} 個證明文件
-                        </div>
-                        ${html}
-                    `;
-          } else {
-            documentsContainer.innerHTML = `
-                        <div style="padding: 20px; text-align: center; background: #fee2e2; border-radius: 8px; color: #991b1b;">
-                            ❌ 載入文件失敗，請稍後再試
-                        </div>
-                    `;
-          }
-        } catch (error) {
-          console.error("載入文件錯誤:", error);
-          documentsContainer.innerHTML = `
-                    <div style="padding: 20px; text-align: center; background: #fee2e2; border-radius: 8px; color: #991b1b;">
-                        ❌ 發生錯誤: ${error.message}
-                    </div>
-                `;
-        }
-      }
-
-      function getDocumentIcon(filename) {
-        const ext = filename.split(".").pop().toLowerCase();
-        const icons = {
-          pdf: "📄",
-          doc: "📝",
-          docx: "📝",
-          jpg: "🖼️",
-          jpeg: "🖼️",
-          png: "🖼️",
-          xls: "📊",
-          xlsx: "📊",
-        };
-        return icons[ext] || "📎";
-      }
-
-      function getDocumentTypeText(type) {
-        const types = {
-          household_registration: "戶籍謄本",
-          income_proof: "收入證明",
-          property_proof: "財產證明",
-          damage_assessment: "災損鑑定",
-          supporting_document: "證明文件",
-          other: "其他文件",
-        };
-        return types[type] || type;
-      }
-
-      async function previewDocument(documentId, fileName) {
-        try {
-          // 打開新視窗進行預覽
-          const previewUrl = `${API_BASE}/documents/${documentId}/preview`;
-          const previewWindow = window.open(
-            "",
-            "_blank",
-            "width=900,height=700"
-          );
-
-          if (!previewWindow) {
-            alert("無法開啟預覽視窗，請檢查瀏覽器的彈出視窗設定");
-            return;
-          }
-
-          previewWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>預覽 - ${fileName}</title>
-                        <style>
-                            body {
-                                margin: 0;
-                                padding: 0;
-                                background: #f0f0f0;
-                                font-family: Arial, sans-serif;
-                            }
-                            .header {
-                                background: white;
-                                padding: 15px 20px;
-                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                            }
-                            .header h3 {
-                                margin: 0;
-                                color: #333;
-                            }
-                            .btn {
-                                padding: 8px 16px;
-                                background: #3b82f6;
-                                color: white;
-                                border: none;
-                                border-radius: 4px;
-                                cursor: pointer;
-                                text-decoration: none;
-                            }
-                            .btn:hover {
-                                background: #2563eb;
-                            }
-                            .loading {
-                                text-align: center;
-                                padding: 50px;
-                                color: #666;
-                            }
-                            iframe, embed, img {
-                                width: 100%;
-                                height: calc(100vh - 70px);
-                                border: none;
-                            }
-                            .error {
-                                text-align: center;
-                                padding: 50px;
-                                color: #dc2626;
-                                background: white;
-                                margin: 20px;
-                                border-radius: 8px;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="header">
-                            <h3>📄 ${fileName}</h3>
-                            <a href="${API_BASE}/documents/${documentId}/download" class="btn" download>⬇️ 下載原檔</a>
-                        </div>
-                        <div class="loading">載入中...</div>
-                        <iframe id="previewFrame" style="display:none;"></iframe>
-                    </body>
-                    </html>
-                `);
-
-          // 使用 iframe 載入預覽
-          const iframe = previewWindow.document.getElementById("previewFrame");
-          const loading = previewWindow.document.querySelector(".loading");
-
-          iframe.onload = () => {
-            loading.style.display = "none";
-            iframe.style.display = "block";
-          };
-
-          iframe.onerror = () => {
-            loading.innerHTML =
-              '<div class="error">❌ 預覽失敗<br><small>建議直接下載檔案查看</small></div>';
-          };
-
-          iframe.src = previewUrl;
-        } catch (error) {
-          console.error("預覽錯誤:", error);
-          alert("預覽失敗: " + error.message);
-        }
-      }
-
-      async function downloadDocument(documentId, fileName) {
-        try {
-          const response = await fetch(
-            `${API_BASE}/documents/${documentId}/download`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("下載失敗");
-          }
-
-          // 取得 blob
-          const blob = await response.blob();
-
-          // 建立下載連結
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-
-          // 清理
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-
-          console.log(`✓ 檔案 ${fileName} 下載成功`);
-        } catch (error) {
-          console.error("下載錯誤:", error);
-          alert("下載失敗: " + error.message);
+        
+        // 調整地圖視野以包含所有標記
+        if (mapMarkers.length > 0) {
+          applicationsMap.fitBounds(bounds);
         }
       }
     </script>
+    
+    <!-- 新版功能腳本 -->
+    <script src="/static/js/admin-new-functions.js"></script>
   </body>
 </html>

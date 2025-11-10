@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS districts (
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
+    address TEXT,
     phone VARCHAR(20),
     full_name VARCHAR(100) NOT NULL,
     id_number VARCHAR(20), -- 身分證字號

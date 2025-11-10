@@ -56,6 +56,12 @@ https/test_images/
 # Ignore generated files
 *.generated.*
 
+# OAuth & Secrets
+**/gmail_token.json
+**/client_secret.json
+*token*.json
+*secret*.json
+
 # Uncomment if you want to ignore all static files except source html/js/css
 # static/*.js
 # static/*.css

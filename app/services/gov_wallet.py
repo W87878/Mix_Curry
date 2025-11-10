@@ -58,8 +58,18 @@ class GovWalletService:
         Returns:
             包含 QR Code 和其他資訊的字典
         """
-        if not self.use_real_api:
-            # 沒有 API 金鑰，返回模擬資料
+        # 🔍 檢查是否有臨時身分證號碼（TEMP_ 或 GOOGLE_ 開頭）
+        has_temp_id = any(
+            field.get('ename') == 'id_number' and 
+            (str(field.get('content', '')).startswith('TEMP_') or 
+             str(field.get('content', '')).startswith('GOOGLE_'))
+            for field in fields
+        )
+        
+        if not self.use_real_api or has_temp_id:
+            # 沒有 API 金鑰或有臨時身分證，返回模擬資料
+            if has_temp_id:
+                print(f"⚠️ 檢測到臨時身分證號碼，使用模擬模式")
             return self._mock_qrcode_data(vctid, fields)
         
         try:
@@ -178,6 +188,110 @@ class GovWalletService:
         
         return result
     
+    async def check_credential_nonce(self, transaction_id: str) -> Dict[str, Any]:
+        """
+        檢查用戶是否已掃描並存入 VC 卡片
+        
+        API: GET /api/credential/nonce/{transactionId}
+        
+        此 API 用於檢查用戶是否已掃描 QR Code 並將憑證存入數位皮夾。
+        
+        Returns:
+            {
+                "credential": "eyJhbGc..." (JWT Token, 表示用戶已存入)
+                或
+                空 response (表示用戶尚未掃描或尚未存入)
+            }
+        """
+        if not self.issuer_api_key:
+            # 沒有 API 金鑰，返回模擬資料
+            return self._mock_credential_nonce(transaction_id)
+        
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.issuer_base_url}/api/credential/nonce/{transaction_id}",
+                    headers={
+                        "Access-Token": self.issuer_api_key
+                    }
+                )
+                
+                # 如果返回 200 且有 credential，表示用戶已存入
+                if response.status_code == 200:
+                    result = response.json()
+                    
+                    if result.get("credential"):
+                        # 解析 JWT Token 中的 jti 欄位
+                        credential_jwt = result.get("credential")
+                        print(f"✅ 用戶已存入憑證: {credential_jwt[:50]}...")
+                        
+                        return {
+                            "success": True,
+                            "claimed": True,
+                            "credential": credential_jwt,
+                            "message": "用戶已掃描並存入憑證"
+                        }
+                    else:
+                        # 沒有 credential，用戶尚未掃描
+                        return {
+                            "success": True,
+                            "claimed": False,
+                            "message": "用戶尚未掃描或尚未存入憑證"
+                        }
+                
+                # 其他狀態碼（如 400, 404）
+                elif response.status_code == 400:
+                    error_data = response.json()
+                    return {
+                        "success": False,
+                        "claimed": False,
+                        "error": error_data,
+                        "message": f"查詢失敗: {error_data.get('message', 'QR Code未建構')}"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "claimed": False,
+                        "message": f"查詢失敗: HTTP {response.status_code}"
+                    }
+                
+        except httpx.HTTPStatusError as e:
+            error_detail = e.response.text if hasattr(e, 'response') else str(e)
+            print(f"檢查憑證領取狀態失敗: {e}")
+            print(f"詳細錯誤: {error_detail}")
+            return {
+                "success": False,
+                "claimed": False,
+                "error": error_detail,
+                "message": f"政府 API 呼叫失敗: {error_detail}"
+            }
+        except Exception as e:
+            print(f"檢查憑證領取狀態失敗: {e}")
+            return {
+                "success": False,
+                "claimed": False,
+                "error": str(e),
+                "message": f"檢查失敗: {str(e)}"
+            }
+    
+    def _mock_credential_nonce(self, transaction_id: str) -> Dict[str, Any]:
+        """模擬憑證領取狀態檢查（開發用）"""
+        # 模擬：前 5 次查詢返回「尚未領取」，第 6 次之後返回「已領取」
+        import random
+        if random.random() > 0.8:  # 20% 機率模擬已領取
+            return {
+                "success": True,
+                "claimed": True,
+                "credential": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.mock_credential_data",
+                "message": "用戶已掃描並存入憑證（模擬）"
+            }
+        else:
+            return {
+                "success": True,
+                "claimed": False,
+                "message": "用戶尚未掃描或尚未存入憑證（模擬）"
+            }
+
     def _mock_qrcode_data(self, vctid: str, fields: List[Dict[str, str]]) -> Dict[str, Any]:
         """
         模擬 QR Code 資料（開發用）
