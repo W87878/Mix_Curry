@@ -1,12 +1,13 @@
 # FastAPI 核心
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-pydantic==2.5.3
+pydantic>=2.10.0
 email-validator
-pydantic-settings==2.1.0
+pydantic-settings>=2.1.0
 requests==2.32.5
 # Supabase（會自動安裝 httpx 等依賴）
-supabase>=2.4.0
+# 注意：使用 2.x 版本以避免 supabase-auth 兼容性問題
+supabase>=2.0.0,<3.0.0
 postgrest>=0.16.0
 
 # 資料處理

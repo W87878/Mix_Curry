@@ -47,6 +47,14 @@ body {
   padding-top: 80px;
 }
 
+.form-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: 0.6px;
+  text-align: center;
+}
+
 .page-title {
   font-size: 30px;
   font-weight: 700;
@@ -408,9 +416,108 @@ textarea:focus {
   z-index: 1;
 }
 
+/* 步驟指示器樣式 */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin-bottom: 40px;
+  padding: 20px;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.step-item.active .step-number {
+  background: #1e81b2;
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 129, 178, 0.3);
+}
+
+.step-item.completed .step-number {
+  background: #10b981;
+  color: white;
+}
+
+.step-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step-item.active .step-label {
+  color: #1e81b2;
+  font-weight: 600;
+}
+
+.step-item.completed .step-label {
+  color: #10b981;
+}
+
+/* 步驟之間的連接線 */
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: calc(100% + 8px);
+  width: 32px;
+  height: 2px;
+  background: #e9ecef;
+  z-index: -1;
+}
+
+.step-item.completed:not(:last-child)::after {
+  background: #10b981;
+}
+
+/* 響應式設計 */
+@media (max-width: 600px) {
+  .step-indicator {
+    gap: 20px;
+    padding: 16px 8px;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .step-label {
+    font-size: 12px;
+  }
+  
+  .step-item:not(:last-child)::after {
+    width: 16px;
+    left: calc(100% + 4px);
+  }
+}
+
 .btn {
   width: 100%;
-  padding: 15px;
+  padding: 10px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -420,14 +527,14 @@ textarea:focus {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1e81B2;
   color: white;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #667eead5 0%, #764ba2d7 100%);
+  background: #1e81B2;
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 20px rgba(30, 129, 178, 0.4);
 }
 
 .btn-secondary {
@@ -562,7 +669,7 @@ textarea:focus {
 }
 
 .success-buttons {
-  width: 100%;
+  width: 200px;
   display: flex;
   justify-content: center;
   gap: 48px;
@@ -807,6 +914,289 @@ textarea:focus {
   border-top: 1px solid #e0e0e0;
 }
 
+/* ID Mismatch Modal Styles */
+.id-mismatch-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.id-mismatch-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.id-mismatch-header {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.id-mismatch-header .warning-icon {
+  font-size: 32px;
+}
+
+.id-mismatch-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.id-mismatch-body {
+  padding: 32px 24px;
+}
+
+.warning-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #d32f2f;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.id-comparison {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+  border-left: 4px solid #ff6b6b;
+}
+
+.id-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.id-item:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+}
+
+.id-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.id-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #1e81b2;
+  letter-spacing: 1px;
+}
+
+.hint-text {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+.id-mismatch-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-back-home,
+.btn-regenerate-qr {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-home {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.btn-back-home:hover {
+  background: #dee2e6;
+  transform: translateY(-1px);
+}
+
+.btn-regenerate-qr {
+  background: #1e81b2;
+  color: white;
+}
+
+.btn-regenerate-qr:hover {
+  background: #1a6d98;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 129, 178, 0.3);
+}
+
+/* ========================================
+   Modal 彈窗樣式
+   ======================================== */
+
+/* Modal 遮罩層 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+/* Modal 容器 */
+.modal-container {
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Modal 動畫 */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 當 modal 被隱藏時 */
+.modal-overlay.hidden {
+  display: none;
+}
+
+/* 進度 Modal 樣式 */
+.progress-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.progress-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.progress-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.progress-modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: #64748b;
+}
+
+.progress-modal-body {
+  padding: 24px;
+}
+
+/* ========================================
+   響應式設計
+   ======================================== */
+
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+    max-width: none;
+  }
+
+  .progress-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .id-mismatch-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .id-mismatch-footer {
+    flex-direction: column-reverse;
+  }
+  
+  .btn-back-home,
+  .btn-regenerate-qr {
+    width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .page-header {
     padding: 24px 20px;
@@ -834,5 +1224,16 @@ textarea:focus {
   .success-buttons {
     flex-direction: column;
     padding: 20px;
+  }
+  .id-mismatch-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  .id-mismatch-footer {
+    flex-direction: column-reverse;
+  }
+  .btn-back-home,
+  .btn-regenerate-qr {
+    width: 100%;
   }
 }

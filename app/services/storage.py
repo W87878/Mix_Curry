@@ -33,7 +33,7 @@ class StorageService:
         photo_type: str = "before_damage"
     ) -> dict:
         """
-        上傳災損照片
+        上傳災損照片到 application-documents bucket
         
         Args:
             application_id: 申請案件 ID
@@ -42,12 +42,12 @@ class StorageService:
             photo_type: 照片類型 (before_damage, after_damage, site_inspection)
         
         Returns:
-            包含 storage_path 和 public_url 的字典
+            包含 storage_path 和 signed_url 的字典
         """
         # 生成唯一檔案路徑
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_ext = filename.split('.')[-1].lower() if '.' in filename else 'jpg'
-        storage_path = f"{application_id}/{photo_type}_{timestamp}.{file_ext}"
+        storage_path = f"{application_id}/photos/{photo_type}_{timestamp}.{file_ext}"
         
         # 正確的 MIME type 對應
         mime_types = {
@@ -59,16 +59,15 @@ class StorageService:
         }
         content_type = mime_types.get(file_ext, 'image/jpeg')
         
-        # 上傳到 Supabase Storage
-        result = self.client.storage.from_(self.damage_photos_bucket).upload(
+        # 上傳到 application-documents bucket
+        result = self.client.storage.from_(self.documents_bucket).upload(
             path=storage_path,
             file=file,
             file_options={"content-type": content_type}
         )
         
         # 取得檔案 URL (需要簽名的私有 URL)
-        # 注意：damage-photos bucket 是私有的，需要生成帶有過期時間的 URL
-        url = self.client.storage.from_(self.damage_photos_bucket).create_signed_url(
+        url = self.client.storage.from_(self.documents_bucket).create_signed_url(
             path=storage_path,
             expires_in=3600 * 24 * 365  # 1年有效期
         )
@@ -76,12 +75,12 @@ class StorageService:
         return {
             "storage_path": storage_path,
             "signed_url": url['signedURL'] if url else None,
-            "bucket": self.damage_photos_bucket
+            "bucket": self.documents_bucket
         }
     
     def get_damage_photo_url(self, storage_path: str, expires_in: int = 3600) -> str:
         """
-        取得災損照片的簽名 URL
+        取得災損照片的簽名 URL（從 application-documents bucket）
         
         Args:
             storage_path: Storage 路徑
@@ -90,7 +89,8 @@ class StorageService:
         Returns:
             簽名的 URL
         """
-        result = self.client.storage.from_(self.damage_photos_bucket).create_signed_url(
+        # 照片存在 application-documents bucket 中
+        result = self.client.storage.from_(self.documents_bucket).create_signed_url(
             path=storage_path,
             expires_in=expires_in
         )
