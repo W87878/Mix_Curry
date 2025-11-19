@@ -26,6 +26,11 @@ body {
   color: #1e81b2;
 }
 
+.header-href {
+  text-decoration: none;
+  color: inherit;
+}
+
 .header-nav {
   display: flex;
   gap: 24px;
