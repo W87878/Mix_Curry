@@ -39,6 +39,9 @@
         <div class="nav-item" onclick="showPage('statistics')">
           📊 統計數據
         </div>
+        <div class="nav-item" onclick="showPage('history')">
+          📜 歷史紀錄
+        </div>
       </div>
 
       <div class="main-content">
@@ -152,15 +155,35 @@
           </div>
           <div id="statisticsContent"></div>
         </div>
-      </div>
 
-        <!-- Map Page -->
-        <!-- Statistics Page -->
-        <div id="statistics-page" class="hidden">
+        <!-- History Page -->
+        <div id="history-page" class="hidden">
           <div class="page-header">
-            <h1 class="page-title">統計數據</h1>
+            <h1 class="page-title">📜 憑證使用歷史紀錄</h1>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+              <select id="historyStatusFilter" class="filter-dropdown" onchange="loadHistory()">
+                <option value="">全部狀態</option>
+                <option value="issued">已發行</option>
+                <option value="verified">已驗證</option>
+              </select>
+              <select id="historyDisasterFilter" class="filter-dropdown" onchange="loadHistory()">
+                <option value="">全部災害類型</option>
+                <option value="水災">水災</option>
+                <option value="颱風">颱風</option>
+                <option value="地震">地震</option>
+                <option value="火災">火災</option>
+              </select>
+              <button class="btn btn-secondary" onclick="loadHistory()">
+                🔄 重新整理
+              </button>
+            </div>
           </div>
-          <div id="statisticsContent"></div>
+          <div id="historyContent">
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>載入中...</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -883,6 +906,8 @@
           loadPendingApplications();
         } else if (page === "statistics") {
           loadStatistics();
+        } else if (page === "history") {
+          loadHistory();
         }
       }
 
@@ -1452,6 +1477,215 @@
                     <p>統計功能開發中...</p>
                 </div>
             `;
+      }
+
+      // 載入歷史紀錄
+      async function loadHistory() {
+        const historyContent = document.getElementById('historyContent');
+        const statusFilter = document.getElementById('historyStatusFilter')?.value || '';
+        const disasterFilter = document.getElementById('historyDisasterFilter')?.value || '';
+        
+        try {
+          historyContent.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>載入中...</p>
+            </div>
+          `;
+
+          // 構建 API URL
+          let apiUrl = `${API_BASE}/complete-flow/credential-history-stats`;
+          const params = new URLSearchParams();
+          if (disasterFilter) params.append('disaster_type', disasterFilter);
+          if (params.toString()) apiUrl += `?${params.toString()}`;
+
+          // 獲取統計數據
+          const statsResponse = await fetch(apiUrl, {
+            headers: { 
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!statsResponse.ok) {
+            throw new Error('無法載入統計數據');
+          }
+
+          const statsData = await statsResponse.json();
+          const stats = statsData.stats || {};
+
+          // 獲取詳細歷史記錄（從所有用戶）
+          const historyResponse = await fetch(`${API_BASE}/applications/list`, {
+            headers: { 
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          let allHistory = [];
+          if (historyResponse.ok) {
+            const historyData = await historyResponse.json();
+            // 從申請記錄中提取歷史
+            const applications = Array.isArray(historyData) ? historyData : 
+                               (historyData.data?.applications || historyData.data || []);
+            
+            // 轉換為歷史記錄格式
+            allHistory = applications
+              .filter(app => app.status === 'approved' || app.status === 'disbursed')
+              .map(app => ({
+                id: app.id,
+                application_id: app.id,
+                applicant_name: app.applicant_name,
+                disaster_type: getDisasterTypeText(app.disaster_type),
+                disaster_address: app.disaster_address,
+                approved_amount: app.approved_amount,
+                status: app.status === 'disbursed' ? 'verified' : 'issued',
+                action_time: app.status === 'disbursed' ? app.disbursed_at : app.approved_at,
+                issuer_organization: '台南市政府災害救助中心',
+                verifier_organization: app.status === 'disbursed' ? '7-11 便利商店' : null,
+                case_no: app.case_no
+              }));
+          }
+
+          // 應用篩選
+          let filteredHistory = allHistory;
+          if (statusFilter) {
+            filteredHistory = filteredHistory.filter(h => h.status === statusFilter);
+          }
+          if (disasterFilter) {
+            filteredHistory = filteredHistory.filter(h => h.disaster_type === disasterFilter);
+          }
+
+          // 渲染頁面
+          historyContent.innerHTML = `
+            <!-- 統計卡片 -->
+            <div class="stats-header" style="margin-bottom: 24px;">
+              <div class="stat-card">
+                <div class="stat-label">總記錄數</div>
+                <div class="stat-value">${stats.total_records || 0}</div>
+                <div class="stat-unit">筆</div>
+                <div class="stat-icon" style="background: #e0e7ff;">📝</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">已發行憑證</div>
+                <div class="stat-value">${stats.issued_count || 0}</div>
+                <div class="stat-unit">張</div>
+                <div class="stat-icon" style="background: #dbeafe;">📄</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">已驗證憑證</div>
+                <div class="stat-value">${stats.verified_count || 0}</div>
+                <div class="stat-unit">次</div>
+                <div class="stat-icon" style="background: #d1fae5;">✓</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">驗證率</div>
+                <div class="stat-value">${stats.issued_count > 0 ? Math.round((stats.verified_count / stats.issued_count) * 100) : 0}</div>
+                <div class="stat-unit">%</div>
+                <div class="stat-icon" style="background: #fef3c7;">📊</div>
+              </div>
+            </div>
+
+            <!-- 歷史記錄表格 -->
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>案件編號</th>
+                    <th>申請人</th>
+                    <th>災害類型</th>
+                    <th>受災地址</th>
+                    <th>核准金額</th>
+                    <th>狀態</th>
+                    <th>發行/驗證機構</th>
+                    <th>時間</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${filteredHistory.length === 0 ? `
+                    <tr>
+                      <td colspan="8" style="text-align: center; color: #999; padding: 40px;">
+                        📭 目前沒有歷史紀錄
+                      </td>
+                    </tr>
+                  ` : filteredHistory.map(record => `
+                    <tr>
+                      <td>
+                        <span class="case-number">${record.case_no || record.application_id?.substring(0, 8) || '-'}</span>
+                      </td>
+                      <td>${record.applicant_name || '-'}</td>
+                      <td>
+                        <span class="badge badge-info">${record.disaster_type || '-'}</span>
+                      </td>
+                      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${record.disaster_address || '-'}">
+                        ${record.disaster_address || '-'}
+                      </td>
+                      <td style="font-weight: 600; color: #059669;">
+                        NT$ ${(record.approved_amount || 0).toLocaleString()}
+                      </td>
+                      <td>
+                        ${record.status === 'issued' ? 
+                          '<span class="badge badge-success">✓ 已發行</span>' : 
+                          '<span class="badge badge-primary">✓ 已驗證</span>'}
+                      </td>
+                      <td>
+                        ${record.status === 'issued' ? 
+                          (record.issuer_organization || '台南市政府') : 
+                          (record.verifier_organization || '7-11 便利商店')}
+                      </td>
+                      <td style="color: #666; font-size: 13px;">
+                        ${record.action_time ? new Date(record.action_time).toLocaleString('zh-TW') : '-'}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 機構統計 -->
+            ${Object.keys(stats.issuer_stats || {}).length > 0 || Object.keys(stats.verifier_stats || {}).length > 0 ? `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                ${Object.keys(stats.issuer_stats || {}).length > 0 ? `
+                  <div class="info-section">
+                    <h4 class="section-title">發行機構統計</h4>
+                    <div style="background: white; border-radius: 8px; padding: 16px;">
+                      ${Object.entries(stats.issuer_stats).map(([org, count]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+                          <span>${org}</span>
+                          <span style="font-weight: 600; color: #3b82f6;">${count} 張</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+                
+                ${Object.keys(stats.verifier_stats || {}).length > 0 ? `
+                  <div class="info-section">
+                    <h4 class="section-title">驗證機構統計</h4>
+                    <div style="background: white; border-radius: 8px; padding: 16px;">
+                      ${Object.entries(stats.verifier_stats).map(([org, count]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+                          <span>${org}</span>
+                          <span style="font-weight: 600; color: #10b981;">${count} 次</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+          `;
+
+        } catch (error) {
+          console.error('載入歷史記錄失敗:', error);
+          historyContent.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <p>載入失敗: ${error.message}</p>
+              <button class="btn btn-primary" onclick="loadHistory()">重試</button>
+            </div>
+          `;
+        }
       }
 
       function logout() {

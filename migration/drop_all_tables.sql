@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS applications CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS districts CASCADE;
 DROP TABLE IF EXISTS system_settings CASCADE;
+DROP TABLE IF EXISTS credential_history CASCADE;
 
 -- ==========================================
 -- 完成

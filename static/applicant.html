@@ -3342,6 +3342,23 @@
                 vcPollingInterval = null;
                 vcCountdownInterval = null;
                 
+                // 記錄憑證領取歷史
+                try {
+                  const historyResponse = await fetch(`${API_BASE}/complete-flow/record-credential-claimed?application_id=${applicationId}&transaction_id=${transactionId}`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${accessToken}`
+                    }
+                  });
+                  
+                  if (historyResponse.ok) {
+                    console.log('✅ 憑證領取歷史已記錄');
+                  }
+                } catch (historyError) {
+                  console.error('記錄憑證領取歷史失敗:', historyError);
+                }
+                
                 // 更新申請狀態為「已領取」
                 try {
                   const updateResponse = await fetch(`${API_BASE}/applications/${applicationId}`, {

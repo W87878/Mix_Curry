@@ -298,6 +298,46 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 11. 憑證使用歷史記錄表
+CREATE TABLE IF NOT EXISTS credential_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- 關聯資料
+    application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    certificate_id UUID REFERENCES digital_certificates(id),
+    
+    -- 動作類型
+    action_type VARCHAR(50) NOT NULL, -- credential_issued(憑證發行/領取), credential_verified(憑證驗證)
+    action_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- 動作發生時間
+    
+    -- 申請人基本資料（快照，避免 JOIN）
+    applicant_name VARCHAR(100) NOT NULL, -- 申請人姓名
+    id_number VARCHAR(20) NOT NULL, -- 身分證字號
+    
+    -- 災害資料
+    disaster_type VARCHAR(50) NOT NULL, -- 災害類型：flood(水災), typhoon(颱風), earthquake(地震)等
+    disaster_address TEXT NOT NULL, -- 受災地址
+    approved_amount DECIMAL(12, 2), -- 核准金額
+    
+    -- 機構資訊（兩個欄位，其中一個會是 NULL）
+    issuer_organization VARCHAR(200), -- 發行機構（領取憑證時記錄，如：「台南市政府災害救助中心」）
+    verifier_organization VARCHAR(200), -- 驗證機構（711驗證時記錄，如：「7-11 中正門市」）
+    
+    -- 狀態
+    status VARCHAR(20) NOT NULL, -- issued(已發行/已領取), verified(已驗證)
+    
+    -- 技術資料
+    transaction_id VARCHAR(255), -- 政府 API 的 transaction ID
+    verification_location JSONB, -- 驗證地點詳細資訊（經緯度、地址等）
+    device_info JSONB, -- 裝置資訊（可選）
+    
+    -- 備註
+    notes TEXT, -- 備註
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==========================================
 -- PART 2: 建立索引以提升查詢效能
 -- ==========================================
@@ -358,6 +398,16 @@ CREATE INDEX IF NOT EXISTS idx_bank_verification_certificate_id ON bank_verifica
 CREATE INDEX IF NOT EXISTS idx_bank_verification_type ON bank_verification_records(verification_type);
 CREATE INDEX IF NOT EXISTS idx_bank_verification_is_valid ON bank_verification_records(is_valid);
 CREATE INDEX IF NOT EXISTS idx_bank_verification_created_at ON bank_verification_records(created_at DESC);
+
+-- Credential History 索引
+CREATE INDEX IF NOT EXISTS idx_credential_history_application_id ON credential_history(application_id);
+CREATE INDEX IF NOT EXISTS idx_credential_history_user_id ON credential_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_credential_history_certificate_id ON credential_history(certificate_id);
+CREATE INDEX IF NOT EXISTS idx_credential_history_action_type ON credential_history(action_type);
+CREATE INDEX IF NOT EXISTS idx_credential_history_status ON credential_history(status);
+CREATE INDEX IF NOT EXISTS idx_credential_history_action_time ON credential_history(action_time DESC);
+CREATE INDEX IF NOT EXISTS idx_credential_history_transaction_id ON credential_history(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_credential_history_id_number ON credential_history(id_number);
 
 -- ==========================================
 -- PART 3: 資料表註解（來自 add_gov_api_fields.sql）
