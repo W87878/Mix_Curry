@@ -5,7 +5,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 from app.models.database import DatabaseService
@@ -60,12 +60,20 @@ async def record_credential_history(
         
         app_data = app_result.data[0]
         
+        # 使用 UTC 時間
+        current_utc_time = datetime.now(timezone.utc)
+        action_time_str = current_utc_time.isoformat()
+        
+        print(f"⏰ 記錄時間:")
+        print(f"   當前 UTC 時間: {current_utc_time}")
+        print(f"   ISO 格式: {action_time_str}")
+        
         # 插入 history 記錄
         history_data = {
             "application_id": application_id,
             "user_id": user_id,
             "action_type": action_type,
-            "action_time": datetime.now().isoformat(),
+            "action_time": action_time_str,
             "applicant_name": app_data.get("applicant_name"),
             "id_number": app_data.get("id_number"),
             "disaster_type": app_data.get("disaster_type"),
@@ -88,6 +96,7 @@ async def record_credential_history(
         print(f"   動作類型: {action_type}")
         print(f"   狀態: {status}")
         print(f"   申請人: {app_data.get('applicant_name')}")
+        print(f"   記錄時間: {action_time_str}")
         
         return result.data[0] if result.data else None
         
@@ -186,7 +195,7 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
                 db_service.client.table("applications").update({
                     "status": "rejected",
                     "review_notes": request.review_notes,
-                    "reviewed_at": datetime.now().isoformat()
+                    "reviewed_at": datetime.now(timezone.utc).isoformat()
                 }).eq("id", request.application_id).execute()
                 
                 print(f"✅ 申請已駁回")
@@ -205,7 +214,7 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
         print(f"\n✅ 步驟 3: 核准申請，準備發行憑證...")
         
         # 根據 VC 面板要求的欄位格式化資料
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         issuance_date = now.strftime("%Y%m%d")
         expired_date = (now.replace(year=now.year + 1)).strftime("%Y%m%d")
         
@@ -272,7 +281,7 @@ async def review_and_issue_credential(request: ReviewApplicationRequest):
                 "status": "approved",
                 "review_notes": request.review_notes,
                 "approved_amount": request.approved_amount,
-                "reviewed_at": datetime.now().isoformat(),
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
                 "gov_qr_code_data": issue_result.get("qr_code_data"),
                 "gov_transaction_id": issue_result.get("transaction_id"),
                 "gov_deep_link": issue_result.get("deep_link")
@@ -545,7 +554,7 @@ async def verify_vp(request: VerifyVPRequest):
                     # 更新申請案件狀態為「已發放」
                     db_service.client.table("applications").update({
                         "status": "disbursed",
-                        "disbursed_at": datetime.now().isoformat(),
+                        "disbursed_at": datetime.now(timezone.utc).isoformat(),
                         "vp_transaction_id": request.transaction_id
                     }).eq("id", application_id).execute()
                     
@@ -561,7 +570,7 @@ async def verify_vp(request: VerifyVPRequest):
                         verifier_organization="7-11 便利商店",  # 可以從請求參數中傳入具體門市
                         verification_location={
                             "type": "711_store",
-                            "verified_at": datetime.now().isoformat()
+                            "verified_at": datetime.now(timezone.utc).isoformat()
                         },
                         notes=f"在 7-11 機台驗證成功，補助已發放。案件編號: {case_no}"
                     )
@@ -823,6 +832,57 @@ async def get_credential_history_stats(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/credential-history-list")
+async def get_credential_history_list(
+    skip: int = 0,
+    limit: int = 100,
+    disaster_type: Optional[str] = None,
+    status: Optional[str] = None
+):
+    """
+    📋 查詢所有憑證使用歷史記錄（支援分頁和篩選）
+    
+    Args:
+        skip: 跳過幾筆資料
+        limit: 回傳數量限制
+        disaster_type: 災害類型篩選 (flood/typhoon/earthquake/fire)
+        status: 狀態篩選 (issued/verified)
+        
+    Returns:
+        所有憑證使用歷史記錄列表
+    """
+    try:
+        query = db_service.client.table("credential_history")\
+            .select("*")\
+            .order("action_time", desc=True)
+        
+        # 災害類型篩選
+        if disaster_type:
+            query = query.eq("disaster_type", disaster_type)
+        
+        # 狀態篩選
+        if status:
+            query = query.eq("status", status)
+        
+        # 執行查詢
+        result = query.execute()
+        
+        # 分頁
+        all_records = result.data if result.data else []
+        paginated = all_records[skip:skip + limit]
+        
+        return {
+            "success": True,
+            "data": paginated,
+            "total": len(all_records),
+            "skip": skip,
+            "limit": limit
+        }
+        
+    except Exception as e:
+        print(f"查詢憑證歷史列表失敗: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/check-credential-claim/{transaction_id}")
 async def check_credential_claim(transaction_id: str):
     """
@@ -853,51 +913,6 @@ async def check_credential_claim(transaction_id: str):
         
     except Exception as e:
         print(f"檢查憑證領取狀態錯誤: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/record-credential-claimed")
-async def record_credential_claimed_endpoint(
-    application_id: str,
-    transaction_id: str
-):
-    """
-    📝 記錄憑證領取（當用戶掃描 QR Code 並儲存憑證到手機時調用）
-    
-    此 API 由前端在檢測到憑證領取成功後調用
-    """
-    try:
-        # 取得申請資料
-        app_result = db_service.client.table("applications")\
-            .select("*, applicant_id")\
-            .eq("id", application_id)\
-            .execute()
-        
-        if not app_result.data:
-            raise HTTPException(status_code=404, detail="找不到申請記錄")
-        
-        application = app_result.data[0]
-        
-        # 記錄憑證領取歷史
-        await record_credential_history(
-            application_id=application_id,
-            user_id=application.get("applicant_id"),
-            action_type="credential_issued",
-            status="issued",
-            transaction_id=transaction_id,
-            issuer_organization="台南市政府災害救助中心",
-            notes="使用者已掃描 QR Code 並將憑證儲存至數位皮夾"
-        )
-        
-        return {
-            "success": True,
-            "message": "憑證領取記錄已儲存"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"記錄憑證領取失敗: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

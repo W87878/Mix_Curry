@@ -25,37 +25,36 @@ async function initializeConfig() {
     }
     
     try {
-        // 從後端獲取配置
-        const response = await fetch('/api/v1/config/frontend');
+        // 🔧 修復：直接使用當前頁面的 origin 作為 API base
+        // 這樣可以避免 CORS 問題，因為前端和後端使用同一個網址
+        const apiBase = window.location.origin + '/api/v1';
         
-        if (response.ok) {
-            const config = await response.json();
-            
-            // 更新全域配置
-            window.AppConfig.API_BASE = config.api_base_url;
-            window.AppConfig.APP_NAME = config.app_name;
-            window.AppConfig.DEBUG = config.debug;
-            window.AppConfig.isInitialized = true;
-            
-            console.log('配置已載入:', window.AppConfig);
-        } else {
-            // 失敗時使用智慧的預設配置
-            console.warn('無法載入後端配置，使用預設配置');
-            const defaultApiBase = window.location.origin.includes('ngrok') 
-                ? window.location.origin + '/api/v1'
-                : '/api/v1';
-                
-            window.AppConfig.API_BASE = defaultApiBase;
-            window.AppConfig.isInitialized = true;
+        console.log('🌐 使用當前網址作為 API Base:', apiBase);
+        
+        // 更新全域配置
+        window.AppConfig.API_BASE = apiBase;
+        window.AppConfig.APP_NAME = '災民補助申請系統';
+        window.AppConfig.DEBUG = false;
+        window.AppConfig.isInitialized = true;
+        
+        console.log('✅ 配置已載入:', window.AppConfig);
+        
+        // 可選：仍然從後端獲取其他配置（不會影響 API_BASE）
+        try {
+            const response = await fetch('/api/v1/config/frontend');
+            if (response.ok) {
+                const config = await response.json();
+                window.AppConfig.APP_NAME = config.app_name || window.AppConfig.APP_NAME;
+                window.AppConfig.DEBUG = config.debug || window.AppConfig.DEBUG;
+            }
+        } catch (e) {
+            console.log('ℹ️ 無法載入額外配置（使用預設值）');
         }
+        
     } catch (error) {
-        console.error('載入配置失敗:', error);
-        // 失敗時使用智慧的預設配置
-        const defaultApiBase = window.location.origin.includes('ngrok') 
-            ? window.location.origin + '/api/v1'
-            : '/api/v1';
-            
-        window.AppConfig.API_BASE = defaultApiBase;
+        console.error('❌ 載入配置失敗:', error);
+        // 失敗時使用預設配置
+        window.AppConfig.API_BASE = window.location.origin + '/api/v1';
         window.AppConfig.isInitialized = true;
     }
     
