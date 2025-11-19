@@ -11,7 +11,9 @@
     <!-- 登入畫面 -->
     <div id="loginScreen" class="hidden">
       <header class="page-header">
-        <h1>🏚️ 災害補助申請平台</h1>
+        <h1>
+          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+        </h1>
         <nav class="header-nav">
           <a href="/">返回首頁</a>
         </nav>
@@ -171,9 +173,12 @@
     <!-- 登入成功主選單 -->
     <div class="success-screen hidden" id="mainMenu">
       <header class="page-header">
-        <h1>🏚️ 災害補助申請平台</h1>
+        <h1>
+          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+        </h1>
         <nav class="header-nav">
           <a href="#" onclick="logout(); return false;">登出</a>
+          <a href="/">返回首頁</a>
         </nav>
       </header>
 
@@ -202,13 +207,7 @@
         </div>
 
         <div class="history-actions">
-          <button
-            class="success-button secondary"
-            onclick="window.location.href='/'"
-          >
-            回到首頁
-          </button>
-          <button class="btn btn-primary" onclick="showMyApplications()">
+          <button class="success-button secondary" onclick="showMyApplications()">
             查看申請進度
           </button>
           <button class="success-button primary" onclick="startApplicationFlow()">
@@ -221,7 +220,9 @@
     <!-- 申請歷史記錄畫面 -->
     <div class="history-screen hidden" id="myApplicationsScreen">
       <header class="page-header">
-        <h1>🏚️ 災害補助申請平台</h1>
+        <h1>
+          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+        </h1>
         <nav class="header-nav">
           <a href="#" onclick="backToMainMenu(); return false;">返回</a>
         </nav>
@@ -248,7 +249,9 @@
     <!-- 申請表單畫面 -->
     <div id="applyForm" class="hidden">
       <header class="page-header">
-        <h1>🏚️ 災害補助申請平台</h1>
+        <h1>
+          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+        </h1>
         <nav class="header-nav">
           <a href="/" onclick="backToMainMenu(); return false;">返回</a>
         </nav>
@@ -542,7 +545,9 @@
     <!-- 申請提交成功畫面 -->
     <div id="successScreen" class="hidden">
       <header class="page-header">
-        <h1>災害補助申請平台</h1>
+        <h1>
+          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+        </h1>
         <nav class="header-nav">
           <a href="/">返回首頁</a>
         </nav>
