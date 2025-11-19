@@ -66,3 +66,6 @@ https/test_images/
 # static/*.js
 # static/*.css
 # static/*.html
+
+gmail_token.json
+client_secret.json
