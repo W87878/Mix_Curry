@@ -184,29 +184,44 @@
 		}
 		/* 登入頁樣式略，依同設計規則 */
 
-        /* 輪播自訂樣式 */
-        .carousel {
+        /* 輪播自訂樣式 - 橫向滾動式 */
+        .carousel-wrapper {
             position: relative;
             width: 100%;
             margin: 0 auto 24px auto;
+        }
+        
+        .carousel {
             display: flex;
-            gap: 24px;
-            overflow: visible;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 8px 0;
+            /* 隱藏滾動條但保持功能 */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        .carousel::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
         }
         
         .carousel-card {
             position: relative;
-            flex: 1;
-            height: 240px;
-            border-radius: 16px;
+            min-width: 380px;
+            max-width: 380px;
+            height: 200px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
         }
         
         .carousel-card:hover {
             transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
         
         .carousel-card img {
@@ -221,15 +236,55 @@
             left: 0;
             right: 0;
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 24px 20px;
+            padding: 20px 16px;
             color: white;
         }
         
         .carousel-card-text {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             line-height: 1.4;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* 輪播箭頭 */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #1E81B2;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .carousel-arrow:hover:not(:disabled) {
+            background: #1E81B2;
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .carousel-arrow-left {
+            left: -20px;
+        }
+        
+        .carousel-arrow-right {
+            right: -20px;
         }
 	</style>
 </head>
@@ -247,10 +302,13 @@
 		<!-- 即時消息輪播 -->
 		<div>
 			<div class="section-title">即時消息</div>
-			<div class="carousel" id="carousel-container">
-				<!-- 動態生成輪播卡片 -->
+			<div class="carousel-wrapper">
+				<button class="carousel-arrow carousel-arrow-left" id="carousel-left-arrow" onclick="scrollCarouselLeft()">‹</button>
+				<div class="carousel" id="carousel-container">
+					<!-- 動態生成輪播卡片 -->
+				</div>
+				<button class="carousel-arrow carousel-arrow-right" id="carousel-right-arrow" onclick="scrollCarouselRight()">›</button>
 			</div>
-			<div class="indicators" id="carousel-indicators"></div>
 		</div>
 		
 		<!-- 災害補助項目 -->
@@ -362,11 +420,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         renderAllDisasterCards();
         renderCarousel();
-        renderIndicators();
-        resetTimer();
+        updateArrowStates();
     });
 
-    // 圖片輪播相關
+    // 圖片輪播相關 - 橫向滾動式
     const carouselImages = [
         {
             src: 'static/assets/card1.png', 
@@ -381,8 +438,6 @@
             text: '曾經發路凍貧窮攝影，攝影展募資 📸'
         }
     ];
-    let currentSlide = 0;
-    let timer = null;
 
     function renderCarousel() {
         const container = document.getElementById('carousel-container');
@@ -399,31 +454,45 @@
             `;
             container.appendChild(card);
         });
+
+        // 監聽滾動事件以更新箭頭狀態
+        container.addEventListener('scroll', updateArrowStates);
     }
 
-    function renderIndicators() {
-        const indicators = document.getElementById('carousel-indicators');
-        indicators.innerHTML = '';
-        carouselImages.forEach((_, i) => {
-            const dot = document.createElement('div');
-            dot.className = 'indicator' + (i === currentSlide ? ' selected' : '');
-            dot.onclick = () => {
-                currentSlide = i;
-                renderIndicators();
-                resetTimer();
-            };
-            indicators.appendChild(dot);
+    function scrollCarouselLeft() {
+        const container = document.getElementById('carousel-container');
+        const scrollAmount = 400; // 大約一張卡片的寬度
+        container.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
         });
+        // 延遲更新箭頭狀態，等待滾動完成
+        setTimeout(updateArrowStates, 300);
     }
 
-    function nextSlideAuto() {
-        currentSlide = (currentSlide + 1) % carouselImages.length;
-        renderIndicators();
+    function scrollCarouselRight() {
+        const container = document.getElementById('carousel-container');
+        const scrollAmount = 400; // 大約一張卡片的寬度
+        container.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+        // 延遲更新箭頭狀態，等待滾動完成
+        setTimeout(updateArrowStates, 300);
     }
 
-    function resetTimer() {
-        if (timer) clearInterval(timer);
-        timer = setInterval(nextSlideAuto, 3500);
+    function updateArrowStates() {
+        const container = document.getElementById('carousel-container');
+        const leftArrow = document.getElementById('carousel-left-arrow');
+        const rightArrow = document.getElementById('carousel-right-arrow');
+        
+        // 檢查是否滾動到最左邊
+        const isAtStart = container.scrollLeft <= 5; // 5px 容差
+        leftArrow.disabled = isAtStart;
+        
+        // 檢查是否滾動到最右邊
+        const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
+        rightArrow.disabled = isAtEnd;
     }
 
 </script>
