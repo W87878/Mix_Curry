@@ -4,10 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>災民補助申請 - 線上申請系統</title>
-    <link rel="stylesheet" href="static/styles/applicant.css" />
+    <link rel="stylesheet" href="/static/styles/applicant.css" />
+    <!-- Lottie 動畫庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js" defer></script>
   </head>
 
   <body>
+    <!-- Loading 動畫容器 -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
+      <div id="loadingAnimation" style="width: 300px; height: 300px;"></div>
+      <p style="margin-top: 20px; font-size: 18px; color: #333; font-weight: 500;">驗證中，請稍候...</p>
+    </div>
     <!-- 登入畫面 -->
     <div id="loginScreen" class="hidden">
       <header class="page-header">
@@ -678,11 +685,76 @@
       let idVerificationData = null;
       let propertyVerificationData = null;
 
-      // 頁面載入完成時初始化
+      // Lottie 動畫實例
+      let lottieAnimation = null;
+
+      // 頁面載入完成時初始化（統一的初始化函數）
       document.addEventListener("DOMContentLoaded", function() {
+        // 初始化應用程式
         initializeApp();
+        
+        // 初始化新聞輪播
         initNewsCarousel();
+        
+        // 初始化字數統計
+        const textarea = document.getElementById('disasterDesc');
+        const charCount = document.getElementById('charCount');
+        if (textarea && charCount) {
+          textarea.addEventListener('input', () => {
+            charCount.textContent = textarea.value.length;
+          });
+        }
+        
+        // 初始化 Lottie 動畫
+        initLottieAnimation();
       });
+
+      // 初始化 Lottie 動畫
+      function initLottieAnimation() {
+        try {
+          if (typeof lottie !== 'undefined') {
+            const container = document.getElementById('loadingAnimation');
+            if (container) {
+              lottieAnimation = lottie.loadAnimation({
+                container: container,
+                renderer: 'svg',
+                loop: true,
+                autoplay: false,
+                path: '/static/assets/loading-animation.json'
+              });
+              console.log('✅ Lottie 動畫初始化成功');
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ Lottie 動畫初始化失敗:', error);
+        }
+      }
+
+      // 顯示 Loading 動畫
+      function showLoadingAnimation(message = '驗證中，請稍候...') {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+          const messageEl = overlay.querySelector('p');
+          if (messageEl) {
+            messageEl.textContent = message;
+          }
+          if (lottieAnimation) {
+            lottieAnimation.play();
+          }
+        }
+      }
+
+      // 隱藏 Loading 動畫
+      function hideLoadingAnimation() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+          overlay.style.display = 'none';
+          if (lottieAnimation) {
+            lottieAnimation.stop();
+          }
+        }
+      }
 
       // 即時消息輪播初始化
       function initNewsCarousel() {
@@ -718,7 +790,7 @@
           showApplyForm();
         } else {
           // 否則顯示登入畫面
-          document.getElementById('loginOnlyScreen').classList.remove('hidden');
+          document.getElementById('loginScreen').classList.remove('hidden');
         }
       }
 
@@ -1257,8 +1329,15 @@
 
                 // 身分驗證成功，進入步驟2（房屋持有驗證）
                 console.log("✅ 步驟1完成：Email 身分驗證成功");
-                alert("✅ 身分驗證成功！");
-                moveToStep2();
+                
+                // 顯示 loading 動畫
+                showLoadingAnimation('身分驗證成功！正在處理...');
+                
+                // 延遲 6 秒讓動畫播放完整，然後進入下一步
+                setTimeout(() => {
+                  hideLoadingAnimation();
+                  moveToStep2();
+                }, 10000);
               } else {
                 const error = await response.json();
                 alert(
@@ -1441,11 +1520,17 @@
                     };
                   }
                   
-                  alert("✅ 身分驗證成功！");
                   identityVerified = true;
+                  console.log("✅ 步驟1完成：數位身分驗證成功");
                   
-                  // 進入步驟2（房屋持有驗證）
-                  moveToStep2();
+                  // 顯示 loading 動畫
+                  showLoadingAnimation('身分驗證成功！正在處理...');
+                  
+                  // 延遲 6 秒讓動畫播放完整，然後進入下一步
+                  setTimeout(() => {
+                    hideLoadingAnimation();
+                    moveToStep2();
+                  }, 10000);
                 }
               } catch (err) {
                 console.error("輪詢錯誤:", err);
@@ -1477,9 +1562,6 @@
       window.stopVpPolling = function () {
         clearDigitalIntervals();
       };
-
-      // 頁面載入完成時初始化
-      document.addEventListener("DOMContentLoaded", initializeApp);
 
       // 檢查 URL 中的 Google OAuth token（從 callback 重定向回來）
       function checkGoogleAuthToken() {
@@ -1554,7 +1636,7 @@
       function showScreen(screenId) {
         // 隱藏所有畫面
         const screens = [
-          "loginOnlyScreen",
+          "loginScreen",
           "mainMenu",
           "myApplicationsScreen",
           "applyForm",
@@ -1569,7 +1651,7 @@
               el.classList.contains("history-screen")
             ) {
               el.classList.remove("active");
-            } else if (id === "loginOnlyScreen") {
+            } else if (id === "loginScreen") {
               el.style.display = "none";
             } else {
               el.classList.add("hidden");
@@ -1585,7 +1667,7 @@
             targetEl.classList.contains("history-screen")
           ) {
             targetEl.classList.add("active");
-          } else if (screenId === "loginOnlyScreen") {
+          } else if (screenId === "loginScreen") {
             targetEl.style.display = "block";
           } else {
             targetEl.classList.remove("hidden");
@@ -1612,7 +1694,7 @@
         currentUser = null;
         localStorage.removeItem("applicant_token");
         localStorage.removeItem("applicant_user");
-        showScreen("loginOnlyScreen");
+        showScreen("loginScreen");
         // 刷新頁面
         location.reload();
         window.location.href = "/applicant";
@@ -2546,7 +2628,15 @@
               clearInterval(interval);
               identityVerified = true;
               console.log('✅ 身分驗證成功');
-              moveToStep2();
+              
+              // 顯示 loading 動畫
+              showLoadingAnimation('身分驗證成功！正在處理...');
+              
+              // 延遲 6 秒讓動畫播放完整，然後進入下一步
+              setTimeout(() => {
+                hideLoadingAnimation();
+                moveToStep2();
+              }, 10000);
             } else if (attempts >= maxAttempts) {
               clearInterval(interval);
               alert('驗證逾時，請重新產生 QR Code');
@@ -2729,8 +2819,15 @@
                   };
                   
                   console.log('✅ 房屋持有驗證成功，身分證相符');
-                  alert('✅ 房屋持有驗證成功！');
-                  moveToStep3();
+                  
+                  // 顯示 loading 動畫
+                  showLoadingAnimation('房屋持有驗證成功！正在處理...');
+                  
+                  // 延遲 6 秒讓動畫播放完整，然後進入下一步
+                  setTimeout(() => {
+                    hideLoadingAnimation();
+                    moveToStep3();
+                  }, 10000);
                 }
               } catch (err) {
                 console.error('房屋驗證輪詢錯誤:', err);
@@ -2865,18 +2962,6 @@
         uploadedPhotos.splice(index, 1);
         displayPhotoPreview();
       }
-
-      // 字數統計
-      document.addEventListener('DOMContentLoaded', () => {
-        const textarea = document.getElementById('disasterDesc');
-        const charCount = document.getElementById('charCount');
-        
-        if (textarea && charCount) {
-          textarea.addEventListener('input', () => {
-            charCount.textContent = textarea.value.length;
-          });
-        }
-      });
 
       // 提交水災申請
       async function submitFloodApplication() {
