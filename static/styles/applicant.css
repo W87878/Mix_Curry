@@ -1172,6 +1172,230 @@ textarea:focus {
   padding: 24px;
 }
 
+/* 申請摘要區塊 */
+.application-summary {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 15px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* 進度時間軸 */
+.progress-timeline {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 20px 0;
+}
+
+.timeline-item {
+  display: flex;
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 32px;
+  bottom: -8px;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.timeline-item.completed:not(:last-child)::before {
+  background: #10b981;
+}
+
+.timeline-item.current:not(:last-child)::before {
+  background: linear-gradient(to bottom, #3b82f6 0%, #e2e8f0 100%);
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px #e2e8f0;
+  flex-shrink: 0;
+  margin-right: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-item.completed .timeline-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 2px #10b981;
+}
+
+.timeline-item.current .timeline-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #3b82f6, 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+.timeline-content {
+  flex: 1;
+  padding-top: 2px;
+}
+
+.timeline-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.timeline-time {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.timeline-item.completed .timeline-time {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.timeline-item.current .timeline-time {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* 憑證提醒區塊 */
+.credential-reminder {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reminder-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.reminder-text {
+  flex: 1;
+}
+
+.reminder-text strong {
+  display: block;
+  font-size: 16px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.reminder-text p {
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+}
+
+.btn-claim-credential {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-claim-credential:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-claim-credential:active {
+  transform: translateY(0);
+}
+
+/* 已發放憑證狀態 */
+.credential-claimed {
+  background: #f0fdf4;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.credential-claimed .check-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+}
+
 /* ========================================
    響應式設計
    ======================================== */
@@ -1185,6 +1409,15 @@ textarea:focus {
   .progress-modal {
     width: 95%;
     max-width: none;
+  }
+  
+  .credential-reminder {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .btn-claim-credential {
+    width: 100%;
   }
 
   .id-mismatch-modal {

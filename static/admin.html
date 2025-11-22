@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>審核後台 - 災民補助管理系統</title>
     <link rel="stylesheet" href="/static/styles/admin.css" />
+    <!-- Lottie Web -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDbuTGzgDiR9WfXuvbPOZSc5nNm7NDucuQ&libraries=places,geometry"></script>
   </head>
   <body>
     <div class="header">
-      <div class="logo">👨‍💼 審核人員後台</div>
+      <div class="logo">👨‍💼 災害補助審核後台</div>
       <div class="user-info">
         <div>
           <div style="font-size: 14px; font-weight: 500" id="adminName">
@@ -326,6 +328,12 @@
       </div>
     </div>
 
+    <!-- Loading 動畫容器 -->
+    <div id="loadingAnimationOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 99999; justify-content: center; align-items: center; flex-direction: column;">
+      <div id="lottieContainer" style="width: 300px; height: 300px;"></div>
+      <p id="loadingMessage" style="color: white; font-size: 18px; margin-top: 20px; font-weight: 500;">驗證中，請稍候...</p>
+    </div>
+
     <!-- 載入配置管理模組 -->
     <script src="/static/js/config.js"></script>
     <script src="/static/js/taiwan-districts.js"></script>
@@ -339,8 +347,14 @@
       );
       let currentApplication = null;
 
+      // Lottie 動畫實例
+      let adminLottieAnimation = null;
+
       // 初始化應用程式
       async function initializeApp() {
+        // 初始化 Lottie 動畫
+        initAdminLottieAnimation();
+        
         // 載入配置
         await initializeConfig();
         API_BASE = getApiBase();
@@ -350,6 +364,64 @@
           showLoginPrompt();
         } else {
           showDashboard();
+        }
+      }
+
+      // 初始化 Lottie 動畫
+      function initAdminLottieAnimation() {
+        try {
+          if (typeof lottie === 'undefined') {
+            console.warn('Lottie library not loaded');
+            return;
+          }
+
+          const container = document.getElementById('lottieContainer');
+          if (!container) {
+            console.warn('Lottie container not found');
+            return;
+          }
+
+          adminLottieAnimation = lottie.loadAnimation({
+            container: container,
+            renderer: 'svg',
+            loop: true,
+            autoplay: false,
+            path: '/static/assets/loading-animation.json'
+          });
+
+          console.log('✅ Admin Lottie animation initialized');
+        } catch (error) {
+          console.error('Failed to initialize admin lottie animation:', error);
+        }
+      }
+
+      // 顯示 Loading 動畫
+      function showAdminLoadingAnimation(message = '驗證中，請稍候...') {
+        const overlay = document.getElementById('loadingAnimationOverlay');
+        const messageEl = document.getElementById('loadingMessage');
+        
+        if (overlay) {
+          overlay.style.display = 'flex';
+          if (messageEl) {
+            messageEl.textContent = message;
+          }
+          if (adminLottieAnimation) {
+            adminLottieAnimation.goToAndPlay(0, true);
+          }
+          console.log('🎬 Admin loading animation started');
+        }
+      }
+
+      // 隱藏 Loading 動畫
+      function hideAdminLoadingAnimation() {
+        const overlay = document.getElementById('loadingAnimationOverlay');
+        
+        if (overlay) {
+          overlay.style.display = 'none';
+          if (adminLottieAnimation) {
+            adminLottieAnimation.stop();
+          }
+          console.log('⏸ Admin loading animation stopped');
         }
       }
 
@@ -406,26 +478,29 @@
         loginModal.innerHTML = `
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F9F7F4; display: flex; flex-direction: column; z-index: 9999; overflow-y: auto;">
                     <!-- Header -->
-                    <header style="background-color: #F9F7F4; padding: 48px 96px; display: flex; justify-content: space-between; align-items: center;">
-                        <h1 style="font-size: 36px; font-weight: 700; color: #1E81B2;">災害補助申請平台
-                        </h1>
-                        <nav style="display: flex; gap: 24px; font-size: 20px; font-weight: 500; color: #000;">
-                          <a href="/" style="text-decoration: none; color: black; letter-spacing: 0.4px;">返回首頁</a>
+                    <header style="background-color: #F9F7F4; padding: 24px 24px; display: flex; justify-content: space-between; align-items: center;position: fixed; top: 0; left: 0; right: 0; z-index: 100;">
+                      <div class="header-title">
+                        <div class="logo"><img src="static/assets/logo.svg" alt=""width="100%" height="100%"></div>
+                        <h1 style="font-size: 24px; font-weight: 700; color: #1E81B2;">災害補助審核後台
+                          </h1>
+                      </div>
+                        <nav style="display: flex; gap: 24px; font-size: 20px; font-weight: 500; color: #3D484D;">
+                          <a href="/" style="text-decoration: none; color: #3D484D; letter-spacing: 0.4px;">前往申請平台</a>
                         </nav>
                     </header>
 
                     <!-- Main Content -->
-                    <main style="display: flex; flex-direction: column; align-items: center; padding-top: 80px; flex: 1;">
-                        <h2 style="font-size: 30px; font-weight: 700; margin-bottom: 40px; letter-spacing: 0.6px;">審核人員登入</h2>
+                    <main style="display: flex; flex-direction: column; align-items: center; padding-top: 136px; flex: 1;">
+                        <h2 style="font-size: 30px; font-weight: 700; color: #3D484D; margin-bottom: 48px; letter-spacing: 0.6px;">審核人員登入</h2>
 
-                        <div style="width: 612px; border-radius: 16px; overflow: hidden; margin-bottom: 48px;">
+                        <div style="width: 612px; border-radius: 24px; overflow: hidden; margin-bottom: 48px;box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;">
                             <!-- Tabs -->
                             <div style="display: flex;">
                                 <div class="admin-login-tab" data-tab="general" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #E4F1FA; color: #1E81B2;">
-                                    <span style="margin-right: 8px">📧</span>一般登入
+                                    <span style="margin-right: 8px"></span>一般登入
                                 </div>
                                 <div class="admin-login-tab active" data-tab="digital" style="flex: 1; padding: 24px; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.4px; cursor: pointer; background-color: #1E81B2; color: #F4F7F7;">
-                                    📱 數位身分證憑證登入 (推薦)
+                                    數位身分憑證登入 (推薦)
                                 </div>
                             </div>
 
@@ -466,9 +541,9 @@
                                 <button type="submit" class="admin-login-btn" style="width: 100%; padding: 8px 16px; background: #1E81B2; color: #F4F7F7; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">登入</button>
 
                                 <div style="display: flex; align-items: center; gap: 8px; width: 100%; margin: 8px 0;">
-                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
+                                    <div style="flex: 1; height: 1px; background: #E3EAEA; border-radius: 999px;"></div>
                                     <span style="color: #779299; font-size: 14px; letter-spacing: 0.56px;">或</span>
-                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
+                                    <div style="flex: 1; height: 1px; background: #E3EAEA; border-radius: 999px;"></div>
                                 </div>
 
                                 <button type="button" class="admin-google-btn" style="width: 100%; padding: 8px 16px; background: white; color: #0F172A; border: none; border-radius: 8px; font-size: 16px; letter-spacing: 0.64px; cursor: pointer;">
@@ -504,27 +579,28 @@
 
                             <!-- Digital Login Form -->
                             <div id="adminDigitalLoginForm" style="background-color: #FFFFFF; padding: 48px; display: flex; flex-direction: column; gap: 24px;">
-                                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                    <div style="font-weight: 700; font-size: 24px; line-height: 32px; text-align: center; letter-spacing: 0.48px; color: #020618;">數位憑證皮夾APP</div>
-                                    <div style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; letter-spacing: 0.64px; color: #020618;">數位身分憑證登入方式</div>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                                    <div style="font-weight: 700; font-size: 24px; line-height: 32px; text-align: center; letter-spacing: 0.48px; color: #14181A;">數位憑證皮夾APP</div>
+                                    <div style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; letter-spacing: 0.64px; color: #14181A;">數位身分憑證登入方式</div>
                                 </div>
-
-                                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                                
+                                <div style="display: flex; flex-direction: column; align-items: center;">
                                     <img id="adminQrImage" src="" style="width: 188px; height: 188px; border-radius: 8px; border: 1px solid #E2E8F0;">
-                                    <div style="display: flex; align-items: center; gap: 4px; color: #64748B; font-size: 14px;">
+                                    <div style="display: flex; align-items: center; gap: 4px; color: #779299; font-size: 14px; margin:24px 0 12px">
                                         <span>請於 </span>
                                         <span id="adminQrCountdown" style="color: #0F172A; font-weight: 500;">5:00</span>
                                         <span> 內完成掃描</span>
                                     </div>
+                                    <p style="font-weight: 400; font-size: 12px; line-height: 20px; text-align: center; letter-spacing: 0.48px; color: #779299;">使用數位憑證皮夾APP掃碼登入</p>
                                 </div>
 
-                                <p style="font-weight: 400; font-size: 12px; line-height: 20px; text-align: center; letter-spacing: 0.48px; color: #779299; margin-bottom: 24px;">使用數位憑證皮夾APP掃碼登入</p>
+                                
 
-                                <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
-                                    <div style="flex: 1; height: 2px; background: #C9D5D8; border-radius: 999px;"></div>
+                                <div style="display: flex; align-items: center;">
+                                    <div style="flex: 1; height: 1px; background: #C9D5D8; border-radius: 999px;"></div>
                                 </div>
 
-                                <a href="https://moda.gov.tw/major-policies/wallet/1695" target="_blank" style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; text-decoration-line: underline; color: #000000; letter-spacing: 0.64px; margin: 24px 0; display: block;">關於數位身分證憑證說明</a>
+                                <a href="https://moda.gov.tw/major-policies/wallet/1695" target="_blank" style="font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; text-decoration-line: underline; color: #14181A; letter-spacing: 0.64px; display: block;">關於數位身分證憑證說明</a>
 
                                 <p style="font-family: 'Noto Sans TC', sans-serif; font-weight: 400; font-size: 16px; line-height: 24px; text-align: center; letter-spacing: 0.64px; color: #000000;">
                                     還沒有數位身分憑證嗎？ <a target="_blank" href="https://wallet.gov.tw/zh-twr" style="text-decoration-line: underline; color: inherit;">點我立即申請</a>
@@ -862,6 +938,10 @@
                       clearInterval(window.digitalLoginPollingInterval);
                     if (window.digitalLoginCountdownInterval)
                       clearInterval(window.digitalLoginCountdownInterval);
+                    
+                    // 顯示 Loading 動畫
+                    showAdminLoadingAnimation('登入中，請稍候...');
+                    
                     try {
                       const loginResponse = await fetch("/api/v1/auth/login", {
                         method: "POST",
@@ -881,6 +961,7 @@
                           loginData.user.role !== "reviewer" &&
                           loginData.user.role !== "admin"
                         ) {
+                          hideAdminLoadingAnimation();
                           alert("❌ 此帳號沒有管理權限");
                           return;
                         }
@@ -892,8 +973,16 @@
                           "admin_user",
                           JSON.stringify(currentUser)
                         );
-                        location.reload();
+                        
+                        console.log("✅ 數位身分登入成功");
+                        
+                        // 等待 10 秒讓動畫播放完整，然後才重載頁面
+                        setTimeout(() => {
+                          hideAdminLoadingAnimation();
+                          location.reload();
+                        }, 10000);
                       } else {
+                        hideAdminLoadingAnimation();
                         const error = await loginResponse.json();
                         alert(
                           "登入失敗：" +
@@ -903,6 +992,7 @@
                         );
                       }
                     } catch (error) {
+                      hideAdminLoadingAnimation();
                       console.error("Digital ID login error:", error);
                       alert("登入過程發生錯誤，請稍後再試");
                     }
@@ -1326,7 +1416,7 @@
 
           // 顯示照片（使用 API 返回的 signed_url）
           photosContainer.innerHTML = photos.map(photo => {
-            const photoUrl = photo.signed_url || '/static/assets/placeholder.png';
+            const photoUrl = photo.signed_url || 'static/assets/placeholder.png';
             const photoType = getPhotoTypeText(photo.photo_type) || photo.file_name;
             const photoDate = new Date(photo.created_at).toLocaleDateString('zh-TW');
             
@@ -1336,7 +1426,7 @@
                   src="${photoUrl}" 
                   alt="${photoType}" 
                   onclick="viewPhotoFullscreen('${photoUrl}')" 
-                  onerror="this.onerror=null; this.src='/static/assets/placeholder.png'; this.parentElement.style.opacity='0.5';"
+                  onerror="this.onerror=null; this.src='static/assets/placeholder.png'; this.parentElement.style.opacity='0.5';"
                 >
                 <div class="photo-info">
                   <small>${photoType} - ${photoDate}</small>
