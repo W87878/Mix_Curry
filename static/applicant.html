@@ -32,11 +32,11 @@
 
         <div class="login-container">
           <div class="login-tabs">
-            <div class="login-tab" data-tab="general">
-              <span class="icon-spacer">📧</span>一般登入 (推薦)
+            <div class="login-tab" data-tab="general" style="background-color: #e4f1fa !important; color: #1e81b2 !important;">
+              <span class="icon-spacer">📧</span>一般登入
             </div>
-            <div class="login-tab active" data-tab="digital">
-              📱 數位身分證憑證登入
+            <div class="login-tab active" data-tab="digital" style="background-color: #1e81b2 !important; color: #f8fafc !important;">
+              📱 數位身分證憑證登入 (推薦)
             </div>
           </div>
 
@@ -291,10 +291,10 @@
 
             <div class="login-container">
               <div class="login-tabs">
-                <div class="login-tab" data-tab="general">
+                <div class="login-tab" data-tab="general" style="background-color: #e4f1fa !important; color: #1e81b2 !important;">
                   <span class="icon-spacer">📧</span>Email 驗證
                 </div>
-                <div class="login-tab active" data-tab="digital">
+                <div class="login-tab active" data-tab="digital" style="background-color: #1e81b2 !important; color: #f8fafc !important;">
                   📱 數位身分憑證 (推薦)
                 </div>
               </div>
@@ -882,6 +882,21 @@
         document.getElementById('form-step2').classList.add('hidden');
         document.getElementById('form-step3').classList.add('hidden');
         updateStepIndicators();
+        
+        // 強制設置步驟一的 Tab 顏色（在 initializeStepOneUI 之前）
+        setTimeout(() => {
+          const step1Tabs = document.querySelectorAll('#form-step1 .login-tab');
+          step1Tabs.forEach(tab => {
+            if (tab.getAttribute('data-tab') === 'digital' && tab.classList.contains('active')) {
+              tab.style.backgroundColor = '#1e81b2';
+              tab.style.color = '#f8fafc';
+            } else {
+              tab.style.backgroundColor = '#e4f1fa';
+              tab.style.color = '#1e81b2';
+            }
+          });
+        }, 50);
+        
         // 初始化步驟1的登入界面
         initializeStepOneUI();
         // 自動觸發數位身分驗證
@@ -913,8 +928,16 @@
 
         // Tab 切換功能
         function setActiveTab(tabEl, startFlow = true) {
-          tabs.forEach((t) => t.classList.remove("active"));
+          tabs.forEach((t) => {
+            t.classList.remove("active");
+            // 移除 active 樣式時，設定為非 active 的內聯樣式
+            t.style.backgroundColor = "#e4f1fa";
+            t.style.color = "#1e81b2";
+          });
           tabEl.classList.add("active");
+          // 添加 active 樣式時，設定為 active 的內聯樣式
+          tabEl.style.backgroundColor = "#1e81b2";
+          tabEl.style.color = "#f8fafc";
 
           Object.values(forms).forEach((form) => form.classList.add("hidden"));
 
@@ -1093,6 +1116,9 @@
                 if (pollData && pollData.verified) {
                   console.log("驗證成功，使用者資料：", pollData);
                   clearDigitalIntervals();
+                  
+                  // 顯示 Loading 動畫
+                  showLoadingAnimation('登入中，請稍候...');
 
                   try {
                     const loginResponse = await fetch("/api/v1/auth/login", {
@@ -1113,12 +1139,19 @@
                       localStorage.setItem("applicant_user", JSON.stringify(currentUser));
 
                       console.log("✅ 數位身分登入成功");
-                      showMainMenu();
+                      
+                      // 等待 10 秒讓動畫播放完整，然後才跳到主選單
+                      setTimeout(() => {
+                        hideLoadingAnimation();
+                        showMainMenu();
+                      }, 10000);
                     } else {
+                      hideLoadingAnimation();
                       const error = await loginResponse.json();
                       alert("登入失敗：" + (error.detail?.message || error.detail || "請稍後再試"));
                     }
                   } catch (error) {
+                    hideLoadingAnimation();
                     console.error("數位身分登入錯誤:", error);
                     alert("登入過程發生錯誤，請稍後再試");
                   }
@@ -1162,8 +1195,16 @@
 
         // Tab 切換功能
         function setActiveTab(tabEl, startFlow = true) {
-          tabs.forEach((t) => t.classList.remove("active"));
+          tabs.forEach((t) => {
+            t.classList.remove("active");
+            // 移除 active 樣式時，設定為非 active 的內聯樣式
+            t.style.backgroundColor = "#e4f1fa";
+            t.style.color = "#1e81b2";
+          });
           tabEl.classList.add("active");
+          // 添加 active 樣式時，設定為 active 的內聯樣式
+          tabEl.style.backgroundColor = "#1e81b2";
+          tabEl.style.color = "#f8fafc";
 
           Object.values(forms).forEach((form) => form.classList.add("hidden"));
 

@@ -19,6 +19,16 @@ body {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+}
+.header-title{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  .logo{
+    width: 30px;
+    height: 40px;
+  }
 }
 
 .logo {
@@ -82,7 +92,11 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  /* padding: 0 24px; */
+  align-items: center;
+  padding-top: 136px;
   overflow-y: auto;
 }
 
