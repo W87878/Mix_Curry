@@ -283,112 +283,11 @@
           </div>
         </div>
 
-        <!-- 步驟 1：驗證身分（原登入畫面） -->
+        <!-- 步驟 1：驗證身分 -->
         <div class="form-step-container" id="form-step1">
           <div class="form-card">
-            <h3 class="step-title">驗證身分</h3>
-            <p class="step-desc">請選擇以下方式驗證您的身分</p>
-
             <div class="login-container">
-              <div class="login-tabs">
-                <div class="login-tab" data-tab="general" style="background-color: #e4f1fa !important; color: #1e81b2 !important;">
-                  <span class="icon-spacer">📧</span>Email 驗證
-                </div>
-                <div class="login-tab active" data-tab="digital" style="background-color: #1e81b2 !important; color: #f8fafc !important;">
-                  📱 數位身分憑證 (推薦)
-                </div>
-              </div>
-
-              <div id="general-login-form" class="login-form hidden">
-            <div class="form-group">
-              <label for="email">電子信箱</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="輸入信箱帳號"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <div class="flex-center-gap">
-                <label for="password" class="no-margin-bottom">驗證碼</label>
-                <small class="hint-text"> 驗證碼將發送到您的信箱 </small>
-              </div>
-              <div class="input-with-button">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="輸入驗證碼"
-                  required
-                />
-                <button type="button" class="verification-send-btn">
-                  發送驗證碼
-                </button>
-              </div>
-            </div>
-
-            <div class="verification-container">
-              <div class="verification-code">10541</div>
-              <button type="button" class="refresh-captcha">
-                <img
-                  src="static/assets/refresh.png"
-                  alt="更新驗證碼"
-                  width="24"
-                  height="24"
-                />
-              </button>
-              <input
-                type="text"
-                class="verification-input"
-                placeholder="請輸入左方圖片中的文字"
-                required
-              />
-            </div>
-
-            <button type="submit" class="login-btn">開始驗證</button>
-
-            <div class="divider">
-              <div class="divider-line"></div>
-              <span class="divider-text">或</span>
-              <div class="divider-line"></div>
-            </div>
-
-            <button type="button" class="google-btn">
-              <!-- Google SVG Icon -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                x="0px"
-                y="0px"
-                width="30"
-                height="30"
-                viewBox="0 0 48 48"
-                style="vertical-align: middle; position: relative; top: -0.5px"
-              >
-                <path
-                  fill="#FFC107"
-                  d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-                ></path>
-                <path
-                  fill="#FF3D00"
-                  d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-                ></path>
-                <path
-                  fill="#4CAF50"
-                  d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-                ></path>
-                <path
-                  fill="#1976D2"
-                  d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-                ></path>
-              </svg>
-              Google 帳號驗證
-            </button>
-          </div>
-
-              <div id="digital-login-form" class="login-form">
+              <div class="login-form">
                 <div class="digital-header">
                   <div class="digital-title">數位憑證皮夾APP</div>
                   <div class="digital-subtitle">數位身分憑證驗證方式</div>
@@ -399,11 +298,11 @@
                     <img
                       id="identityQrCode"
                       src=""
-                      alt="QR Code"
+                      alt="數位身分憑證 QR Code"
                       width="188"
                       height="188"
                       role="img"
-                      aria-label="數位憑證 QR 碼"
+                      aria-label="數位身分憑證 QR 碼"
                     />
                     <div class="qr-code-timer">
                       <span class="timer-text">請於 </span>
@@ -419,18 +318,16 @@
                   <div class="divider-line"></div>
                 </div>
 
-                <a
-                  href="https://moda.gov.tw/major-policies/wallet/1695"
-                  target="_blank"
-                  class="link-text"
-                  >關於數位身分證憑證說明</a
-                >
+                <div class="security-notice" style="background: #eff6ff; border-left: 4px solid #1e81b2; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                  <h4 style="font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">🔒 安全提示</h4>
+                  <p style="font-size: 13px; color: #1e40af; line-height: 1.6; margin: 0;">
+                    您的個人資料受到嚴格保護，我們僅用此進行身份核驗，將嚴格遵守相關隱私法規。所有資料傳輸皆經過加密處理。
+                  </p>
+                </div>
 
                 <p class="register-text">
                   還沒有數位身分憑證嗎？
-                  <a target="_blank" href="https://wallet.gov.tw/zh-tw"
-                    >點我立即申請</a
-                  >
+                  <a target="_blank" href="https://wallet.gov.tw/zh-tw">點我立即申請</a>
                 </p>
               </div>
             </div>
@@ -883,20 +780,6 @@
         document.getElementById('form-step3').classList.add('hidden');
         updateStepIndicators();
         
-        // 強制設置步驟一的 Tab 顏色（在 initializeStepOneUI 之前）
-        setTimeout(() => {
-          const step1Tabs = document.querySelectorAll('#form-step1 .login-tab');
-          step1Tabs.forEach(tab => {
-            if (tab.getAttribute('data-tab') === 'digital' && tab.classList.contains('active')) {
-              tab.style.backgroundColor = '#1e81b2';
-              tab.style.color = '#f8fafc';
-            } else {
-              tab.style.backgroundColor = '#e4f1fa';
-              tab.style.color = '#1e81b2';
-            }
-          });
-        }, 50);
-        
         // 初始化步驟1的登入界面
         initializeStepOneUI();
         // 自動觸發數位身分驗證
@@ -1169,15 +1052,8 @@
       // 初始化步驟1的登入界面（申請流程中的身分驗證）
       function initializeStepOneUI() {
         const DEFAULT_QR = "";
-        const tabs = document.querySelectorAll(".login-tab");
-        const forms = {
-          general: document.getElementById("general-login-form"),
-          digital: document.getElementById("digital-login-form"),
-        };
-
-        const qrImg = document.querySelector(".qr-code-container img");
-        const countdownEl = document.querySelector(".countdown-time");
-        let verification_code = "";
+        const qrImg = document.querySelector("#identityQrCode");
+        const countdownEl = document.querySelector("#identityCountdown");
 
         // 確保 QR 有預設圖片
         if (
@@ -1192,250 +1068,8 @@
         ) {
           countdownEl.textContent = "5:00";
         }
-
-        // Tab 切換功能
-        function setActiveTab(tabEl, startFlow = true) {
-          tabs.forEach((t) => {
-            t.classList.remove("active");
-            // 移除 active 樣式時，設定為非 active 的內聯樣式
-            t.style.backgroundColor = "#e4f1fa";
-            t.style.color = "#1e81b2";
-          });
-          tabEl.classList.add("active");
-          // 添加 active 樣式時，設定為 active 的內聯樣式
-          tabEl.style.backgroundColor = "#1e81b2";
-          tabEl.style.color = "#f8fafc";
-
-          Object.values(forms).forEach((form) => form.classList.add("hidden"));
-
-          const formId = tabEl.getAttribute("data-tab");
-          if (forms[formId]) forms[formId].classList.remove("hidden");
-        }
-
-        tabs.forEach((tab) => {
-          tab.addEventListener("click", function () {
-            const formId = this.getAttribute("data-tab");
-            if (formId === "general") {
-              clearDigitalIntervals();
-            }
-            setActiveTab(this, false);
-          });
-        });
-
-        // 初始化 active tab
-        const initialActive =
-          document.querySelector(".login-tab.active") || tabs[0];
-        if (initialActive) setActiveTab(initialActive, false);
-
-        // Email 驗證碼發送按鈕
-        const verificationBtn = document.querySelector(
-          ".verification-send-btn"
-        );
-        let timeLeft = 180;
-        let countdownTimer = null;
-
-        function startCountdown() {
-          if (!verificationBtn) return;
-          verificationBtn.disabled = true;
-          timeLeft = 180;
-
-          function updateButtonText() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            verificationBtn.textContent = `重新發送 (${minutes}:${seconds
-              .toString()
-              .padStart(2, "0")})`;
-
-            if (timeLeft <= 0) {
-              clearInterval(countdownTimer);
-              verificationBtn.disabled = false;
-              verificationBtn.textContent = "發送驗證碼";
-              return;
-            }
-            timeLeft--;
-          }
-
-          updateButtonText();
-          countdownTimer = setInterval(updateButtonText, 1000);
-        }
-
-        if (verificationBtn) {
-          verificationBtn.addEventListener("click", async function () {
-            const email = document.getElementById("email").value;
-
-            if (!email) {
-              alert("請輸入 Email");
-              return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-              alert("請輸入有效的 Email 格式");
-              return;
-            }
-
-            try {
-              const response = await fetch("/api/v1/auth/email/auth", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email: email,
-                  is_verified: false,
-                }),
-              });
-
-              if (response.ok) {
-                const data = await response.json();
-                startCountdown();
-                if (data.verification_code) {
-                  verification_code = data.verification_code;
-                  console.log("驗證碼(開發用):", data.verification_code);
-                  alert(
-                    "✅ 驗證碼已發送到您的Email，請查收！\n\n(開發環境：驗證碼已輸出到Console)"
-                  );
-                } else {
-                  alert("✅ 驗證碼已發送到您的Email，請查收！");
-                }
-              } else {
-                const error = await response.json();
-                alert("發送失敗：" + (error.detail || "請稍後再試"));
-              }
-            } catch (error) {
-              console.error("發送驗證碼錯誤:", error);
-              alert("網路錯誤：" + error.message);
-            }
-          });
-        }
-
-        // 登入按鈕
-        const loginBtn = document.querySelector(".login-btn");
-        if (loginBtn) {
-          loginBtn.addEventListener("click", async function () {
-            const email = document.getElementById("email").value;
-            const verificationCode = document.getElementById("password").value;
-            const captchaInputEl = document.querySelector(
-              ".verification-input"
-            );
-            const captchaInput = captchaInputEl ? captchaInputEl.value : "";
-            const captchaTextEl = document.querySelector(".verification-code");
-            const captchaText = captchaTextEl ? captchaTextEl.textContent : "";
-
-            if (!email) {
-              alert("請填寫email");
-              return;
-            } else if (!verificationCode) {
-              alert("請填寫驗證碼");
-              return;
-            } else if (!captchaInput) {
-              alert("請填寫圖形驗證碼");
-              return;
-            }
-
-            if (verificationCode.length !== 6) {
-              alert("驗證碼必須是 6 位數字");
-              return;
-            }
-
-            if (verificationCode !== verification_code) {
-              alert("驗證碼錯誤，請重新輸入");
-              return;
-            }
-
-            if (captchaInput !== captchaText) {
-              alert("圖形驗證碼錯誤，請重新輸入");
-              return;
-            }
-
-            try {
-              const response = await fetch("/api/v1/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  email: email,
-                  login_type: "password",
-                  verification_code: verificationCode,
-                  verify: true,
-                }),
-              });
-
-              if (response.ok) {
-                const data = await response.json();
-                accessToken = data.access_token;
-                currentUser = data.user;
-                localStorage.setItem("applicant_token", accessToken);
-                localStorage.setItem(
-                  "applicant_user",
-                  JSON.stringify(currentUser)
-                );
-
-                // 身分驗證成功，進入步驟2（房屋持有驗證）
-                console.log("✅ 步驟1完成：Email 身分驗證成功");
-                
-                // 顯示 loading 動畫
-                showLoadingAnimation('身分驗證成功！正在處理...');
-                
-                // 延遲 6 秒讓動畫播放完整，然後進入下一步
-                setTimeout(() => {
-                  hideLoadingAnimation();
-                  moveToStep2();
-                }, 10000);
-              } else {
-                const error = await response.json();
-                alert(
-                  "驗證失敗：" +
-                    (error.detail?.message || error.detail || "請稍後再試")
-                );
-              }
-            } catch (error) {
-              console.error("驗證錯誤:", error);
-              alert("網路錯誤：" + error.message);
-            }
-          });
-        }
-
-        // Google 登入按鈕
-        const googleBtn = document.querySelector(".google-btn");
-        if (googleBtn) {
-          googleBtn.addEventListener("click", function () {
-            window.location.href = "/api/v1/auth/google/login";
-          });
-        }
-
-        // 刷新圖形驗證碼
-        const refreshCaptchaBtn = document.querySelector(".refresh-captcha");
-        function generateCaptcha() {
-          const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-          let captcha = "";
-          for (let i = 0; i < 5; i++) {
-            captcha += chars[Math.floor(Math.random() * chars.length)];
-          }
-          const captchaEl = document.querySelector(".verification-code");
-          if (captchaEl) captchaEl.textContent = captcha;
-        }
-
-        if (refreshCaptchaBtn)
-          refreshCaptchaBtn.addEventListener("click", generateCaptcha);
-        generateCaptcha();
-
-        // 如果數位 tab 是 active，啟動數位登入流程
-        const activeTabOnLoad = document.querySelector(".login-tab.active");
-        if (
-          activeTabOnLoad &&
-          activeTabOnLoad.getAttribute("data-tab") === "digital"
-        ) {
-          loginWithDigitalIDStepOne();
-        }
-
-        // 數位 tab 點擊事件
-        const digitalTab = document.querySelector(
-          '.login-tab[data-tab="digital"]'
-        );
-        if (digitalTab) {
-          digitalTab.addEventListener("click", () => {
-            clearDigitalIntervals();
-            setTimeout(() => loginWithDigitalIDStepOne(), 100);
-          });
-        }
+        
+        console.log("✅ 步驟1 UI 初始化完成（僅數位身分驗證）");
       }
 
       // 步驟1的數位身分驗證
