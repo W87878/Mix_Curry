@@ -71,7 +71,7 @@ body {
   width: 612px;
   border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 48px;
+  margin: 0 auto 48px auto;
 }
 
 .login-tabs {
@@ -875,6 +875,19 @@ textarea:focus {
   border-radius: 16px;
   padding: 48px 56px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* 步驟容器內的 login-container 特殊樣式 */
+.form-step-container .form-card .login-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.form-step-container .form-card .login-form {
+  padding: 0;
 }
 
 /* 步驟標題 */
