@@ -4,36 +4,58 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=1440">
 	<title>災害補助申請平台</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 	<style>
 		body {
 			margin: 0;
 			font-family: 'Noto Sans TC', sans-serif;
-			background: #FFFFFF;
-			color: #0F172A;
+			background: #F9F7F4;
+			color: #14181A;
+            
+            
 		}
 			.header {
 				width: 100vw;
 				min-width: 320px;
-				height: 139px;
-				background: #F9F7F4;
+				background: transparent;
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				padding: 48px 96px;
+				padding: 24px 96px;
 				box-sizing: border-box;
-				position: fixed;
+				/* position: fixed; */
 				top: 0;
 				left: 0;
 				right: 0;
-				z-index: 100;
+				z-index: 1000;
 			}
 			body {
-				margin-top: 139px;
+				
+                position: relative;
+                overflow-x: hidden;
+			}
+
+            .toy{
+            width: 600px;
+            height: 600px;
+            position: absolute;
+            top: -450px;;
+            right:-150px;
+            background-color: #F3EEE6;
+            border-radius: 50%;
+            z-index: -1;
+        }
+			.logo {
+				width: 30px;
+				height: 40px;
 			}
 		.header-title {
-			font-size: 36px;
-			font-weight: 700;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-size: 24px;
+			font-weight: 600;
 			color: #1E81B2;
 		}
 		.header-menu {
@@ -41,25 +63,51 @@
 			gap: 24px;
 			font-size: 20px;
 			font-weight: 500;
-			color: #000;
+			color: #3D484D;
+			a {
+				&:hover {
+					color: #1E81B2;
+				}
+			}
 		}
         .main {
-            width: 1248px;
+            /* width: calc(100vw - 96px); */
+            width: 100vw;
             margin: 0 auto;
             margin-top: 48px;
             display: flex;
             flex-direction: column;
             gap: 48px;
+            position: relative;
+            
+        }
+
+        
+
+        .upper{
+            margin:0 96px;
+            z-index: 10;
+        }
+
+        .down{
+            margin-left: 48px;
+            padding-top: 48px;
+            padding-left: 48px;
+            padding-right: 96px;
+            background-color: #F3EEE6;
+            border-radius: 96px 0 0;
+
         }
         .header-menu a {
-            color: #000;
+            color: #3D484D;
             text-decoration: none;
         }
+        
 		.section-title {
             font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-top: 40px;
+            font-weight: 600;
+            color: #3D484D;
+            /* margin-top: 40px; */
             margin-bottom: 24px;
 		}
         .card-row {
@@ -70,14 +118,17 @@
         }
 		.card {
 			background: #FFFFFF;
-			border-radius: 12px;
+			border-radius: 16px;
 			padding: 24px;
-			width: 400px;
+			/* width: 400px; */
+            flex: 1;
+            min-width: 300px;
+            /* max-width: 400px; */
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+			/* box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.12); */
 			transition: all 0.3s ease;
 		}
 		.card:hover {
@@ -87,13 +138,15 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 12px;
+            gap: 8px;
 		}
 		.card-icon {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			margin-right: 10px;
+			/* margin-right: 8px; */
+            width: 30px;
+            height: 30px;
 		}
 		.card-label {
             background: #D1E9FF;
@@ -133,7 +186,7 @@
 		}
 		.card-btn-primary {
 			background: #1E81B2;
-			color: #fff;
+			color: #F4F7F7;
 		}
 		.card-btn-primary:hover {
 			background: #166a93;
@@ -188,12 +241,12 @@
         .carousel-wrapper {
             position: relative;
             width: 100%;
-            margin: 0 auto 24px auto;
+            margin: 0 auto 0 auto;
         }
         
         .carousel {
             display: flex;
-            gap: 16px;
+            gap: 24px;
             overflow-x: auto;
             scroll-behavior: smooth;
             padding: 8px 0;
@@ -211,9 +264,9 @@
             min-width: 380px;
             max-width: 380px;
             height: 200px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            /* box-shadow: rgba(17, 17, 26, 0.05) 0px 4px 16px, rgba(17, 17, 26, 0.05) 0px 8px 32px; */
             cursor: pointer;
             transition: all 0.3s ease;
             flex-shrink: 0;
@@ -235,16 +288,16 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 20px 16px;
-            color: white;
+            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+            padding: 96px 12px 12px;
+            color: #F4F7F7;
         }
         
         .carousel-card-text {
             font-size: 16px;
             font-weight: 500;
-            line-height: 1.4;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            line-height: 24px;
+            
         }
         
         /* 輪播箭頭 */
@@ -254,7 +307,7 @@
             transform: translateY(-50%);
             width: 44px;
             height: 44px;
-            background: white;
+            background: #F4F7F7;
             border: none;
             border-radius: 50%;
             box-shadow: 0 2px 12px rgba(0,0,0,0.15);
@@ -289,30 +342,39 @@
 	</style>
 </head>
 <body>
+    
 	<div class="header">
-		<div class="header-title">🏚️ 災害補助申請平台</div>
+		<div class="header-title"><div class="logo"><img src="static/assets/logo.svg" alt="logo" width="100%" height="100%"></div>災害補助申請平台</div>
 		<div class="header-menu">
-			<a href="/admin">審核人員入口</a>
-			<a href="https://welfare.ntpc.gov.tw/viewService/show/22023?fromOpa=1">申請流程</a>
-			<a href="/applicant">進度查詢</a>
-		</div>
-	</div>
-	
-	<div class="main">
-		<!-- 即時消息輪播 -->
-		<div>
-			<div class="section-title">即時消息</div>
-			<div class="carousel-wrapper">
-				<button class="carousel-arrow carousel-arrow-left" id="carousel-left-arrow" onclick="scrollCarouselLeft()">‹</button>
-				<div class="carousel" id="carousel-container">
-					<!-- 動態生成輪播卡片 -->
-				</div>
-				<button class="carousel-arrow carousel-arrow-right" id="carousel-right-arrow" onclick="scrollCarouselRight()">›</button>
+				<a href="/admin">審核人員入口</a>
+				<a href="https://welfare.ntpc.gov.tw/viewService/show/22023?fromOpa=1">申請流程</a>
+				<a href="/applicant">進度查詢</a>
 			</div>
 		</div>
 		
+	<div class="main">
+        
+		<!-- 即時消息輪播 -->
+		<div class="upper">
+			<div class="section-title">即時消息</div>
+			<div class="carousel-wrapper">
+				<button class="carousel-arrow carousel-arrow-left" id="carousel-left-arrow" onclick="scrollCarouselLeft()">
+                    <i class="ph ph-caret-left"></i>
+                </button>
+				<div class="carousel" id="carousel-container">
+					<!-- 動態生成輪播卡片 -->
+				</div>
+				<button class="carousel-arrow carousel-arrow-right" id="carousel-right-arrow" onclick="scrollCarouselRight()">
+                    <i class="ph ph-caret-right"></i>
+                </button>
+			</div>
+		</div>
+
+		<div class="toy">
+        </div>
+
 		<!-- 災害補助項目 -->
-		<div>
+		<div class="down">
 			<div class="section-title">災害補助項目</div>
             <div id="all-disaster-cards"></div>
         </div>
@@ -327,7 +389,7 @@
             content: '情況：住家因水災受損達50公分以上，且有高度財損之相關證明文件。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高20,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/assets/淹水救助圖標.png',
         },
         {
             title: '土石流損害救助',
@@ -335,15 +397,15 @@
             content: '情況：住家因土石流受災達30公分以上，且有高度財損之相關證明文件。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高20,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/assets/土石流住屋受災救助圖標.png',
         },
         {
-            title: '安援救助',
+            title: '安遷救助',
             label: '救濟項目',
             content: '情況：住家因災不堪居住住，並造遷居或短期居住旅館之住宿。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高20,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/assets/安遷救助圖標.png',
         },
         {
             title: '重傷救助',
@@ -351,7 +413,7 @@
             content: '情況：因災受到重傷住院或就醫，且有相關住診證明及醫療費單據。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高100,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/重傷救助圖標.png',
         },
         {
             title: '失蹤救助',
@@ -359,7 +421,7 @@
             content: '情況：因災失蹤滿3日以上，經全民眾報案警方或其機構關搜尋。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高20,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/失蹤救助圖標.png',
         },
         {
             title: '死亡救助',
@@ -367,7 +429,7 @@
             content: '情況：因災死亡或失蹤滿1年以上，由家屬代提出政府開具之死亡證明。',
             date: '申請日期：即日起至114年11/12',
             amount: '金額：最高200,000元',
-            icon: 'static/assets/water.svg',
+            icon: 'static/死亡救助圖標.png',
         },
     ];
 
@@ -427,23 +489,23 @@
     const carouselImages = [
         {
             src: 'static/assets/card1.png', 
-            text: '協助加速災後重建，受災民眾申請災損證明 🏚️'
+            text: '協助加速災後重建，受災民眾申請災損證明'
         },
         {
             src: 'static/assets/card2.png', 
-            text: '樹倒壓損屋經2機關認定，居交通壅塞處易獲賠 🌳'
+            text: '樹倒壓損屋經2機關認定，居交通壅塞處易獲賠'
         },
         {
             src: 'static/assets/card3.jpeg', 
-            text: '曾經發路凍貧窮攝影，攝影展募資 📸'
+            text: '曾經發路凍貧窮攝影，攝影展募資'
         },
         {
             src: 'static/assets/card4.png', 
-            text: '鳳凰颱風蘇澳首名罹難者延誤通報？ 鎮長致歉允檢討改善 ☔'
+            text: '鳳凰颱風蘇澳首名罹難者延誤通報？ 鎮長致歉允檢討改善'
         }, 
         {
             src: 'static/assets/card5.png', 
-            text: '災害應變一條龍 打造有韌性的台灣 🇹🇼'
+            text: '災害應變一條龍 打造有韌性的台灣'
         }
     ];
 
