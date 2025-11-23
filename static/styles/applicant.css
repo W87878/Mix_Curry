@@ -14,15 +14,25 @@ body {
 
 .page-header {
   background-color: #f9f7f4;
-  padding: 48px 96px;
+  padding: 24px 96px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  .logo{
+    width: 30px;
+    height: 40px;
+  }
+}
+
 .page-header h1 {
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: #1e81b2;
 }
 
@@ -37,41 +47,54 @@ body {
   font-size: 20px;
   font-weight: 500;
   color: #1e81b2;
+
 }
 
 .header-nav a {
   text-decoration: none;
-  color: #000;
+  color: #3D484D;
   letter-spacing: 0.4px;
+  &:hover {
+    color: #1E81B2;
+  }
 }
 
 .main-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 80px;
+  padding-top: 48px;
+}
+
+.main-content .login-container{
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 
 .form-page-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 32px;
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 600;
+  margin: 48px 0;
   letter-spacing: 0.6px;
   text-align: center;
+  color: #3D484D;
 }
 
 .page-title {
   font-size: 30px;
-  font-weight: 700;
-  margin-bottom: 40px;
+  line-height: 38px;
+  font-weight: 600;
+  margin-bottom: 48px;
   letter-spacing: 0.6px;
+  color: #3D484D;
 }
 
 .login-container {
   width: 612px;
-  border-radius: 16px;
+  border-radius: 24px;
   overflow: hidden;
   margin: 0 auto 48px auto;
+  
 }
 
 .login-tabs {
@@ -83,8 +106,8 @@ body {
   padding: 24px;
   text-align: center;
   font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.4px;
+  font-weight: 500;
+  /* letter-spacing: -0.4px; */
   cursor: pointer;
 }
 
@@ -223,7 +246,7 @@ textarea:focus {
 
 .divider-line {
   flex: 1;
-  height: 2px;
+  height: 1px;
   background: #c9d5d8;
   border-radius: 999px;
 }
@@ -281,18 +304,18 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
 }
 
 .digital-title {
   font-family: "Noto Sans TC", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 24px;
   line-height: 32px;
   text-align: center;
   letter-spacing: 0.48px;
-  color: #020618;
+  color: #14181A;
 }
 
 .digital-subtitle {
@@ -302,14 +325,14 @@ textarea:focus {
   line-height: 24px;
   text-align: center;
   letter-spacing: 0.64px;
-  color: #020618;
+  color: #14181A;
 }
 
 .qr-code-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  
 }
 
 .qr-code-container img {
@@ -323,12 +346,13 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #64748b;
+  color: #779299;
   font-size: 14px;
+  margin: 24px 0 12px;
 }
 
 .countdown-time {
-  color: #0f172a;
+  color: #14181A;
   font-weight: 500;
 }
 
@@ -339,8 +363,8 @@ textarea:focus {
   line-height: 20px;
   text-align: center;
   letter-spacing: 0.48px;
-  color: #475569;
-  margin-bottom: 24px;
+  color: #779299;
+  
 }
 
 .link-text {
@@ -350,9 +374,8 @@ textarea:focus {
   line-height: 24px;
   text-align: center;
   text-decoration-line: underline;
-  color: #000000;
+  color: #14181A;
   letter-spacing: 0.64px;
-  margin: 24px 0;
   display: block;
 }
 
@@ -363,7 +386,7 @@ textarea:focus {
   line-height: 24px;
   text-align: center;
   letter-spacing: 0.64px;
-  color: #000000;
+  color: #14181A;
 }
 
 .register-text a {
@@ -422,16 +445,16 @@ textarea:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  margin-bottom: 40px;
-  padding: 20px;
+  gap: 48px;
+  /* margin-bottom: 40px;
+  padding: 20px; */
 }
 
 .step-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   position: relative;
 }
 
@@ -439,8 +462,8 @@ textarea:focus {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #e9ecef;
-  color: #6c757d;
+  background: #e3eaea;
+  color: #5c777e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -607,33 +630,35 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 20px;
+  padding: 48px 96px;
   background: #f9f7f4;
 }
 
 .success-form {
-  width: 612px;
+  max-width: 612px;
+  width: 100%;
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
   margin: 0 auto;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 
 .success-title {
   font-family: "Noto Sans TC", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 24px;
   line-height: 32px;
   text-align: center;
   letter-spacing: 0.48px;
-  color: #020618;
+  color: #14181A;
 }
 
-.success-icon-container {
+.success-form .success-icon-container {
   width: 96px;
   height: 96px;
   background-color: #1e81b2;
@@ -643,10 +668,10 @@ textarea:focus {
   justify-content: center;
 }
 
-.success-icon-container img {
+/* .success-icon-container img {
   width: 48px;
   height: 48px;
-}
+} */
 
 .success-subtitle {
   font-family: "Noto Sans TC", sans-serif;
@@ -842,8 +867,8 @@ textarea:focus {
 .history-actions {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
-  gap: 16px;
+  margin-top: 48px;
+  gap: 24px;
 }
 
 /* Additional utility classes */
@@ -869,11 +894,11 @@ textarea:focus {
 }
 
 .form-card {
-  margin: 80px auto;
-  max-width: 680px;
+  margin: 48px auto;
+  max-width: 612px;
   background: white;
-  border-radius: 16px;
-  padding: 48px 56px;
+  border-radius: 24px;
+  padding: 48px 48px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
@@ -894,31 +919,32 @@ textarea:focus {
 .step-title {
   font-size: 28px;
   font-weight: 700;
-  color: #0f172a;
+  color: #14181A;
   margin-bottom: 12px;
   text-align: center;
   letter-spacing: 0.5px;
 }
 
 .step-desc {
-  font-size: 15px;
-  color: #64748b;
-  margin-bottom: 40px;
+  font-size: 14px;
+  color: #779299;
+  margin-bottom: 24px;
   text-align: center;
-  line-height: 1.6;
+  line-height: 22px;
+  letter-spacing: 0.48px;
 }
 
 /* 表單群組 */
 .form-group {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .form-group label {
   display: block;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #334155;
-  margin-bottom: 10px;
+  color: #14181A;
+  margin-bottom: 12px;
   letter-spacing: 0.2px;
 }
 
@@ -932,9 +958,9 @@ textarea:focus {
 .form-input,
 .form-textarea {
   width: 100%;
-  padding: 14px 16px;
-  font-size: 15px;
-  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #C9D5D8;
   border-radius: 8px;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -952,7 +978,7 @@ textarea:focus {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #94a3b8;
+  color: #779299;
   font-size: 14px;
 }
 
@@ -965,17 +991,22 @@ textarea:focus {
 /* 字數計數器 */
 .char-counter {
   text-align: right;
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 8px;
+  font-size: 14px;
+  color: #779299;
+  margin-top: 4px;
   font-weight: 500;
 }
 
 /* 文件上傳區域 */
 .file-upload-box {
-  border: 2px dashed #cbd5e1;
+  border: 2px dashed #C9D5D8;
   border-radius: 12px;
-  padding: 56px 32px;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -989,28 +1020,35 @@ textarea:focus {
 }
 
 .upload-icon {
-  font-size: 52px;
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
   opacity: 0.7;
+
+  border:#E3EAEA solid 1px;
+  border-radius: 8px;
 }
 
 .upload-text {
-  color: #334155;
+  color: #14181A;
 }
 
 .upload-text p {
-  margin: 6px 0;
+  margin: 0px 0 12px 0;
 }
 
 .upload-text strong {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
-  color: #0f172a;
+  color: #14181A;
 }
 
 .upload-hint {
   font-size: 14px;
-  color: #64748b;
+  color: #779299;
   margin-top: 4px;
 }
 
@@ -1065,18 +1103,50 @@ textarea:focus {
   transform: scale(1.1);
 }
 
+.success-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 612px;
+  margin: 0 auto;
+  gap:24px;
+  padding:48px;
+  background-color: #ffffff;
+  border-radius:24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.success-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+
+}
 /* 按鈕樣式 */
 .form-actions-row {
   display: flex;
-  gap: 16px;
+  gap: 24px;
   justify-content: center;
-  margin-top: 40px;
-  padding-top: 32px;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #C9D5D8;
+}
+
+.success-actions {
+  display: flex;
+  width: 100%;
+  max-width: 612px;
+  gap: 24px;
+  justify-content: center;
+  align-self: center;
+  margin: 48px auto;
+  
 }
 
 .btn {
-  padding: 14px 40px;
+  padding: 12px;
   font-size: 16px;
   font-weight: 600;
   border-radius: 8px;
@@ -1088,20 +1158,21 @@ textarea:focus {
 }
 
 .btn-outline {
-  background: white;
-  color: #475569;
-  border: 2px solid #cbd5e1;
+  background: transparent;
+  color: #1E81B2;
+  border: 1px solid #1E81B2;
 }
 
 .btn-outline:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+  background: transparent;
+  border-color: #2C9BCB;
+  color: #2C9BCB;
   transform: translateY(-1px);
 }
 
 .btn-primary {
   background: #1e81b2;
-  color: white;
+  color: #F4F7F7;
   box-shadow: 0 2px 8px rgba(30, 129, 178, 0.2);
 }
 
@@ -1719,6 +1790,7 @@ textarea:focus {
   }
   .success-form {
     width: 100%;
+    
   }
   .success-button {
     width: 100%;

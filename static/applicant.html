@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>災民補助申請 - 線上申請系統</title>
     <link rel="stylesheet" href="/static/styles/applicant.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Lottie 動畫庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js" defer></script>
   </head>
@@ -18,25 +19,30 @@
     <!-- 登入畫面 -->
     <div id="loginScreen" class="hidden">
       <header class="page-header">
+        <div class="header-title"> 
+            <div class="logo"><img src="/static/assets/logo.svg" alt=""width="100%" height="100%"></div>
+        
         <h1>
-          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+          <a class="header-href" href="/">災害補助申請平台</a>
         </h1>
+        </div>
         <nav class="header-nav">
           <a href="/">返回首頁</a>
         </nav>
+        
       </header>
 
       <main class="main-content">
         <h2 class="page-title">登入後繼續</h2>
-        <p class="page-subtitle">請登入以開始申請水災補助</p>
+        <!-- <p class="page-subtitle">請登入以開始申請水災補助</p> -->
 
         <div class="login-container">
           <div class="login-tabs">
             <div class="login-tab" data-tab="general" style="background-color: #e4f1fa !important; color: #1e81b2 !important;">
-              <span class="icon-spacer">📧</span>一般登入
+              <span class="icon-spacer"></span>一般登入
             </div>
             <div class="login-tab active" data-tab="digital" style="background-color: #1e81b2 !important; color: #f8fafc !important;">
-              📱 數位身分證憑證登入 (推薦)
+              數位身分證憑證登入 (推薦)
             </div>
           </div>
 
@@ -150,10 +156,11 @@
                   <span class="countdown-time" id="loginCountdown">5:00</span>
                   <span class="timer-text"> 內完成掃描</span>
                 </div>
+                <p class="qr-hint">使用數位憑證皮夾APP掃碼登入</p>
               </div>
             </div>
 
-            <p class="qr-hint">使用數位憑證皮夾APP掃碼登入</p>
+            
 
             <div class="divider">
               <div class="divider-line"></div>
@@ -180,9 +187,12 @@
     <!-- 登入成功主選單 -->
     <div class="success-screen hidden" id="mainMenu">
       <header class="page-header">
-        <h1>
-          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
-        </h1>
+        <div class="header-title"> 
+            <div class="logo"><img src="/static/assets/logo.svg" alt=""width="100%" height="100%"></div>
+          <h1>
+            <a class="header-href" href="/">災害補助申請平台</a>
+          </h1>
+        </div>
         <nav class="header-nav">
           <a href="#" onclick="logout(); return false;">登出</a>
           <a href="/">返回首頁</a>
@@ -193,24 +203,12 @@
         <div class="success-form">
           <div class="success-title">成功登入</div>
           <div class="success-icon-container">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              fill="#1E81B2"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="24" cy="24" r="20" fill="#1E81B2"/>
-              <path
-                d="M20 32L10 22L12.8 19.2L20 26.4L35.2 11.2L38 14L20 32Z"
-                fill="#FFFFFF"
-              />
-            </svg>
+            <i class="ph ph-check"style="font-size: 48px; color:#F4F7F7;"></i>
           </div>
           <div class="success-subtitle">您已登入</div>
-          <div class="success-email" id="successEmailDisplay">
+          <!-- <div class="success-email" id="successEmailDisplay">
             user@example.com
-          </div>
+          </div> -->
         </div>
 
         <div class="history-actions">
@@ -227,9 +225,12 @@
     <!-- 申請歷史記錄畫面 -->
     <div class="history-screen hidden" id="myApplicationsScreen">
       <header class="page-header">
+        <div class="header-title"> 
+          <div class="logo"><img src="/static/assets/logo.svg" alt=""width="100%" height="100%"></div>
         <h1>
-          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+          <a class="header-href" href="/">災害補助申請平台</a>
         </h1>
+      </div>
         <nav class="header-nav">
           <a href="#" onclick="backToMainMenu(); return false;">返回</a>
         </nav>
@@ -256,16 +257,19 @@
     <!-- 申請表單畫面 -->
     <div id="applyForm" class="hidden">
       <header class="page-header">
+        <div class="header-title"> 
+          <div class="logo"><img src="/static/assets/logo.svg" alt=""width="100%" height="100%"></div>
         <h1>
-          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+          <a class="header-href" href="/">災害補助申請平台</a>
         </h1>
+      </div>
         <nav class="header-nav">
           <a href="/" onclick="backToMainMenu(); return false;">返回</a>
         </nav>
       </header>
 
       <main class="form-main">
-        <h2 class="form-page-title">水災補助申請</h2>
+        <h2 class="form-page-title">淹水救助申請</h2>
 
         <!-- 步驟指示器 -->
         <div class="step-indicator">
@@ -309,18 +313,19 @@
                       <span class="countdown-time" id="identityCountdown">5:00</span>
                       <span class="timer-text"> 內完成掃描</span>
                     </div>
+                    <p class="qr-hint">使用數位憑證皮夾APP掃碼驗證身分</p>
                   </div>
                 </div>
 
-                <p class="qr-hint">使用數位憑證皮夾APP掃碼驗證身分</p>
+                
 
                 <div class="divider">
                   <div class="divider-line"></div>
                 </div>
 
-                <div class="security-notice" style="background: #eff6ff; border-left: 4px solid #1e81b2; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                  <h4 style="font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">🔒 安全提示</h4>
-                  <p style="font-size: 13px; color: #1e40af; line-height: 1.6; margin: 0;">
+                <div class="security-notice" style="background: #E4F1FA; padding: 12px; border-radius: 16px;">
+                  <h4 style="font-size: 16px; font-weight: 600; color: #185574; margin-bottom: 12px;">🔒 安全提示</h4>
+                  <p style="font-size: 14px; color: #185574; line-height: 22px; margin: 0;">
                     您的個人資料受到嚴格保護，我們僅用此進行身份核驗，將嚴格遵守相關隱私法規。所有資料傳輸皆經過加密處理。
                   </p>
                 </div>
@@ -341,7 +346,7 @@
               <div class="login-form">
                 <div class="digital-header">
                   <div class="digital-title">數位憑證皮夾APP</div>
-                  <div class="digital-subtitle">房屋持有憑證驗證方式</div>
+                  <div class="digital-subtitle">房產持有憑證驗證方式</div>
                 </div>
 
                 <div class="qr-code-container">
@@ -360,24 +365,24 @@
                       <span class="countdown-time" id="propertyCountdown">5:00</span>
                       <span class="timer-text"> 內完成掃描</span>
                     </div>
+                    <p class="qr-hint">使用數位憑證皮夾APP掃碼驗證房屋持有</p>
                   </div>
                 </div>
 
-                <p class="qr-hint">使用數位憑證皮夾APP掃碼驗證房屋持有</p>
 
                 <div class="divider">
                   <div class="divider-line"></div>
                 </div>
 
-                <div class="security-notice" style="background: #eff6ff; border-left: 4px solid #1e81b2; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                  <h4 style="font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">🔒 安全提示</h4>
-                  <p style="font-size: 13px; color: #1e40af; line-height: 1.6; margin: 0;">
-                    您的個人資料受到嚴格保護，我們僅用此進行身份核驗，將嚴格遵守相關隱私法規。所有資料傳輸皆經過加密處理。
+                <div class="security-notice" style="background: #E4F1FA; padding: 12px; border-radius: 16px;">
+                  <h4 style="font-size: 16px; font-weight: 600; color: #185574; margin-bottom: 12px;">🔒 安全提示</h4>
+                  <p style="font-size: 14px; color: #185574; line-height: 22px; margin: 0;">
+                    您的個人資料受到嚴格保護，我們僅用此進行房產持有核驗，將嚴格遵守相關隱私法規。所有資料傳輸皆經過加密處理。
                   </p>
                 </div>
 
                 <p class="register-text">
-                  還沒有房屋持有憑證嗎？
+                  還沒有房產持有憑證嗎？
                   <a target="_blank" href="https://wallet.gov.tw/zh-tw">點我立即申請</a>
                 </p>
               </div>
@@ -389,7 +394,7 @@
         <div class="form-step-container hidden" id="form-step3">
           <div class="form-card">
             <h3 class="step-title">上傳災損照片</h3>
-            <p class="step-desc">請上傳災害照片，任意一種皆有門檻</p>
+            <p class="step-desc">請上傳災害照片，最少需一張含有門牌號碼</p>
 
             <div class="form-group">
               <label for="disasterDate">災害發生日期 <span class="required">*</span></label>
@@ -419,7 +424,9 @@
             <div class="form-group">
               <label>災害照片 <span class="required">*</span></label>
               <div class="file-upload-box" onclick="document.getElementById('disasterPhotos').click()">
-                <div class="upload-icon">📤</div>
+                <div class="upload-icon">
+                  <i class="ph ph-upload-simple"></i>
+                </div>
                 <div class="upload-text">
                   <p><strong>點擊上傳或拖曳圖檔區</strong></p>
                   <p class="upload-hint">支援 JPG・PNG・PDF 檔案</p>
@@ -455,34 +462,40 @@
     <!-- 申請提交成功畫面 -->
     <div id="successScreen" class="hidden">
       <header class="page-header">
+        <div class="header-title"> 
+          <div class="logo"><img src="/static/assets/logo.svg" alt=""width="100%" height="100%"></div>
         <h1>
-          <a class="header-href" href="/">🏚️ 災害補助申請平台</a>
+          <a class="header-href" href="/">災害補助申請平台</a>
         </h1>
+      </div>
         <nav class="header-nav">
           <a href="/">返回首頁</a>
         </nav>
       </header>
 
       <main class="form-main">
-        <h2 class="form-page-title">水災補助申請</h2>
+        <h2 class="form-page-title">淹水救助申請</h2>
 
         <div class="success-card-wrapper">
           <div class="success-card">
-            <div class="success-icon-large">✓</div>
+            
             <h3 class="success-title">您已完成申請</h3>
             <p class="success-subtitle">
-              審核需3-5個工作天，請耐心等候
+              審核需3-5個工作天，我們陪你度過難關
             </p>
-
-            <div class="success-actions">
-              <button class="btn btn-outline" onclick="backToMainMenu()">
-                回到首頁
-              </button>
-              <button class="btn btn-primary" onclick="showMyApplications()">
-                查看申請進度
-              </button>
+            <div class="success-icon-container">
+              <img src="/static/assets/申請成功-插圖.svg" alt="">
+              <!-- <i class="ph ph-check" style="font-size: 48px; color: #F4F7F7;"></i> -->
             </div>
           </div>
+        </div>
+        <div class="success-actions">
+          <button class="btn btn-outline" onclick="backToMainMenu()">
+            回到首頁
+          </button>
+          <button class="btn btn-primary" onclick="showMyApplications()">
+            查看申請進度
+          </button>
         </div>
       </main>
     </div>
